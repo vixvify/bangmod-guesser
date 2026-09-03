@@ -33,21 +33,3 @@ jobs:
       - name: Build
         run: npm run build
 
-  discord:
-    name: Discord Notification
-    needs: ci
-    if: always()
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: sarisia/actions-status-discord@v1
-        with:
-          webhook: ${{ secrets.DISCORD_WEBHOOK }}
-          status: ${{ needs.ci.result }}
-          title: Next.js CI
-          description: |
-            Repository: ${{ github.repository }}
-            Branch: ${{ github.ref_name }}
-            Commit: ${{ github.event.head_commit.message }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
