@@ -6,12 +6,15 @@ export const RegisterSchema = z
   .object({
     name: z
       .string()
+      .trim()
       .min(1, AUTH_MESSAGES.name.required)
       .min(2, AUTH_MESSAGES.name.min)
       .max(50, AUTH_MESSAGES.name.max),
 
     email: z
       .string()
+      .trim()
+      .toLowerCase()
       .min(1, AUTH_MESSAGES.email.required)
       .email(AUTH_MESSAGES.email.invalid),
 
@@ -34,11 +37,20 @@ export const RegisterSchema = z
 export const LoginSchema = z.object({
   email: z
     .string()
+    .trim()
+    .toLowerCase()
     .min(1, AUTH_MESSAGES.email.required)
     .email(AUTH_MESSAGES.email.invalid),
 
   password: z.string().min(1, AUTH_MESSAGES.password.required),
 });
 
+export const CreateUserSchema = z.object({
+  name: z.string(),
+  email: z.string().email(),
+  password: z.string().min(1),
+});
+
 export type RegisterInput = z.infer<typeof RegisterSchema>;
 export type LoginInput = z.infer<typeof LoginSchema>;
+export type CreateUserInput = z.infer<typeof CreateUserSchema>;

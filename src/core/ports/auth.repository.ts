@@ -1,10 +1,8 @@
-import { ApiResponse } from "@/infrastructure/interface/response";
-import { RegisterInput, LoginInput } from "../schema/auth.schema";
-import { User } from "../domain/user";
+import type { User } from "../domain/user";
+import type { CreateUserInput } from "../schema/auth.schema";
 
 export interface AuthRepository {
-  register(user: RegisterInput): Promise<ApiResponse<User>>;
-  login(user: LoginInput): Promise<ApiResponse<User>>;
-  logout(): Promise<ApiResponse<void>>;
-  getCurrentUser(): Promise<ApiResponse<User>>;
+  create(data: CreateUserInput): Promise<User>;
+  findByEmail(email: string): Promise<(User & { password: string }) | null>;
+  findById(id: string): Promise<User | null>;
 }

@@ -1,59 +1,53 @@
-import { AuthRepository } from "../ports/auth.repository";
-import { parseSchema } from "@/lib/validation";
+import type { User } from "../domain/user";
+import type { AuthRepository } from "../ports/auth.repository";
 import {
-  RegisterInput,
-  RegisterSchema,
-  LoginInput,
   LoginSchema,
+  RegisterSchema,
+  type LoginInput,
+  type RegisterInput,
 } from "../schema/auth.schema";
-import { User } from "../domain/user";
+import { parseSchema } from "@/lib/validation";
+import { AppError } from "@/core/errors/app.error";
+import { hashPassword, verifyPassword } from "@/lib/password";
 
 export class AuthService {
   constructor(private readonly authRepository: AuthRepository) {}
-  async register(user: RegisterInput): Promise<User> {
-    try {
-      const validated = parseSchema(RegisterSchema, user);
 
-      const response = await this.authRepository.register(validated);
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      return response.data;
-    } catch (error) {
-      throw error;
+  async register(input: RegisterInput): Promise<User> {
+    const user = parseSchema(RegisterSchema, input);
+    const existingUser = await this.authRepository.findByEmail(user.email);
+
+    if (existingUser) {
+      throw new AppError("Email is already registered", 409);
     }
+
+    return this.authRepository.create({
+      name: user.name,
+      email: user.email,
+      password: await hashPassword(user.password),
+    });
   }
-  async login(user: LoginInput): Promise<User> {
-    try {
-      const validated = parseSchema(LoginSchema, user);
-      const response = await this.authRepository.login(validated);
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      return response.data;
-    } catch (error) {
-      throw error;
+
+  async login(input: LoginInput): Promise<User> {
+    const credentials = parseSchema(LoginSchema, input);
+    const user = await this.authRepository.findByEmail(credentials.email);
+
+    if (!user || !(await verifyPassword(credentials.password, user.password))) {
+      throw new AppError("Invalid email or password", 401);
     }
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    };
   }
-  async logout(): Promise<void> {
-    try {
-      const response = await this.authRepository.logout();
-      if (response.error) {
-        throw new Error(response.error);
-      }
-    } catch (error) {
-      throw error;
-    }
-  }
-  async getCurrentUser(): Promise<User | null> {
-    try {
-      const response = await this.authRepository.getCurrentUser();
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      return response.data;
-    } catch {
+
+  async getCurrentUser(userId: string | null): Promise<User | null> {
+    if (!userId) {
       return null;
     }
+
+    return this.authRepository.findById(userId);
   }
 }

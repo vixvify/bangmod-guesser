@@ -1,25 +1,40 @@
-import { ApiResponse } from "../interface/response";
-import httpClient from "@/lib/http";
-import { AuthRepository } from "@/core/ports/auth.repository";
-import { User } from "@/core/domain/user";
-import { RegisterInput, LoginInput } from "@/core/schema/auth.schema";
-import { AuthRoutes } from "../../routes/api/auth.routes";
+import { prisma } from "@/lib/prisma";
+import type { AuthRepository } from "@/core/ports/auth.repository";
+import type { CreateUserInput } from "@/core/schema/auth.schema";
+import type { User } from "@/core/domain/user";
 
 export class AuthRepositoryImpl implements AuthRepository {
-  async register(user: RegisterInput): Promise<ApiResponse<User>> {
-    const response = await httpClient.post<User>(AuthRoutes.register, user);
-    return response;
+  async create(data: CreateUserInput): Promise<User> {
+    return prisma.user.create({
+      data,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    });
   }
-  async login(user: LoginInput): Promise<ApiResponse<User>> {
-    const response = await httpClient.post<User>(AuthRoutes.login, user);
-    return response;
+
+  async findByEmail(email: string) {
+    return prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        password: true,
+      },
+    });
   }
-  async logout(): Promise<ApiResponse<void>> {
-    const response = await httpClient.post<void>(AuthRoutes.logout);
-    return response;
-  }
-  async getCurrentUser(): Promise<ApiResponse<User>> {
-    const response = await httpClient.get<User>(AuthRoutes.getCurrentUser);
-    return response;
+
+  async findById(id: string): Promise<User | null> {
+    return prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    });
   }
 }

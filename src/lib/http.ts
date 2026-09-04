@@ -1,3 +1,4 @@
+import "client-only";
 import axios, {
   AxiosInstance,
   AxiosRequestConfig,
@@ -7,7 +8,7 @@ import axios, {
 import { ApiResponse } from "@/infrastructure/interface/response";
 
 const http: AxiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api",
+  baseURL: "/api",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
