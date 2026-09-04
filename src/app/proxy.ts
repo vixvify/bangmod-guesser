@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { AppRoutes } from "../routes/app/routes";
 
-const PUBLIC_ROUTES = ["/"];
-const AUTH_ROUTES = ["/login", "/register"];
+const PUBLIC_ROUTES: string[] = [AppRoutes.home];
+
+const AUTH_ROUTES: string[] = [AppRoutes.login, AppRoutes.register];
 
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
@@ -12,11 +14,11 @@ export function proxy(request: NextRequest) {
   const isAuthRoute = AUTH_ROUTES.includes(pathname);
 
   if (token && isAuthRoute) {
-    return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.redirect(new URL(AppRoutes.home, request.url));
   }
 
   if (!token && !isPublicRoute && !isAuthRoute) {
-    const loginUrl = new URL("/login", request.url);
+    const loginUrl = new URL(AppRoutes.login, request.url);
 
     loginUrl.searchParams.set("callbackUrl", `${pathname}${search}`);
 

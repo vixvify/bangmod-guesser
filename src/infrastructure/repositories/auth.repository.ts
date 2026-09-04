@@ -3,7 +3,7 @@ import httpClient from "@/lib/http";
 import { AuthRepository } from "@/core/ports/auth.repository";
 import { User } from "@/core/domain/user";
 import { RegisterInput, LoginInput } from "@/core/schema/auth.schema";
-import { AuthRoutes } from "../routes/auth.routes";
+import { AuthRoutes } from "../../routes/api/auth.routes";
 
 export class AuthRepositoryImpl implements AuthRepository {
   async register(user: RegisterInput): Promise<ApiResponse<User>> {
