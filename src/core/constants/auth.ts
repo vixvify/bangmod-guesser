@@ -24,3 +24,5 @@ export const AUTH_MESSAGES = {
     mismatch: "รหัสผ่านไม่ตรงกัน",
   },
 } as const;
+
+export const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 7;

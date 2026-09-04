@@ -9,6 +9,7 @@ import {
 import { parseSchema } from "@/lib/validation";
 import { AppError } from "@/core/errors/app.error";
 import { hashPassword, verifyPassword } from "@/lib/password";
+import { UserFactory } from "@/factories/user.factory";
 
 export class AuthService {
   constructor(private readonly authRepository: AuthRepository) {}
@@ -36,11 +37,7 @@ export class AuthService {
       throw new AppError("Invalid email or password", 401);
     }
 
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-    };
+    return UserFactory.public(user);
   }
 
   async getCurrentUser(userId: string | null): Promise<User | null> {

@@ -12,8 +12,32 @@ model User {
   name         String
   email        String   @unique
   password     String
+  roleId       String   @default("role_user")
+  role         Role     @relation(fields: [roleId], references: [id])
+  sessions     Session[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   @@map("users")
+}
+
+model Role {
+  id    String @id
+  name  String @unique
+  users User[]
+
+  @@map("roles")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
 }
