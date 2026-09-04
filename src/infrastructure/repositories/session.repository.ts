@@ -1,7 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import type { SessionRepository } from "@/core/ports/session.repository";
-import type { User } from "@/core/domain/user";
-import { UserFactory } from "@/factories/user.factory";
 
 export class SessionRepositoryImpl implements SessionRepository {
   async create(userId: string, token: string, expiresAt: Date): Promise<void> {
@@ -14,7 +12,7 @@ export class SessionRepositoryImpl implements SessionRepository {
     });
   }
 
-  async findUserByToken(token: string): Promise<User | null> {
+  async findUserByToken(token: string) {
     const session = await prisma.session.findFirst({
       where: {
         token,
@@ -22,27 +20,14 @@ export class SessionRepositoryImpl implements SessionRepository {
           gt: new Date(),
         },
       },
-      select: {
+      include: {
         user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: {
-              select: {
-                name: true,
-              },
-            },
-          },
+          include: { role: true },
         },
       },
     });
 
-    if (!session) {
-      return null;
-    }
-
-    return UserFactory.fromRecord(session.user);
+    return session?.user ?? null;
   }
 
   async deleteByToken(token: string): Promise<void> {

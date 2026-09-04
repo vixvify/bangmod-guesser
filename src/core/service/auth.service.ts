@@ -1,4 +1,3 @@
-import type { User } from "../domain/user";
 import type { AuthRepository } from "../ports/auth.repository";
 import {
   LoginSchema,
@@ -9,7 +8,7 @@ import {
 import { parseSchema } from "@/lib/validation";
 import { AppError } from "@/core/errors/app.error";
 import { hashPassword, verifyPassword } from "@/lib/password";
-import { UserFactory } from "@/factories/user.factory";
+import { UserFactory } from "@/infrastructure/factories/user.factory";
 
 export class AuthService {
   constructor(private readonly authRepository: AuthRepository) {}
@@ -22,11 +21,13 @@ export class AuthService {
       throw new AppError("Email is already registered", 409);
     }
 
-    return this.authRepository.create({
+    const createdUser = await this.authRepository.create({
       name: user.name,
       email: user.email,
       password: await hashPassword(user.password),
     });
+
+    return UserFactory.public(createdUser);
   }
 
   async login(input: LoginInput): Promise<User> {
@@ -45,6 +46,9 @@ export class AuthService {
       return null;
     }
 
-    return this.authRepository.findById(userId);
+    const user = await this.authRepository.findById(userId);
+
+    return user ? UserFactory.public(user) : null;
   }
 }
+import type { User } from "../domain/user";

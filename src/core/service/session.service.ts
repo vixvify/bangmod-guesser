@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
-import type { User } from "../domain/user";
 import type { SessionRepository } from "../ports/session.repository";
 import { SESSION_DURATION_SECONDS } from "@/core/constants/auth";
+import { UserFactory } from "@/infrastructure/factories/user.factory";
 
 export class SessionService {
   constructor(private readonly sessionRepository: SessionRepository) {}
@@ -20,7 +20,9 @@ export class SessionService {
       return null;
     }
 
-    return this.sessionRepository.findUserByToken(token);
+    const user = await this.sessionRepository.findUserByToken(token);
+
+    return user ? UserFactory.public(user) : null;
   }
 
   async delete(token: string | null): Promise<void> {
@@ -29,3 +31,4 @@ export class SessionService {
     }
   }
 }
+import type { User } from "../domain/user";
