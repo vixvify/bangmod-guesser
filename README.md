@@ -2,6 +2,19 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+Start PostgreSQL for local development:
+
+```bash
+cp .env.example .env
+docker compose up -d
+```
+
+Fill in the required values in `.env`, then apply the schema:
+
+```bash
+npx prisma db push
+```
+
 First, run the development server:
 
 ```bash
@@ -15,6 +28,14 @@ bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+Start the isolated test database before running integration or E2E tests:
+
+```bash
+docker compose --profile test up -d postgres-test
+```
+
+Run `npm test` after the relevant database is healthy.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

@@ -1,5 +1,5 @@
 {
-  "name": "webprog-fe",
+  "name": "kmutt-guesser",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,9 +10,9 @@
     "typecheck": "tsc --noEmit",
     "test": "npm run test:unit && npm run test:integration && npm run test:e2e",
     "test:unit": "vitest run tests/unit",
-    "test:db:reset": "cross-env DATABASE_URL=postgresql://postgres:postgres@localhost:5433/webprog_test?schema=public prisma db push --force-reset && cross-env DATABASE_URL=postgresql://postgres:postgres@localhost:5433/webprog_test?schema=public prisma db seed",
-    "test:integration": "npm run test:db:reset && cross-env DATABASE_URL=postgresql://postgres:postgres@localhost:5433/webprog_test?schema=public vitest run tests/integration",
-    "test:e2e": "npm run test:db:reset && cross-env DATABASE_URL=postgresql://postgres:postgres@localhost:5433/webprog_test?schema=public npm run build && cross-env DATABASE_URL=postgresql://postgres:postgres@localhost:5433/webprog_test?schema=public playwright test",
+    "test:db:reset": "cross-env DATABASE_URL=postgresql://postgres:postgres@localhost:5433/kmutt_guesser_test?schema=public prisma db push --force-reset && cross-env DATABASE_URL=postgresql://postgres:postgres@localhost:5433/kmutt_guesser_test?schema=public prisma db seed",
+    "test:integration": "npm run test:db:reset && cross-env DATABASE_URL=postgresql://postgres:postgres@localhost:5433/kmutt_guesser_test?schema=public vitest run tests/integration",
+    "test:e2e": "npm run test:db:reset && cross-env DATABASE_URL=postgresql://postgres:postgres@localhost:5433/kmutt_guesser_test?schema=public npm run build && cross-env DATABASE_URL=postgresql://postgres:postgres@localhost:5433/kmutt_guesser_test?schema=public playwright test",
     "test:e2e:install": "playwright install chromium"
   },
   "dependencies": {
