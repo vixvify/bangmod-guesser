@@ -7,7 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "npm run test:unit && npm run test:integration && npm run test:e2e",
+    "test:unit": "vitest run tests/unit",
+    "test:db:reset": "cross-env DATABASE_URL=postgresql://postgres:postgres@localhost:5433/webprog_test?schema=public prisma db push --force-reset && cross-env DATABASE_URL=postgresql://postgres:postgres@localhost:5433/webprog_test?schema=public prisma db seed",
+    "test:integration": "npm run test:db:reset && cross-env DATABASE_URL=postgresql://postgres:postgres@localhost:5433/webprog_test?schema=public vitest run tests/integration",
+    "test:e2e": "npm run test:db:reset && cross-env DATABASE_URL=postgresql://postgres:postgres@localhost:5433/webprog_test?schema=public npm run build && cross-env DATABASE_URL=postgresql://postgres:postgres@localhost:5433/webprog_test?schema=public playwright test",
+    "test:e2e:install": "playwright install chromium"
   },
   "dependencies": {
     "@prisma/client": "6.19.3",
@@ -18,15 +24,18 @@
     "zod": "^4.5.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cross-env": "^10.1.0",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
     "prisma": "6.19.3",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.11"
   },
   "prisma": {
     "seed": "node prisma/seed.mjs"
