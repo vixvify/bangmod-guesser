@@ -20,6 +20,15 @@ Fill in the required values in `.env`, then apply the schema:
 npx prisma db push
 ```
 
+## Cloudflare R2 image storage
+
+Image upload and deletion use a Cloudflare R2 bucket through the server-side
+`POST /api/images` and `DELETE /api/images` endpoints. Set `R2_ACCOUNT_ID`,
+`R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, and
+`R2_PUBLIC_URL` in `.env`. `R2_PUBLIC_URL` must be the public custom domain or
+R2 development URL for the bucket, without exposing the access credentials to
+the browser. Both endpoints require an authenticated `ADMIN` user.
+
 First, run the development server:
 
 ```bash

@@ -56,9 +56,9 @@ Server Components and server-only code may call a service from `src/infrastructu
 | `src/core/domain` | Public application models and domain rules. It must not contain Prisma or UI concerns. |
 | `src/core/schema` | Zod validation schemas and inferred input types. |
 | `src/core/errors` | Application errors such as `AppError`. |
-| `src/core/ports` | Contracts that services require from persistence. |
+| `src/core/ports` | Contracts that services require from persistence or external storage. |
 | `src/core/service` | Business logic, validation, authorization decisions, and orchestration. |
-| `src/infrastructure/repositories` | Prisma queries only. Repositories return the Prisma records requested by their ports. |
+| `src/infrastructure/repositories` | Prisma queries and external storage operations. Repositories return the values requested by their ports. |
 | `src/infrastructure/factories` | Maps Prisma records to public domain output. Factories remove sensitive fields. |
 | `src/infrastructure/container.ts` | Creates repository and service instances. |
 | `src/lib` | Technical helpers: Prisma global instance, password hashing, API response formatting, validation parsing, auth checks, and client HTTP setup. |
@@ -78,3 +78,11 @@ Server Components and server-only code may call a service from `src/infrastructu
 - Roles are reference data seeded by `prisma/seed.mjs`; they do not have their own service or repository.
 - `docker-compose.yml` runs PostgreSQL for local development.
 - `.env` contains local values and is ignored. `.env.example` lists required variables only.
+
+## Image storage
+
+- `ImageService` owns generated keys and public domain output; `UploadImageSchema` and `DeleteImageSchema` validate route input before the service is called.
+- `ImageRepository` is the core contract; `ImageRepositoryImpl` sends put/delete operations to Cloudflare R2 and builds the public object URL.
+- `/api/images` accepts `POST` multipart form data with a `file` field and `DELETE` JSON with an object `key`. Both require `ADMIN` through `authCheck()` and `roleCheck()`.
+- Uploads are limited to verified JPEG, PNG, or WebP content up to 5 MB and are stored under the `images/` namespace. The service returns `{ key, url }` so a future domain module can persist either value.
+- R2 credentials remain server-only in `.env`. Configuration is resolved lazily, so missing R2 values do not fail build or tests; image requests return a safe configuration error instead.
