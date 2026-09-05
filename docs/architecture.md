@@ -76,5 +76,5 @@ Server Components and server-only code may call a service from `src/infrastructu
 
 - Prisma client is initialised once in `src/lib/prisma.ts` with a global instance.
 - Roles are reference data seeded by `prisma/seed.mjs`; they do not have their own service or repository.
-- `docker-compose.yml` runs PostgreSQL for development. Its `test` profile starts a separate database for integration and E2E tests.
+- `docker-compose.yml` runs PostgreSQL for local development.
 - `.env` contains local values and is ignored. `.env.example` lists required variables only.

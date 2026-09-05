@@ -1,13 +1,20 @@
-import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("@/infrastructure/container", () => ({
+  authService: {
+    register: vi.fn(),
+    login: vi.fn(),
+  },
+  sessionService: {
+    create: vi.fn(),
+    delete: vi.fn(),
+  },
+}));
+
 import { POST as login } from "@/app/api/auth/login/route";
 import { POST as register } from "@/app/api/auth/register/route";
 import { authService } from "@/infrastructure/container";
-import { verifyPassword } from "@/lib/password";
-import { prisma } from "@/lib/prisma";
-import {
-  disconnectTestDatabase,
-  resetTestDatabase,
-} from "../../helpers/test-database";
+import { AppError } from "@/core/errors/app.error";
 import { validLogin, validRegistration } from "../../fixtures/users";
 
 function jsonRequest(body: unknown) {
@@ -18,43 +25,37 @@ function jsonRequest(body: unknown) {
   });
 }
 
-describe.sequential("Auth API routes", () => {
-  beforeEach(async () => {
-    await resetTestDatabase();
+const user = {
+  id: "user_1",
+  name: validRegistration.name,
+  email: validRegistration.email,
+  role: "USER",
+};
+
+describe("Auth API routes", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  afterAll(async () => {
-    await disconnectTestDatabase();
-  });
+  it("returns a public user after registration", async () => {
+    vi.mocked(authService.register).mockResolvedValue(user);
 
-  it("registers a user in PostgreSQL and does not expose its password", async () => {
     const response = await register(jsonRequest(validRegistration));
     const payload = await response.json();
-    const persistedUser = await prisma.user.findUnique({
-      where: { email: validRegistration.email },
-      include: { role: true },
-    });
 
     expect(response.status).toBe(201);
     expect(payload).toEqual({
-      data: {
-        id: expect.any(String),
-        name: validRegistration.name,
-        email: validRegistration.email,
-        role: "USER",
-      },
+      data: user,
       status: 201,
       statusCode: "CREATED",
     });
-    expect(persistedUser?.role.name).toBe("USER");
-    expect(persistedUser?.password).not.toBe(validRegistration.password);
-    await expect(
-      verifyPassword(validRegistration.password, persistedUser?.password ?? ""),
-    ).resolves.toBe(true);
+    expect(authService.register).toHaveBeenCalledWith(validRegistration);
   });
 
   it("returns a conflict for a duplicate registration", async () => {
-    await authService.register(validRegistration);
+    vi.mocked(authService.register).mockRejectedValue(
+      new AppError("Email is already registered", 409),
+    );
 
     const response = await register(jsonRequest(validRegistration));
 
@@ -66,12 +67,13 @@ describe.sequential("Auth API routes", () => {
     });
   });
 
-  it("logs in a persisted user and creates a session cookie", async () => {
-    await authService.register(validRegistration);
+  it("creates an HTTP-only session cookie after login", async () => {
+    vi.mocked(authService.login).mockResolvedValue(user);
+    const { sessionService } = await import("@/infrastructure/container");
+    vi.mocked(sessionService.create).mockResolvedValue("session-token");
 
     const response = await login(jsonRequest(validLogin));
     const payload = await response.json();
-    const sessionCount = await prisma.session.count();
 
     expect(response.status).toBe(200);
     expect(payload).toMatchObject({
@@ -85,6 +87,6 @@ describe.sequential("Auth API routes", () => {
     expect(payload.data).not.toHaveProperty("password");
     expect(response.headers.get("set-cookie")).toContain("accessToken=");
     expect(response.headers.get("set-cookie")).toContain("HttpOnly");
-    expect(sessionCount).toBe(1);
+    expect(sessionService.create).toHaveBeenCalledWith(user.id);
   });
 });

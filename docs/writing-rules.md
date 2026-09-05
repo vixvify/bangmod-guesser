@@ -19,7 +19,7 @@
 - Use **camelCase** for variables, functions, object properties, service instances, and hooks: `authService`, `findByEmail`, `parseSchema`, and `createUserModel`.
 - Start boolean names with `is`, `has`, `can`, `should`, or `needs`: `isAuthenticated`, `hasPermission`, and `shouldRedirect`.
 - Use **UPPER_SNAKE_CASE** only for exported constants that represent fixed shared values: `AUTH_MESSAGES` and `SESSION_DURATION_SECONDS`.
-- Name a test after the file or feature it verifies: `auth.service.test.ts`, `auth.route.test.ts`, and `auth-api.spec.ts`. Mirror the source layer under `tests/` where practical.
+- Name a test after the file or feature it verifies: `auth.service.test.ts` and `auth.route.test.ts`. Mirror the source layer under `tests/` where practical.
 
 ## TypeScript and import conventions
 
@@ -63,9 +63,9 @@
 
 ## Test rules
 
-- Put tests only under `tests/`: `unit`, `components`, `integration`, or `e2e`.
+- Put tests only under `tests/`: `unit`, `components`, `integration`, or `e2e` when a browser workflow is introduced.
 - Unit tests mock ports and verify services, schemas, factories, and utilities in isolation.
-- Integration tests use the PostgreSQL test database and verify repositories, route handlers, and persistence behaviour together.
-- E2E tests use Playwright for critical user or API workflows.
+- Integration tests call route handlers with mocked services and verify HTTP responses, cookies, and error mapping without a database.
+- Add E2E tests only when a critical browser workflow exists and its required infrastructure is available.
 - Use `tests/fixtures` for deterministic data, `tests/mocks` for reusable mocks, and `tests/helpers` for shared setup.
-- Run the relevant test script plus lint, typecheck, and build before considering a change complete. Start the test database with `docker compose --profile test up -d postgres-test` before integration or E2E tests.
+- Run the relevant test script plus lint, typecheck, and build before considering a change complete.

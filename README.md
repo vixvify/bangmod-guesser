@@ -34,13 +34,7 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-Start the isolated test database before running integration or E2E tests:
-
-```bash
-docker compose --profile test up -d postgres-test
-```
-
-Run `npm test` after the relevant database is healthy.
+Run the test suite with `npm test`; its unit and route-handler integration tests do not require a running database.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
