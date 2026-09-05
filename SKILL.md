@@ -37,24 +37,34 @@ Follow this project structure:
 .
 ├── src/
 │   ├── app/
+│   │   ├── (auth)/
+│   │   ├── api/
+│   │   └── proxy.ts
 │   ├── components/
 │   ├── core/
 │   │   ├── constants/
 │   │   ├── domain/
+│   │   ├── errors/
 │   │   ├── ports/
 │   │   ├── schema/
 │   │   └── service/
 │   ├── infrastructure/
+│   │   ├── factories/
 │   │   ├── interface/
-│   │   └── repositories/
+│   │   ├── repositories/
+│   │   └── container.ts
 │   ├── lib/
+│   ├── routes/
 │   ├── store/
-│   ├── utils/
-│   └── proxy.ts
+│   └── utils/
 │
+├── prisma/
+│   ├── schema.prisma
+│   ├── seed.mjs
+│   └── types/
 ├── tests/
 │   ├── unit/
-│   ├── component/
+│   ├── components/
 │   ├── integration/
 │   ├── e2e/
 │   ├── fixtures/
@@ -62,6 +72,9 @@ Follow this project structure:
 │   └── helpers/
 │
 ├── public/
+├── .env.example
+├── docker-compose.yml
+├── Dockerfile
 ├── package.json
 └── tsconfig.json
 ```
@@ -316,6 +329,32 @@ Avoid ORM access from UI components.
 Contains types specific to infrastructure implementations.
 
 Do not mix infrastructure types with domain types unnecessarily.
+
+---
+
+## `src/infrastructure/factories`
+
+Contains mappings from infrastructure data to domain output models.
+
+Repositories return Prisma records directly. Services use factories to decide which fields are returned, and factories must omit sensitive persistence fields such as passwords.
+
+---
+
+## `src/infrastructure/container.ts`
+
+The composition root for repository implementations and services. Route handlers and server-only helpers use its exported services instead of constructing dependencies directly.
+
+---
+
+## `prisma/types`
+
+Contains Prisma-specific model and payload types, including relation data returned by repository queries. Keep them separate from `src/core/domain` output models.
+
+---
+
+## `src/routes`
+
+Contains shared app and API route constants. Reuse existing route constants instead of duplicating route strings.
 
 ---
 
@@ -577,7 +616,7 @@ Mock dependencies when isolation is required.
 Location:
 
 ```text
-tests/component/
+tests/components/
 ```
 
 Use component tests for React UI behavior.
@@ -585,7 +624,7 @@ Use component tests for React UI behavior.
 Examples:
 
 ```text
-tests/component/
+tests/components/
 ├── auth/
 │   └── login-form.test.tsx
 ├── course/

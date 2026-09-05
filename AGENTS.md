@@ -10,24 +10,34 @@ The project follows this structure:
 .
 ├── src/
 │   ├── app/
+│   │   ├── (auth)/
+│   │   ├── api/
+│   │   └── proxy.ts
 │   ├── components/
 │   ├── core/
 │   │   ├── constants/
 │   │   ├── domain/
+│   │   ├── errors/
 │   │   ├── ports/
 │   │   ├── schema/
 │   │   └── service/
 │   ├── infrastructure/
+│   │   ├── factories/
 │   │   ├── interface/
-│   │   └── repositories/
+│   │   ├── repositories/
+│   │   └── container.ts
 │   ├── lib/
+│   ├── routes/
 │   ├── store/
-│   ├── utils/
-│   └── proxy.ts
+│   └── utils/
 │
+├── prisma/
+│   ├── schema.prisma
+│   ├── seed.mjs
+│   └── types/
 ├── tests/
 │   ├── unit/
-│   ├── component/
+│   ├── components/
 │   ├── integration/
 │   ├── e2e/
 │   ├── fixtures/
@@ -35,6 +45,9 @@ The project follows this structure:
 │   └── helpers/
 │
 ├── public/
+├── .env.example
+├── docker-compose.yml
+├── Dockerfile
 ├── package.json
 └── tsconfig.json
 ```
@@ -494,6 +507,32 @@ Do not place core business models here.
 
 ---
 
+## `src/infrastructure/factories`
+
+Contains mappings from infrastructure data to domain output models.
+
+Repositories return their Prisma records directly. Services call factories to choose and shape the data returned to callers; factories must not expose sensitive persistence fields such as passwords.
+
+---
+
+## `src/infrastructure/container.ts`
+
+The composition root for repository implementations and services. Route handlers and server-only helpers use its exported services instead of instantiating dependencies themselves.
+
+---
+
+## `prisma/types`
+
+Contains Prisma-specific model and payload types, including relations returned by repository queries. Keep these types separate from `src/core/domain`, which represents application output models.
+
+---
+
+## `src/routes`
+
+Contains shared route constants for app and API paths. Keep route strings out of reusable components and services when a shared route constant already exists.
+
+---
+
 # Lib
 
 ## `src/lib`
@@ -911,7 +950,7 @@ Mock dependencies when isolation is the purpose of the test.
 Location:
 
 ```text
-tests/component/
+tests/components/
 ```
 
 Component tests verify React UI behavior.
