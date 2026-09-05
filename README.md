@@ -1,5 +1,10 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Documentation
+
+- [Architecture](docs/architecture.md)
+- [Writing rules](docs/writing-rules.md)
+
 ## Getting Started
 
 Start PostgreSQL for local development:
