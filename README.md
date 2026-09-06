@@ -20,6 +20,10 @@ Fill in the required values in `.env`, then apply the schema:
 npx prisma db push
 ```
 
+Set `NEXT_PUBLIC_API_URL` to the API base URL, for example
+`http://localhost:3000/api`. API route constants append their endpoint paths
+to this value.
+
 ## Cloudflare R2 image storage
 
 Image upload and deletion use a Cloudflare R2 bucket through the server-side

@@ -1,4 +1,6 @@
+import { config } from "@/config";
+
 export const AuthRoutes = {
-  register: "/auth/register",
-  login: "/auth/login",
+  register: `${config.apiUrl}/auth/register`,
+  login: `${config.apiUrl}/auth/login`,
 } as const;

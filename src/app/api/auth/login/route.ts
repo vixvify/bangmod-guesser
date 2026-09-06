@@ -1,4 +1,5 @@
 import { authService, sessionService } from "@/infrastructure/container";
+import { config } from "@/config";
 import { errorResponse, successResponse } from "@/lib/api-response";
 import { SESSION_DURATION_SECONDS } from "@/core/constants/auth";
 
@@ -10,7 +11,7 @@ export async function POST(request: Request) {
 
     response.cookies.set("accessToken", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: config.isProduction,
       sameSite: "lax",
       path: "/",
       maxAge: SESSION_DURATION_SECONDS,

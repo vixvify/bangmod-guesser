@@ -1,16 +1,17 @@
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 
+import { config } from "@/config";
 import type { ImageRepository } from "@/core/ports/image.repository";
 import type { UploadImageInput } from "@/core/schema/image.schema";
-import { getR2Client, getR2Config } from "@/lib/r2";
+import { getR2Client } from "@/lib/r2";
 
 export class ImageRepositoryImpl implements ImageRepository {
   async upload(key: string, image: UploadImageInput): Promise<void> {
-    const config = getR2Config();
+    const r2Config = config.r2;
 
-    await getR2Client(config).send(
+    await getR2Client().send(
       new PutObjectCommand({
-        Bucket: config.R2_BUCKET_NAME,
+        Bucket: r2Config.bucketName,
         Key: key,
         Body: image.content,
         ContentType: image.contentType,
@@ -19,21 +20,20 @@ export class ImageRepositoryImpl implements ImageRepository {
   }
 
   async delete(key: string): Promise<void> {
-    const config = getR2Config();
+    const r2Config = config.r2;
 
-    await getR2Client(config).send(
+    await getR2Client().send(
       new DeleteObjectCommand({
-        Bucket: config.R2_BUCKET_NAME,
+        Bucket: r2Config.bucketName,
         Key: key,
       }),
     );
   }
 
   getPublicUrl(key: string): string {
-    const { R2_PUBLIC_URL } = getR2Config();
-    const publicUrl = R2_PUBLIC_URL.endsWith("/")
-      ? R2_PUBLIC_URL
-      : `${R2_PUBLIC_URL}/`;
+    const publicUrl = config.r2.publicUrl.endsWith("/")
+      ? config.r2.publicUrl
+      : `${config.r2.publicUrl}/`;
 
     return new URL(key, publicUrl).toString();
   }

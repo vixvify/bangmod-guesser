@@ -36,6 +36,7 @@ Follow this project structure:
 ```text
 .
 ├── src/
+│   ├── config/
 │   ├── app/
 │   │   ├── (auth)/
 │   │   ├── api/
@@ -84,6 +85,12 @@ Do not redesign the project architecture unless explicitly requested.
 ---
 
 # App
+
+## `src/config`
+
+Contains shared application configuration and server runtime environment parsing. Use the exported config instead of reading `process.env` directly in application code.
+
+---
 
 ## `src/app`
 

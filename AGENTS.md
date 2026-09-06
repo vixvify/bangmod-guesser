@@ -9,6 +9,7 @@ The project follows this structure:
 ```text
 .
 ├── src/
+│   ├── config/
 │   ├── app/
 │   │   ├── (auth)/
 │   │   ├── api/
@@ -106,6 +107,12 @@ Do not immediately create new abstractions or files before inspecting the existi
 ---
 
 # Source Structure
+
+## `src/config`
+
+Contains shared application configuration and server runtime environment parsing. Application code must consume the exported config instead of reading `process.env` directly. Keep secrets and provider credentials inside the server runtime portion of this boundary.
+
+---
 
 ## `src/app`
 

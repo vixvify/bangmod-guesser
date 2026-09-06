@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { config } from "@/config";
 import { sessionService } from "@/infrastructure/container";
 import { errorResponse, successResponse } from "@/lib/api-response";
 
@@ -11,7 +12,7 @@ export async function POST() {
     const response = successResponse(null);
     response.cookies.set("accessToken", "", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: config.isProduction,
       sameSite: "lax",
       path: "/",
       maxAge: 0,

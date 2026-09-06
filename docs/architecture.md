@@ -52,6 +52,7 @@ Server Components and server-only code may call a service from `src/infrastructu
 | Location | Responsibility |
 | --- | --- |
 | `src/app` | Route-specific concerns, pages, layouts, route handlers, cookies, and HTTP responses. Keep it thin. |
+| `src/config` | Shared application configuration. It exports the API base URL and server runtime configuration; application code consumes it instead of reading `process.env` directly. |
 | `src/components` | Reusable UI. Use Server Components by default; add a client boundary only for browser interaction or state. |
 | `src/core/domain` | Public application models and domain rules. It must not contain Prisma or UI concerns. |
 | `src/core/schema` | Zod validation schemas and inferred input types. |

@@ -40,15 +40,6 @@ export const DeleteImageSchema = z.object({
     .regex(/^images\/[a-f0-9-]+\.(jpg|png|webp)$/, IMAGE_MESSAGES.invalidKey),
 });
 
-export const R2ConfigSchema = z.object({
-  R2_ACCOUNT_ID: z.string().trim().min(1),
-  R2_ACCESS_KEY_ID: z.string().trim().min(1),
-  R2_SECRET_ACCESS_KEY: z.string().trim().min(1),
-  R2_BUCKET_NAME: z.string().trim().min(1),
-  R2_PUBLIC_URL: z.string().trim().url(),
-});
-
 export type ImageContentType = z.infer<typeof ImageContentTypeSchema>;
 export type UploadImageInput = z.infer<typeof UploadImageSchema>;
 export type DeleteImageInput = z.infer<typeof DeleteImageSchema>;
-export type R2Config = z.infer<typeof R2ConfigSchema>;

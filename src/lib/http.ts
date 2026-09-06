@@ -5,10 +5,11 @@ import axios, {
   AxiosError,
   AxiosResponse,
 } from "axios";
+import { config } from "@/config";
 import { ApiResponse } from "@/infrastructure/interface/response";
 
 const http: AxiosInstance = axios.create({
-  baseURL: "/api",
+  baseURL: config.apiUrl,
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
