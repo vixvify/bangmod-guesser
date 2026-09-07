@@ -20,11 +20,7 @@ export class SessionRepositoryImpl implements SessionRepository {
           gt: new Date(),
         },
       },
-      include: {
-        user: {
-          include: { role: true },
-        },
-      },
+      include: { user: true },
     });
 
     return session?.user ?? null;

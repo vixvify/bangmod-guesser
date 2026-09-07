@@ -61,7 +61,6 @@ Follow this project structure:
 │
 ├── prisma/
 │   ├── schema.prisma
-│   ├── seed.mjs
 │   └── types/
 ├── tests/
 │   ├── unit/

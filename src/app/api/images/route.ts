@@ -1,4 +1,5 @@
 import { IMAGE_MESSAGES } from "@/core/constants/image";
+import { UserRole } from "@/core/domain/user";
 import { AppError } from "@/core/errors/app.error";
 import {
   DeleteImageSchema,
@@ -11,7 +12,7 @@ import { roleCheck } from "@/lib/role-check";
 import { parseSchema } from "@/lib/validation";
 
 async function requireAdmin() {
-  return roleCheck(await authCheck(), ["ADMIN"]);
+  return roleCheck(await authCheck(), [UserRole.ADMIN]);
 }
 
 async function getImageFile(request: Request): Promise<File> {

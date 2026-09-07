@@ -1,5 +1,3 @@
-import type { Role, User as PrismaUser } from "@prisma/client";
+import type { User as PrismaUser } from "@prisma/client";
 
-export interface UserModel extends PrismaUser {
-  role: Role;
-}
+export type UserModel = PrismaUser;

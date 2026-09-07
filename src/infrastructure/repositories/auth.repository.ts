@@ -4,23 +4,14 @@ import type { CreateUserInput } from "@/core/schema/auth.schema";
 
 export class AuthRepositoryImpl implements AuthRepository {
   async create(data: CreateUserInput) {
-    return prisma.user.create({
-      data,
-      include: { role: true },
-    });
+    return prisma.user.create({ data });
   }
 
   async findByEmail(email: string) {
-    return prisma.user.findUnique({
-      where: { email },
-      include: { role: true },
-    });
+    return prisma.user.findUnique({ where: { email } });
   }
 
   async findById(id: string) {
-    return prisma.user.findUnique({
-      where: { id },
-      include: { role: true },
-    });
+    return prisma.user.findUnique({ where: { id } });
   }
 }

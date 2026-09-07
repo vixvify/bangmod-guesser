@@ -12,6 +12,7 @@ vi.mock("@/infrastructure/container", () => ({
 }));
 
 import { DELETE, POST } from "@/app/api/images/route";
+import { UserRole } from "@/core/domain/user";
 import { imageService } from "@/infrastructure/container";
 import { authCheck } from "@/lib/auth-check";
 
@@ -23,7 +24,7 @@ const admin = {
   id: "admin_1",
   name: "KMUTT Admin",
   email: "admin@example.com",
-  role: "ADMIN",
+  role: UserRole.ADMIN,
 };
 
 function uploadRequest() {
@@ -73,7 +74,7 @@ describe("Image API routes", () => {
   });
 
   it("rejects a non-admin before calling the image service", async () => {
-    vi.mocked(authCheck).mockResolvedValue({ ...admin, role: "USER" });
+    vi.mocked(authCheck).mockResolvedValue({ ...admin, role: UserRole.USER });
 
     const response = await POST(uploadRequest());
 

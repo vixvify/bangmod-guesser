@@ -15,6 +15,7 @@ import { POST as login } from "@/app/api/auth/login/route";
 import { POST as register } from "@/app/api/auth/register/route";
 import { authService } from "@/infrastructure/container";
 import { AppError } from "@/core/errors/app.error";
+import { UserRole } from "@/core/domain/user";
 import { validLogin, validRegistration } from "../../fixtures/users";
 
 function jsonRequest(body: unknown) {
@@ -29,7 +30,7 @@ const user = {
   id: "user_1",
   name: validRegistration.name,
   email: validRegistration.email,
-  role: "USER",
+  role: UserRole.USER,
 };
 
 describe("Auth API routes", () => {

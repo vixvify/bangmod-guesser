@@ -34,7 +34,6 @@ The project follows this structure:
 │
 ├── prisma/
 │   ├── schema.prisma
-│   ├── seed.mjs
 │   └── types/
 ├── tests/
 │   ├── unit/
