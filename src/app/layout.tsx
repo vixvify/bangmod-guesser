@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "KMUTT Guesser",
-  description: "เกมทายสถานที่ต่าง ๆ ในมหาวิทยาลัย KMUTT",
+  title: "Bangmod Guesser",
+  description: "เกมทายสถานที่ต่าง ๆ ในมหาวิทยาลัย",
 };
 
 export default function RootLayout({
