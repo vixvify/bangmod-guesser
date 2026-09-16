@@ -6,24 +6,36 @@ KMUTT Guesser is a fullstack Next.js application. The App Router owns routing an
 
 ```text
 src/
-├── app/                 # Pages, layouts, route handlers, proxy
-├── components/          # Reusable UI
-├── core/                # Domain, schemas, errors, ports, services
-├── infrastructure/      # Prisma repositories, factories, composition root
-├── lib/                 # Technical helpers and initialisation
-├── routes/              # Shared route constants
-├── store/               # Shared client state
-└── utils/               # Framework-independent utilities
+├── app/                         # App Router
+├── components/                  # Reusable UI
+├── config/                      # Runtime configuration
+├── core/
+│   ├── constants/
+│   ├── domain/
+│   ├── errors/
+│   ├── ports/
+│   ├── schema/
+│   └── service/
+├── infrastructure/
+│   ├── factories/
+│   ├── interface/
+│   ├── repositories/
+│   └── container
+├── layout/                      # Page-level composition
+├── lib/                         # Technical helpers and initialisation
+├── routes/                      # Shared route constants
+└── store/                       # Shared client state
 
 prisma/
-├── schema.prisma        # Database schema
-└── types/               # Prisma model and relation payload types
+└── types/                       # Prisma-specific types
+
+public/
+└── images/                      # Static image assets
 
 tests/
 ├── unit/
 ├── components/
 ├── integration/
-├── e2e/
 ├── fixtures/
 ├── mocks/
 └── helpers/
@@ -59,7 +71,7 @@ Server Components and server-only code may call a service from `src/infrastructu
 | `src/core/ports` | Contracts that services require from persistence or external storage. |
 | `src/core/service` | Business logic, validation, authorization decisions, and orchestration. |
 | `src/infrastructure/repositories` | Prisma queries and external storage operations. Repositories return the values requested by their ports. |
-| `src/infrastructure/factories` | Maps Prisma records to public domain output, including Prisma `Role` to domain `UserRole`. Factories remove sensitive fields. |
+| `src/infrastructure/factories` | Maps Prisma records to public domain output, including Prisma role enum values to domain `UserRole`. Factories remove sensitive fields. |
 | `src/infrastructure/container.ts` | Creates repository and service instances. |
 | `src/lib` | Technical helpers: Prisma global instance, password hashing, API response formatting, validation parsing, auth checks, and client HTTP setup. |
 | `prisma/types` | Prisma-only types for records with included relations. These are not domain models. |
