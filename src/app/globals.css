@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: var(--color-secondary-main);
+  --foreground: var(--color-secondary-light);
 }
 
 @theme inline {
@@ -12,15 +12,150 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+* {
+  box-sizing: border-box;
+}
+
+@theme {
+  --color-primary-main: #ff7a2f;
+  --color-primary-hover: #ff934f;
+  --color-primary-light: #ffab78;
+  --color-primary-soft: #ffd0ad;
+  --color-primary-focus: #ffe16a;
+  --color-secondary-main: #06131a;
+  --color-secondary-dark: #1b120c;
+  --color-secondary-light: #fff4e8;
+  --font-display: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  --animate-home-enter: home-enter 850ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-home-background-zoom: home-background-zoom 7.6s linear both;
+  --animate-countdown-beat: countdown-beat 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-lobby-float: lobby-float 4s ease-in-out infinite;
+  --animate-lobby-orbit: lobby-orbit 24s linear infinite;
+  --animate-lobby-drift: lobby-drift 18s linear infinite;
+  --animate-loading-orbit: loading-orbit 2.4s ease-out infinite;
+  --animate-loading-pulse: loading-pulse 1.7s ease-in-out infinite;
+  --animate-loading-scan: loading-scan 1.5s ease-in-out infinite;
+
+  @keyframes home-enter {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
+
+  @keyframes home-background-zoom {
+    from {
+      transform: scale(1);
+    }
+
+    to {
+      transform: scale(1.08);
+    }
+  }
+
+  @keyframes lobby-float {
+    0%, 100% { transform: translateY(0) rotate(-4deg); }
+    50% { transform: translateY(-9px) rotate(4deg); }
+  }
+
+  @keyframes countdown-beat {
+    0% { opacity: 0; transform: scale(1.5); }
+    20%, 75% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(.85); }
+  }
+
+  @keyframes lobby-orbit {
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes lobby-drift {
+    0% { opacity: 0; transform: translate3d(0, 0, 0); }
+    15%, 75% { opacity: .65; }
+    100% { opacity: 0; transform: translate3d(45px, -90svh, 0); }
+  }
+
+  @keyframes loading-orbit {
+    from {
+      opacity: 0.9;
+      transform: scale(0.5);
+    }
+
+    to {
+      opacity: 0;
+      transform: scale(1.45);
+    }
+  }
+
+  @keyframes loading-pulse {
+    0%,
+    100% {
+      transform: scale(0.88);
+    }
+
+    50% {
+      transform: scale(1.12);
+    }
+  }
+
+  @keyframes loading-scan {
+    from {
+      transform: translateX(-155%);
+    }
+
+    to {
+      transform: translateX(270%);
+    }
+  }
+
+}
+
+html {
+  min-height: 100%;
+  background: var(--background);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  margin: 0;
+  min-height: 100%;
+}
+
+button {
+  font: inherit;
+}
+
+.lobby-vignette {
+  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--color-secondary-main) 42%, transparent) 10%, transparent 65%), linear-gradient(180deg, var(--color-secondary-main), transparent 30%, transparent 55%, var(--color-secondary-main));
+  box-shadow: inset 0 0 150px var(--color-secondary-main);
+}
+
+.lobby-title {
+  -webkit-text-stroke: 1px color-mix(in srgb, var(--color-secondary-dark) 70%, transparent);
+  text-shadow: 0 3px 0 var(--color-secondary-dark), 0 7px 0 var(--color-secondary-dark), 0 12px 24px var(--color-secondary-main);
+}
+
+.lobby-play-frame {
+  border: 1px solid color-mix(in srgb, var(--color-primary-soft) 35%, transparent);
+  border-radius: 18px;
+  padding: 6px;
+  transform: rotate(-2deg);
+}
+
+.lobby-play {
+  min-height: 66px;
+  border: 2px solid var(--color-primary-light);
+  border-radius: 12px;
+  background: linear-gradient(var(--color-primary-hover), var(--color-primary-main));
+  box-shadow: 0 5px 0 color-mix(in srgb, var(--color-primary-main) 35%, var(--color-secondary-dark)), inset 0 2px 0 var(--color-primary-soft), 0 12px 30px color-mix(in srgb, var(--color-primary-main) 20%, transparent);
+}
+
+.lobby-play:disabled {
+  opacity: 1;
 }

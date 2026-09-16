@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AppRoutes } from "../routes/app/routes";
 
-const PUBLIC_ROUTES: string[] = [AppRoutes.home];
+const PUBLIC_ROUTES: string[] = [AppRoutes.home, AppRoutes.game];
 
 const AUTH_ROUTES: string[] = [AppRoutes.login, AppRoutes.register];
 
