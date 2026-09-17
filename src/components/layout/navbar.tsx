@@ -7,6 +7,7 @@ import type { User } from "@/core/domain/user";
 import { AuthRoutes } from "@/routes/api/auth.routes";
 import { AppRoutes } from "@/routes/app/routes";
 import { Button } from "@/components/ui/button";
+import { httpClient } from "@/lib/http";
 
 type NavbarProps = {
   user: User | null;
@@ -20,14 +21,10 @@ export function Navbar({ user }: NavbarProps) {
     setIsLoggingOut(true);
 
     try {
-      const response = await fetch(AuthRoutes.logout, {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        router.refresh();
-      }
+      await httpClient.post<void>(AuthRoutes.logout);
+      router.refresh();
+    } catch {
+      return;
     } finally {
       setIsLoggingOut(false);
     }

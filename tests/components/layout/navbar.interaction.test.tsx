@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { UserRole } from "@/core/domain/user";
 
 const routerRefresh = vi.fn();
+const logout = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: routerRefresh }),
@@ -12,6 +13,10 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/routes/api/auth.routes", () => ({
   AuthRoutes: { logout: "/api/auth/logout" },
+}));
+
+vi.mock("@/lib/http", () => ({
+  httpClient: { post: logout },
 }));
 
 import { Navbar } from "@/components/layout/navbar";
@@ -31,32 +36,29 @@ describe("Navbar logout", () => {
 
   beforeEach(() => {
     routerRefresh.mockReset();
-    vi.stubGlobal("fetch", vi.fn());
+    logout.mockReset();
   });
 
   it("calls the logout endpoint and refreshes the page after a successful logout", async () => {
-    vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 200 }));
+    logout.mockResolvedValue({ data: null, status: 200, statusCode: "SUCCESS" });
     const { getByRole } = render(<Navbar user={user} />);
 
     fireEvent.click(getByRole("button", { name: "Logout" }));
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+      expect(logout).toHaveBeenCalledWith("/api/auth/logout");
       expect(routerRefresh).toHaveBeenCalledOnce();
     });
   });
 
   it("does not refresh the page when logout fails", async () => {
-    vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 500 }));
+    logout.mockRejectedValue(new Error("Logout failed"));
     const { getByRole } = render(<Navbar user={user} />);
 
     fireEvent.click(getByRole("button", { name: "Logout" }));
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledOnce();
+      expect(logout).toHaveBeenCalledOnce();
     });
 
     expect(getByRole("button", { name: "Logout" })).toBeTruthy();
