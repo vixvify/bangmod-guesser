@@ -4,9 +4,10 @@ import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { UserRole } from "@/core/domain/user";
 
-const routerRefresh = vi.fn();
-const logout = vi.fn();
-
+const { logout, routerRefresh } = vi.hoisted(() => ({
+  logout: vi.fn(),
+  routerRefresh: vi.fn(),
+}));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: routerRefresh }),
 }));
@@ -31,6 +32,7 @@ const user = {
 describe("Navbar logout", () => {
   afterEach(() => {
     cleanup();
+    vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
 

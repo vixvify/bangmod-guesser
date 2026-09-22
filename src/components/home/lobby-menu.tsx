@@ -1,30 +1,33 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Countdown } from "@/components/ui/countdown";
 import { AppRoutes } from "@/routes/app/routes";
 
 export function LobbyMenu() {
-  const instructions = useRef<HTMLDialogElement>(null);
   const [isStarting, setIsStarting] = useState(false);
   const router = useRouter();
   const enterGame = useCallback(() => router.push(AppRoutes.game), [router]);
 
   return (
     <div className="mx-auto mt-8 w-full max-w-80 motion-safe:animate-home-enter motion-safe:[animation-delay:240ms]">
-      <div className="lobby-play-frame relative">
+      <div className="relative -rotate-2 rounded-[18px] border border-primary-soft/35 p-1.5">
         <Button
           disabled={isStarting}
           onClick={() => setIsStarting(true)}
           aria-label="Play Bangmod Guesser"
-          className="lobby-play w-full"
+          className="relative isolate min-h-16.5 w-full overflow-hidden rounded-xl! border-2 border-primary-light bg-linear-to-b from-primary-hover to-primary-main shadow-[0_5px_0_var(--color-secondary-dark),inset_0_2px_0_var(--color-primary-soft)]! enabled:hover:brightness-110 focus-visible:brightness-110 disabled:opacity-100 motion-safe:enabled:hover:-translate-y-1 motion-safe:enabled:hover:scale-[1.025] motion-safe:enabled:active:translate-y-1 motion-safe:enabled:active:scale-[0.985] motion-safe:focus-visible:-translate-y-1 motion-reduce:transition-none"
         >
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute -inset-y-6 -left-1/2 w-1/3 -skew-x-12 bg-secondary-light/25 opacity-0 motion-safe:transition-[translate,opacity] motion-safe:duration-500 motion-safe:group-hover:translate-x-[550%] motion-safe:group-hover:opacity-100 motion-safe:group-focus-visible:translate-x-[550%] motion-safe:group-focus-visible:opacity-100 group-disabled:hidden"
+          />
           <svg
             aria-hidden="true"
             viewBox="0 0 24 24"
-            className="size-5 fill-current"
+            className="relative size-5 fill-current motion-safe:transition-transform motion-safe:duration-200 motion-safe:group-hover:translate-x-1 motion-safe:group-focus-visible:translate-x-1 group-disabled:translate-x-0"
           >
             <path d="M6 3v18l15-9Z" />
           </svg>
@@ -32,45 +35,6 @@ export function LobbyMenu() {
         </Button>
       </div>
       {isStarting && <Countdown onComplete={enterGame} />}
-      <Button
-        variant="ghost"
-        size="small"
-        onClick={() => instructions.current?.showModal()}
-        className="mt-5 gap-2 text-secondary-light"
-      >
-        <span
-          aria-hidden="true"
-          className="grid size-4 place-items-center rounded-full border border-current text-[0.6rem]"
-        >
-          ?
-        </span>
-        วิธีเล่น
-      </Button>
-      <dialog
-        ref={instructions}
-        aria-labelledby="instructions-title"
-        className="m-auto w-[calc(100%-2rem)] max-w-md rounded-2xl border border-primary-light/30 bg-secondary-main p-7 text-left text-secondary-light shadow-2xl backdrop:bg-secondary-main/80 backdrop:backdrop-blur-sm"
-      >
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary-light">
-          Bangmod Guesser
-        </p>
-        <h2 id="instructions-title" className="mt-3 text-2xl font-bold">
-          จำมุมนี้ได้ไหม?
-        </h2>
-        <ol className="mt-6 list-inside list-decimal space-y-4 text-sm leading-7 text-secondary-light/80">
-          <li>ดูภาพสถานที่ในมหาวิทยาลัย แล้วสังเกตสิ่งรอบตัว</li>
-          <li>ลองนึกให้ออกว่าภาพนี้ถ่ายจากตรงไหนของบางมด</li>
-          <li>เมื่อเกมเปิดให้เล่น เลือกตำแหน่งที่คุณคิดว่าใช่</li>
-        </ol>
-        <p className="mt-6 text-xs text-primary-soft">
-          เกมยังไม่เปิดให้เล่น — แล้วพบกันเร็ว ๆ นี้
-        </p>
-        <form method="dialog" className="mt-6">
-          <Button type="submit" className="w-full">
-            เข้าใจแล้ว
-          </Button>
-        </form>
-      </dialog>
     </div>
   );
 }

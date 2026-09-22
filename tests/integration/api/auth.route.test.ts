@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const { cookieGet, cookies } = vi.hoisted(() => ({
+  cookieGet: vi.fn(),
+  cookies: vi.fn(),
+}));
+
 vi.mock("@/infrastructure/container", () => ({
   authService: {
     register: vi.fn(),
@@ -11,11 +16,21 @@ vi.mock("@/infrastructure/container", () => ({
   },
 }));
 
+vi.mock("next/headers", () => ({ cookies }));
+
+vi.mock("@/lib/auth-check", () => ({
+  authCheck: vi.fn(),
+  requireAuth: vi.fn(),
+}));
+
 import { POST as login } from "@/app/api/auth/login/route";
+import { POST as logout } from "@/app/api/auth/logout/route";
+import { GET as currentUser } from "@/app/api/auth/me/route";
 import { POST as register } from "@/app/api/auth/register/route";
-import { authService } from "@/infrastructure/container";
+import { authService, sessionService } from "@/infrastructure/container";
 import { AppError } from "@/core/errors/app.error";
 import { UserRole } from "@/core/domain/user";
+import { requireAuth } from "@/lib/auth-check";
 import { validLogin, validRegistration } from "../../fixtures/users";
 
 function jsonRequest(body: unknown) {
@@ -36,6 +51,7 @@ const user = {
 describe("Auth API routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    cookies.mockResolvedValue({ get: cookieGet });
   });
 
   it("returns a public user after registration", async () => {
@@ -89,5 +105,30 @@ describe("Auth API routes", () => {
     expect(response.headers.get("set-cookie")).toContain("accessToken=");
     expect(response.headers.get("set-cookie")).toContain("HttpOnly");
     expect(sessionService.create).toHaveBeenCalledWith(user.id);
+  });
+
+  it("returns the authenticated user from the current-user endpoint", async () => {
+    vi.mocked(requireAuth).mockResolvedValue(user);
+
+    const response = await currentUser();
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      data: user,
+      status: 200,
+      statusCode: "SUCCESS",
+    });
+  });
+
+  it("clears the session cookie and deletes the current token on logout", async () => {
+    cookieGet.mockReturnValue({ value: "session-token" });
+    vi.mocked(sessionService.delete).mockResolvedValue(undefined);
+
+    const response = await logout();
+
+    expect(response.status).toBe(200);
+    expect(sessionService.delete).toHaveBeenCalledWith("session-token");
+    expect(response.headers.get("set-cookie")).toContain("accessToken=");
+    expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
   });
 });

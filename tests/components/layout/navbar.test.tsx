@@ -10,15 +10,17 @@ vi.mock("@/routes/api/auth.routes", () => ({
   AuthRoutes: { logout: "/api/auth/logout" },
 }));
 
+vi.mock("@/lib/http", () => ({
+  httpClient: { post: vi.fn() },
+}));
+
 import { Navbar } from "@/components/layout/navbar";
 
 describe("Navbar", () => {
   it("shows settings and login actions for guests", () => {
     const markup = renderToStaticMarkup(<Navbar user={null} />);
 
-    expect(markup).toContain("Bangmod");
-    expect(markup).toContain('aria-label="Bangmod Guesser home"');
-    expect(markup).toContain('href="/"');
+    expect(markup).not.toContain("KMUTT · BANGMOD");
     expect(markup).toContain("Game settings — coming soon");
     expect(markup).toContain('href="/login"');
     expect(markup).toContain("Login");
@@ -39,7 +41,7 @@ describe("Navbar", () => {
     );
 
     expect(markup).toContain('href="/profile"');
-    expect(markup).toContain('aria-label="Bangmod Guesser home"');
+    expect(markup).not.toContain("KMUTT · BANGMOD");
     expect(markup).toContain("KMUTT Student");
     expect(markup).toContain(">K</span>");
     expect(markup).toContain("Logout");

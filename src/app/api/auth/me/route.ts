@@ -1,9 +1,9 @@
 import { errorResponse, successResponse } from "@/lib/api-response";
-import { authCheck } from "@/lib/auth-check";
+import { requireAuth } from "@/lib/auth-check";
 
 export async function GET() {
   try {
-    return successResponse(await authCheck());
+    return successResponse(await requireAuth());
   } catch (error) {
     return errorResponse(error);
   }
