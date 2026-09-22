@@ -8,7 +8,9 @@ const AUTH_ROUTES: string[] = [AppRoutes.login, AppRoutes.register];
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
-  const token = request.cookies.get("accessToken")?.value;
+  const token =
+    request.cookies.get("better-auth.session_token")?.value ??
+    request.cookies.get("__Secure-better-auth.session_token")?.value;
 
   const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
   const isAuthRoute = AUTH_ROUTES.includes(pathname);

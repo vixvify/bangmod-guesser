@@ -1,12 +1,26 @@
 import "server-only";
-import { cookies } from "next/headers";
-import type { User } from "@/core/domain/user";
+import { headers } from "next/headers";
+import { UserRole, type User } from "@/core/domain/user";
 import { AppError } from "@/core/errors/app.error";
-import { sessionService } from "@/infrastructure/container";
+import { auth } from "@/lib/auth";
 
 export async function authCheck(): Promise<User | null> {
-  const token = (await cookies()).get("accessToken")?.value ?? null;
-  return sessionService.getCurrentUser(token);
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    return null;
+  }
+
+  const role = (session.user as { role?: string }).role;
+
+  return {
+    id: session.user.id,
+    name: session.user.name,
+    email: session.user.email,
+    role: role === UserRole.ADMIN ? UserRole.ADMIN : UserRole.USER,
+  };
 }
 
 export async function requireAuth(): Promise<User> {
@@ -18,3 +32,4 @@ export async function requireAuth(): Promise<User> {
 
   return user;
 }
+

@@ -12,13 +12,10 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
 }));
 
-vi.mock("@/routes/api/auth.routes", () => ({
-  AuthRoutes: { logout: "/api/auth/logout" },
+vi.mock("@/lib/auth-client", () => ({
+  authClient: { signOut: vi.fn() },
 }));
 
-vi.mock("@/lib/http", () => ({
-  httpClient: { post: vi.fn() },
-}));
 
 async function renderPage() {
   return renderToStaticMarkup(await Page());

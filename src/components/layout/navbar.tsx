@@ -4,10 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { User } from "@/core/domain/user";
-import { AuthRoutes } from "@/routes/api/auth.routes";
 import { AppRoutes } from "@/routes/app/routes";
 import { Button } from "@/components/ui/button";
-import { httpClient } from "@/lib/http";
+import { authClient } from "@/lib/auth-client";
 
 type NavbarProps = {
   user: User | null;
@@ -21,7 +20,7 @@ export function Navbar({ user }: NavbarProps) {
     setIsLoggingOut(true);
 
     try {
-      await httpClient.post<void>(AuthRoutes.logout);
+      await authClient.signOut();
       router.refresh();
     } catch {
       return;

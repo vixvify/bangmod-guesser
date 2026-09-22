@@ -18,10 +18,12 @@ export function createUserModel(overrides: Partial<UserModel> = {}): UserModel {
     id: "user_1",
     name: validRegistration.name,
     email: validRegistration.email,
-    password: "scrypt:salt:hash",
+    emailVerified: false,
+    image: null,
     role: PrismaRole.USER,
     createdAt: new Date("2026-01-01T00:00:00.000Z"),
     updatedAt: new Date("2026-01-01T00:00:00.000Z"),
     ...overrides,
   };
 }
+

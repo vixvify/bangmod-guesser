@@ -1,67 +1,84 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { UserRole } from "@/core/domain/user";
 
-const { cookieGet, cookies, getCurrentUser } = vi.hoisted(() => ({
-  cookieGet: vi.fn(),
-  cookies: vi.fn(),
-  getCurrentUser: vi.fn(),
+const { getSession, headers } = vi.hoisted(() => ({
+  getSession: vi.fn(),
+  headers: vi.fn(),
 }));
 
 vi.mock("server-only", () => ({}));
 
-vi.mock("next/headers", () => ({ cookies }));
+vi.mock("next/headers", () => ({ headers }));
 
-vi.mock("@/infrastructure/container", () => ({
-  sessionService: { getCurrentUser },
+vi.mock("@/lib/auth", () => ({
+  auth: {
+    api: {
+      getSession,
+    },
+  },
 }));
 
 import { authCheck, requireAuth } from "@/lib/auth-check";
 
-const user = {
+const domainUser = {
   id: "user_1",
   name: "KMUTT Student",
   email: "student@example.com",
   role: UserRole.USER,
 };
 
+const session = {
+  user: {
+    id: "user_1",
+    name: "KMUTT Student",
+    email: "student@example.com",
+    role: "USER",
+  },
+  session: {
+    id: "session_1",
+    userId: "user_1",
+    token: "session-token",
+    expiresAt: new Date(),
+  },
+};
+
 describe("authCheck", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    cookies.mockResolvedValue({ get: cookieGet });
+    headers.mockResolvedValue(new Headers());
   });
 
-  it("returns null when no current user exists", async () => {
-    cookieGet.mockReturnValue(undefined);
-    getCurrentUser.mockResolvedValue(null);
+  it("returns null when no session exists", async () => {
+    getSession.mockResolvedValue(null);
 
     await expect(authCheck()).resolves.toBeNull();
-    expect(getCurrentUser).toHaveBeenCalledWith(null);
+    expect(getSession).toHaveBeenCalledOnce();
   });
 
-  it("returns the current user when the session is valid", async () => {
-    cookieGet.mockReturnValue({ value: "session-token" });
-    getCurrentUser.mockResolvedValue(user);
+  it("returns the domain user when the session is valid", async () => {
+    getSession.mockResolvedValue(session);
 
-    await expect(authCheck()).resolves.toEqual(user);
-    expect(getCurrentUser).toHaveBeenCalledWith("session-token");
+    await expect(authCheck()).resolves.toEqual(domainUser);
+    expect(getSession).toHaveBeenCalledOnce();
   });
 });
 
 describe("requireAuth", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    cookies.mockResolvedValue({ get: cookieGet });
+    headers.mockResolvedValue(new Headers());
   });
 
-  it("throws unauthorized when no current user exists", async () => {
-    getCurrentUser.mockResolvedValue(null);
+  it("throws unauthorized when no session exists", async () => {
+    getSession.mockResolvedValue(null);
 
     await expect(requireAuth()).rejects.toMatchObject({ status: 401 });
   });
 
-  it("returns the current user when the session is valid", async () => {
-    getCurrentUser.mockResolvedValue(user);
+  it("returns the domain user when the session is valid", async () => {
+    getSession.mockResolvedValue(session);
 
-    await expect(requireAuth()).resolves.toEqual(user);
+    await expect(requireAuth()).resolves.toEqual(domainUser);
   });
 });
+
