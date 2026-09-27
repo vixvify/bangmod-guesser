@@ -9,18 +9,17 @@ vi.mock("@/lib/auth-client", () => ({
   authClient: { signOut: vi.fn() },
 }));
 
+import { MainLayout } from "@/layout/main-layout";
 
-import { HomeLayout } from "@/layout/home-layout";
-
-describe("HomeLayout", () => {
+describe("MainLayout", () => {
   it("arranges page content between the navigation and footer", () => {
     const markup = renderToStaticMarkup(
-      <HomeLayout user={null}>
-        <p>Home content</p>
-      </HomeLayout>,
+      <MainLayout user={null}>
+        <p>Page content</p>
+      </MainLayout>,
     );
 
-    expect(markup).toContain("Home content");
+    expect(markup).toContain("Page content");
     expect(markup).toContain("Login");
     expect(markup).toContain('aria-label="Site footer"');
     expect(markup).toContain("BANGMOD");

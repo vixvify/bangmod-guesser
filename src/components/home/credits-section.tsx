@@ -1,5 +1,5 @@
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
-import { Contributors } from "@/lib/data";
+import { Contributors } from "@/core/constants/home";
 
 export function CreditsSection() {
   return (

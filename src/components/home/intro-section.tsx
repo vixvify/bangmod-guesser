@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
-import { HomeBackgroundImages } from "@/lib/data";
+import { HomeBackgroundImages } from "@/core/constants/home";
 
 export function IntroSection() {
   return (
@@ -44,7 +44,7 @@ export function IntroSection() {
         </ScrollReveal>
         <ScrollReveal delay={0.12} className="px-3 pb-5 sm:px-8 lg:px-0">
           <figure className="relative rotate-3 border-2 border-secondary-dark bg-secondary-light p-3 shadow-[12px_12px_0_var(--color-secondary-dark)] sm:p-4">
-            <div className="relative aspect-[4/5] overflow-hidden bg-secondary-main">
+            <div className="relative aspect-4/5 overflow-hidden bg-secondary-main">
               <Image
                 src={HomeBackgroundImages[1]}
                 alt="มุมหนึ่งในมหาวิทยาลัยบางมด ให้ลองสังเกตอาคารและทางเดิน"

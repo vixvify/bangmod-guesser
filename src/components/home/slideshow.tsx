@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { HomeBackgroundImages } from "@/lib/data";
+import { HomeBackgroundImages } from "@/core/constants/home";
 
 const slideshowIntervalMilliseconds = 6000;
 const fadeDurationMilliseconds = 1600;

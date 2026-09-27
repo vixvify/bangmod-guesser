@@ -1,15 +1,19 @@
-import { HomeSections } from "@/components/home/home-sections";
+import { CreditsSection } from "@/components/home/credits-section";
+import { HowToPlaySection } from "@/components/home/how-to-play-section";
+import { IntroSection } from "@/components/home/intro-section";
 import { LobbySection } from "@/components/home/lobby-section";
-import { HomeLayout } from "@/layout/home-layout";
+import { MainLayout } from "@/layout/main-layout";
 import { authCheck } from "@/lib/auth-check";
 
 export default async function Page() {
   const user = await authCheck();
 
   return (
-    <HomeLayout user={user}>
+    <MainLayout user={user}>
       <LobbySection />
-      <HomeSections />
-    </HomeLayout>
+      <IntroSection />
+      <HowToPlaySection />
+      <CreditsSection />
+    </MainLayout>
   );
 }
