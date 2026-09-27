@@ -1,55 +1,41 @@
+"use client";
+
+import { motion, useReducedMotion } from "motion/react";
+
 export function LobbyEmblem() {
+  const reducedMotion = useReducedMotion();
+
   return (
     <div
       aria-hidden="true"
       className="relative mx-auto grid size-[clamp(5rem,13svh,8.5rem)] place-items-center"
     >
-      <div className="absolute inset-0 rounded-full border border-primary-soft/20 motion-safe:animate-lobby-orbit">
-        <span className="absolute left-1/2 top-0 size-2 -translate-y-1/2 rounded-full bg-primary-light shadow-[0_0_18px_var(--color-primary-main)]" />
-      </div>
-      <svg
-        viewBox="0 0 160 160"
-        className="size-full overflow-visible motion-safe:animate-lobby-float"
+      <motion.svg
+        viewBox="0 0 32 36"
+        shapeRendering="crispEdges"
+        className="size-full overflow-visible drop-shadow-[0_8px_0_var(--color-secondary-dark)]"
+        animate={{ y: reducedMotion ? 0 : [0, -6, -6, 0, 0] }}
+        transition={{ duration: 3, ease: "linear", repeat: Infinity }}
       >
-        <circle
-          cx="80"
-          cy="80"
-          r="57"
-          fill="var(--color-secondary-main)"
-          fillOpacity=".6"
-          stroke="var(--color-primary-soft)"
-          strokeOpacity=".4"
-        />
-        <circle
-          cx="80"
-          cy="80"
-          r="49"
-          fill="none"
-          stroke="var(--color-primary-light)"
-          strokeOpacity=".45"
-          strokeDasharray="1 9"
+        <path
+          d="M10 2h12v2h4v4h2v12h-2v4h-4v4h-4v4h-4v-4h-4v-4H6v-4H4V8h2V4h4Z"
+          fill="var(--color-primary-soft)"
         />
         <path
-          d="M80 10v14m0 112v14M10 80h14m112 0h14"
-          stroke="var(--color-primary-soft)"
-          strokeWidth="2"
-        />
-        <path d="m80 18 5 11H75Z" fill="var(--color-primary-light)" />
-        <path
-          d="M80 40c-17 0-30 13-30 30 0 24 30 53 30 53s30-29 30-53c0-17-13-30-30-30Z"
+          d="M10 4h12v2h2v4h2v10h-4v4h-4v4h-4v-4h-4v-4H6V10h2V6h2Z"
           fill="var(--color-primary-main)"
-          stroke="var(--color-primary-soft)"
-          strokeWidth="2"
-          className="drop-shadow-[0_8px_16px_var(--color-secondary-dark)]"
         />
-        <circle cx="80" cy="70" r="12" fill="var(--color-secondary-light)" />
-        <circle cx="80" cy="70" r="5" fill="var(--color-secondary-dark)" />
+        <path d="M10 6h10v2H10v4H8V8h2Z" fill="var(--color-primary-light)" />
         <path
-          d="m34 34 8 8m76 76 8 8m0-92-8 8m-76 76-8 8"
-          stroke="var(--color-primary-light)"
-          strokeOpacity=".6"
+          d="M12 10h8v2h2v6h-2v2h-8v-2h-2v-6h2Z"
+          fill="var(--color-secondary-light)"
         />
-      </svg>
+        <path d="M14 12h4v6h-4Z" fill="var(--color-secondary-dark)" />
+        <path
+          d="M0 4h2V2h2v2h2v2H4v2H2V6H0Zm26 24h2v-2h2v2h2v2h-2v2h-2v-2h-2Z"
+          fill="var(--color-primary-light)"
+        />
+      </motion.svg>
     </div>
   );
 }

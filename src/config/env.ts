@@ -51,9 +51,25 @@ function getApiUrl() {
   return result.data.url;
 }
 
+function getAuthSecret() {
+  return process.env.BETTER_AUTH_SECRET || "development-fallback-secret-key-min-32-chars";
+}
+
+function getAuthUrl() {
+  return process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+}
+
 export const config = {
   get apiUrl() {
     return getApiUrl();
+  },
+
+  get authSecret() {
+    return getAuthSecret();
+  },
+
+  get authUrl() {
+    return getAuthUrl();
   },
 
   get environment() {
@@ -68,3 +84,4 @@ export const config = {
     return getR2Config();
   },
 };
+

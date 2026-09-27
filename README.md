@@ -17,13 +17,13 @@ docker compose up -d
 Fill in the required values in `.env`, then apply the schema:
 
 ```bash
-npx prisma db push
+npx prisma migrate deploy
+# or in development:
+# npx prisma migrate dev
 ```
 
-The current schema stores user roles as the Prisma `Role` enum (`USER` or
-`ADMIN`). If upgrading a database that still has the old `roles` table, reset
-the development database once with `npx prisma db push --force-reset`; this
-removes existing development data.
+The current schema supports Better Auth and stores user roles as the Prisma `Role` enum (`USER` or `ADMIN`).
+
 
 Set `NEXT_PUBLIC_API_URL` to the API base URL, for example
 `http://localhost:3000/api`. API route constants append their endpoint paths

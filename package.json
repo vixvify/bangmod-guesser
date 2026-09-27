@@ -8,14 +8,17 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "npm run test:unit && npm run test:integration",
+    "test": "npm run test:unit && npm run test:component && npm run test:integration",
     "test:unit": "vitest run tests/unit",
+    "test:component": "vitest run tests/components",
     "test:integration": "vitest run tests/integration"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1127.0",
     "@prisma/client": "6.19.3",
     "axios": "^1.20.0",
+    "better-auth": "^1.7.5",
+    "motion": "^13.4.0",
     "next": "16.3.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
