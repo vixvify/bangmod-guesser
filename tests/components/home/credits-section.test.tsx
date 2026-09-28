@@ -12,5 +12,7 @@ describe("CreditsSection", () => {
     expect(markup).toContain("Asnawee Ezor");
     expect(markup).toContain("Chanyanuch Thanusorn");
     expect(markup).toContain("Chitaworn Sinsuk");
+    expect(markup).toContain("transition:color 180ms ease");
+    expect(markup).toMatch(/:hover,[^{]*:focus-visible\{color:var\(--color-primary-light\)/);
   });
 });

@@ -9,7 +9,6 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LobbyMenu } from "@/components/home/lobby-menu";
-import { mockDialog } from "../../helpers/dialog";
 
 const { push, router } = vi.hoisted(() => {
   const push = vi.fn();
@@ -19,7 +18,6 @@ vi.mock("next/navigation", () => ({ useRouter: () => router }));
 
 beforeEach(() => {
   push.mockReset();
-  return mockDialog();
 });
 
 afterEach(() => {
@@ -37,6 +35,10 @@ describe("LobbyMenu", () => {
     });
 
     expect(play.disabled).toBe(false);
+    expect(play.querySelector("svg")?.getAttribute("class")).not.toMatch(/transition|translate/);
+    expect(play.className).not.toContain("enabled:hover:-translate-y");
+    expect(play.className).not.toContain("enabled:hover:rotate");
+    expect(play.className).not.toContain("enabled:hover:scale");
     fireEvent.click(play);
     expect(play.disabled).toBe(true);
     expect(screen.getByRole("status").textContent).toBe("3");

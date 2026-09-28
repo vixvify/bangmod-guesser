@@ -20,7 +20,7 @@ describe("MainLayout", () => {
     );
 
     expect(markup).toContain("Page content");
-    expect(markup).toContain("Login");
+    expect(markup).toContain("เข้าสู่ระบบ");
     expect(markup).toContain('aria-label="Site footer"');
     expect(markup).toContain("BANGMOD");
     expect(markup).toContain("GUESSER");

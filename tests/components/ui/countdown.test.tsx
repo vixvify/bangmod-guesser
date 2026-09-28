@@ -4,11 +4,9 @@ import { StrictMode } from "react";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Countdown } from "@/components/ui/countdown";
-import { mockDialog } from "../../helpers/dialog";
 
 beforeEach(() => {
   vi.useFakeTimers();
-  return mockDialog();
 });
 afterEach(() => { cleanup(); vi.useRealTimers(); });
 

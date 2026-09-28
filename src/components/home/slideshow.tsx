@@ -144,13 +144,13 @@ export function BackgroundSlideshow() {
               }}
               className={`object-cover object-[62%_center] transition-[opacity,scale] ${
                 isActive ? "opacity-75" : "opacity-0"
-              } ${shouldStayZoomed ? "scale-[1.08]" : "scale-100"} motion-reduce:scale-100! motion-reduce:transition-opacity!`}
+              } ${shouldStayZoomed ? "scale-[1.08]" : "scale-100"} motion-reduce:scale-100 motion-reduce:transition-opacity`}
             />
           );
         })}
       </div>
       <div className="absolute inset-0 bg-primary-soft/10 mix-blend-soft-light" />
-      <div className="absolute inset-0 bg-[radial-gradient(var(--color-secondary-main)_0.6px,transparent_0.8px)] bg-size-[3px_3px] opacity-30" />
+      <div className="absolute inset-0 bg-[radial-gradient(var(--color-secondary-main)_0.0375rem,transparent_0.05rem)] bg-size-[0.1875rem_0.1875rem] opacity-30" />
     </div>
   );
 }

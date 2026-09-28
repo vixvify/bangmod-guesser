@@ -1,3 +1,5 @@
+import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
+import MuiLink from "@mui/material/Link";
 import { HomeBackdrop } from "@/components/home/home-backdrop";
 import { LobbyEmblem } from "@/components/home/lobby-emblem";
 import { LobbyMenu } from "@/components/home/lobby-menu";
@@ -28,19 +30,15 @@ export function LobbySection() {
           เดินผ่านทุกวัน… แล้วจำได้แค่ไหน?
         </p>
         <LobbyMenu />
-        <a
+        <MuiLink
           href="#introduction"
+          color="inherit"
+          underline="none"
           className="mt-8 inline-flex flex-col items-center gap-1 text-xs text-secondary-light/55 transition-colors hover:text-secondary-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-focus"
         >
           <span>เลื่อนลงเพื่อทำความรู้จักเกม</span>
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 24 24"
-            className="size-5 fill-none stroke-current stroke-2 motion-safe:animate-bounce"
-          >
-            <path d="m6 9 6 6 6-6" />
-          </svg>
-        </a>
+          <KeyboardArrowDownRoundedIcon className="size-5 motion-safe:animate-bounce" />
+        </MuiLink>
       </div>
     </section>
   );

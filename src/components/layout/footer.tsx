@@ -1,5 +1,24 @@
-import Link from "next/link";
+import MuiLink from "@mui/material/Link";
 import { AppRoutes } from "@/routes/app/routes";
+
+const footerLinks = [
+  { href: AppRoutes.home, label: "หน้าแรก" },
+  { href: "#introduction", label: "ทำความรู้จักเกม" },
+  { href: "#how-to-play", label: "วิธีเล่น" },
+  { href: "#credits", label: "คณะผู้จัดทำ" },
+] as const;
+
+const footerLinkStyles = {
+  color: "inherit",
+  textDecorationLine: "underline",
+  textDecorationColor: "transparent",
+  textUnderlineOffset: "0.25em",
+  transition: "color 240ms ease, text-decoration-color 240ms ease",
+  "&:hover, &:focus-visible": {
+    color: "var(--color-primary-light)",
+    textDecorationColor: "currentColor",
+  },
+};
 
 export function Footer() {
   return (
@@ -26,38 +45,13 @@ export function Footer() {
               ไปยังหน้าอื่น ๆ
             </h3>
             <ul className="mt-4 space-y-2.5 text-sm">
-              <li>
-                <Link
-                  href={AppRoutes.home}
-                  className="transition-colors hover:text-primary-light"
-                >
-                  หน้าแรก
-                </Link>
-              </li>
-              <li>
-                <a
-                  href="#introduction"
-                  className="transition-colors hover:text-primary-light"
-                >
-                  ทำความรู้จักเกม
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#how-to-play"
-                  className="transition-colors hover:text-primary-light"
-                >
-                  วิธีเล่น
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#credits"
-                  className="transition-colors hover:text-primary-light"
-                >
-                  คณะผู้จัดทำ
-                </a>
-              </li>
+              {footerLinks.map(({ href, label }) => (
+                <li key={href}>
+                  <MuiLink href={href} underline="none" sx={footerLinkStyles}>
+                    {label}
+                  </MuiLink>
+                </li>
+              ))}
             </ul>
           </div>
 

@@ -22,12 +22,12 @@ export function ScrollReveal({
     if (!element || prefersReducedMotion || !("IntersectionObserver" in window)) return;
 
     return inView(element, () => {
-      void animate(element, { opacity: [0, 1], y: [28, 0] }, {
+      void animate(element, { opacity: [0, 1], y: ["1.75rem", "0rem"] }, {
         duration: 0.65,
         delay,
         ease: [0.22, 1, 0.36, 1],
       });
-    }, { amount: "some", margin: "0px 0px 64px 0px" });
+    }, { amount: "some" });
   }, [animate, delay, prefersReducedMotion, scope]);
 
   return (

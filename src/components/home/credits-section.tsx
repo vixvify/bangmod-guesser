@@ -1,5 +1,13 @@
+import InstagramIcon from "@mui/icons-material/Instagram";
+import MuiLink from "@mui/material/Link";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { Contributors } from "@/core/constants/home";
+
+const instagramLinkStyles = {
+  color: "color-mix(in srgb, var(--color-secondary-light) 60%, transparent)",
+  transition: "color 180ms ease",
+  "&:hover, &:focus-visible": { color: "var(--color-primary-light)" },
+};
 
 export function CreditsSection() {
   return (
@@ -52,24 +60,18 @@ export function CreditsSection() {
                 <h3 className="text-2xl font-semibold sm:text-3xl lg:text-4xl">
                   {contributor.name}
                 </h3>
-                <a
+                <MuiLink
                   href={`https://www.instagram.com/${contributor.instagram}/`}
                   target="_blank"
                   rel="noreferrer"
+                  underline="none"
                   aria-label={`Instagram ของ ${contributor.name}`}
-                  className="inline-flex w-fit items-center gap-3 rounded-sm py-2 text-sm text-secondary-light/60 transition-colors hover:text-primary-light focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary-focus"
+                  sx={instagramLinkStyles}
+                  className="inline-flex w-fit items-center gap-3 rounded-sm py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary-focus"
                 >
-                  <svg
-                    aria-hidden="true"
-                    viewBox="0 0 24 24"
-                    className="size-5 shrink-0 fill-none stroke-current stroke-2"
-                  >
-                    <rect x="3" y="3" width="18" height="18" rx="5" />
-                    <circle cx="12" cy="12" r="4" />
-                    <circle cx="17.5" cy="6.5" r="0.75" className="fill-current" />
-                  </svg>
+                  <InstagramIcon className="size-5 shrink-0" />
                   @{contributor.instagram}
-                </a>
+                </MuiLink>
               </ScrollReveal>
             </li>
           ))}

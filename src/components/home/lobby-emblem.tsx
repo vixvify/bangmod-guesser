@@ -13,7 +13,7 @@ export function LobbyEmblem() {
       <motion.svg
         viewBox="0 0 32 36"
         shapeRendering="crispEdges"
-        className="size-full overflow-visible drop-shadow-[0_8px_0_var(--color-secondary-dark)]"
+        className="size-full overflow-visible drop-shadow-[0_0.5rem_0_var(--color-secondary-dark)]"
         animate={{ y: reducedMotion ? 0 : [0, -6, -6, 0, 0] }}
         transition={{ duration: 3, ease: "linear", repeat: Infinity }}
       >

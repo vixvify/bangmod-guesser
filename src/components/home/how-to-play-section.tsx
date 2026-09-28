@@ -1,5 +1,14 @@
+import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
+import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
+import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { Steps } from "@/core/constants/home";
+
+const StepIcons = {
+  LOOK: ImageOutlinedIcon,
+  THINK: SearchOutlinedIcon,
+  PIN: PlaceOutlinedIcon,
+} as const;
 
 export function HowToPlaySection() {
   return (
@@ -28,37 +37,34 @@ export function HowToPlaySection() {
           </div>
         </ScrollReveal>
         <ol className="grid gap-12 pt-12 md:grid-cols-3 md:gap-8">
-          {Steps.map((step, index) => (
-            <li key={step.caption}>
-              <ScrollReveal delay={index * 0.08}>
-                <div
-                  aria-hidden="true"
-                  className="relative mb-8 flex h-40 items-end justify-between border-b border-secondary-dark/20 pb-5"
-                >
-                  <span className="font-display text-9xl leading-none text-secondary-dark/10">
-                    0{index + 1}
-                  </span>
-                  <span className="absolute right-3 top-4 grid size-24 rotate-6 place-items-center border-2 border-secondary-dark bg-primary-main shadow-[5px_5px_0_var(--color-secondary-dark)]">
-                    <svg
-                      viewBox="0 0 24 24"
-                      className="size-11 -rotate-6 fill-none stroke-current stroke-[1.5]"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d={step.path} />
-                    </svg>
-                  </span>
-                  <span className="font-mono text-xs tracking-[0.2em]">
-                    {step.caption}
-                  </span>
-                </div>
-                <h3 className="text-2xl font-bold">{step.title}</h3>
-                <p className="mt-4 text-base leading-8 text-secondary-dark/70">
-                  {step.description}
-                </p>
-              </ScrollReveal>
-            </li>
-          ))}
+          {Steps.map((step, index) => {
+            const StepIcon = StepIcons[step.caption];
+
+            return (
+              <li key={step.caption}>
+                <ScrollReveal delay={index * 0.08}>
+                  <div
+                    aria-hidden="true"
+                    className="relative mb-8 flex h-40 items-end justify-between border-b border-secondary-dark/20 pb-5"
+                  >
+                    <span className="font-display text-9xl leading-none text-secondary-dark/10">
+                      0{index + 1}
+                    </span>
+                    <span className="absolute right-3 top-4 grid size-24 rotate-6 place-items-center border-2 border-secondary-dark bg-primary-main shadow-[0.3125rem_0.3125rem_0_var(--color-secondary-dark)]">
+                      <StepIcon className="size-11 -rotate-6" />
+                    </span>
+                    <span className="font-mono text-xs tracking-[0.2em]">
+                      {step.caption}
+                    </span>
+                  </div>
+                  <h3 className="text-2xl font-bold">{step.title}</h3>
+                  <p className="mt-4 text-base leading-8 text-secondary-dark/70">
+                    {step.description}
+                  </p>
+                </ScrollReveal>
+              </li>
+            );
+          })}
         </ol>
       </div>
     </section>
