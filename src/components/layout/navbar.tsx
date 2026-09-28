@@ -20,15 +20,17 @@ import { authClient } from "@/lib/auth-client";
 
 type NavbarProps = {
   user: User | null;
-  variant?: "transparent" | "solid";
+  brandColor?: string;
 };
 
-export function Navbar({ user, variant = "transparent" }: NavbarProps) {
+export function Navbar({
+  user,
+  brandColor = "var(--color-secondary-light)",
+}: NavbarProps) {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const isTransparent = variant === "transparent";
 
   async function handleLogout() {
     setIsLoggingOut(true);
@@ -51,22 +53,14 @@ export function Navbar({ user, variant = "transparent" }: NavbarProps) {
   }
 
   return (
-    <header
-      className={`inset-x-0 top-0 z-50 flex h-16 w-full items-center justify-between px-4 sm:px-8 ${
-        isTransparent
-          ? "absolute bg-transparent text-secondary-light"
-          : "sticky border-b border-neutral-200 bg-white text-secondary-dark shadow-xs"
-      }`}
-    >
+    <header className="absolute inset-x-0 top-0 z-50 flex h-16 w-full items-center justify-between bg-transparent px-4 text-secondary-light sm:px-8">
       <MuiLink
         component={NextLink}
         href={AppRoutes.home}
         color="inherit"
         underline="none"
         sx={{
-          color: isTransparent
-            ? "var(--color-secondary-light)"
-            : "var(--color-secondary-dark)",
+          color: brandColor,
           fontSize: { xs: "1.125rem", sm: "1.5rem" },
           fontWeight: 900,
           transition: "color 280ms ease",

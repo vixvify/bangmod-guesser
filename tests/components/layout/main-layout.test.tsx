@@ -28,4 +28,16 @@ describe("MainLayout", () => {
     expect(markup).not.toContain("lobby-fx");
     expect(markup).not.toContain("kmutt-bangmod-1.jpg");
   });
+
+  it("passes a page-specific wordmark color to the shared navbar", () => {
+    const markup = renderToStaticMarkup(
+      <MainLayout user={null} brandColor="var(--color-secondary-dark)">
+        <p>Profile content</p>
+      </MainLayout>,
+    );
+
+    expect(markup).toContain("Profile content");
+    expect(markup).toContain("color:var(--color-secondary-dark)");
+    expect(markup).toContain("bg-transparent");
+  });
 });

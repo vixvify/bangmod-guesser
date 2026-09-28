@@ -3,9 +3,9 @@ import { AppRoutes } from "@/routes/app/routes";
 
 const footerLinks = [
   { href: AppRoutes.home, label: "หน้าแรก" },
-  { href: "#introduction", label: "ทำความรู้จักเกม" },
-  { href: "#how-to-play", label: "วิธีเล่น" },
-  { href: "#credits", label: "คณะผู้จัดทำ" },
+  { href: "/#introduction", label: "ทำความรู้จักเกม" },
+  { href: "/#how-to-play", label: "วิธีเล่น" },
+  { href: "/#credits", label: "คณะผู้จัดทำ" },
 ] as const;
 
 const footerLinkStyles = {

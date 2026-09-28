@@ -14,6 +14,9 @@ describe("Footer", () => {
     expect(markup).toContain("วิทยาการคอมพิวเตอร์ประยุกต์");
     expect(markup).toContain("มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี");
     expect(markup).toContain("All rights reserved");
+    expect(markup).toContain('href="/#introduction"');
+    expect(markup).toContain('href="/#how-to-play"');
+    expect(markup).toContain('href="/#credits"');
     expect(markup).not.toContain("KMUTT Campus Guesser");
     expect(markup).not.toContain("โครงการพัฒนาขึ้นเพื่อการศึกษา");
     expect(markup).toContain("transition:color 240ms ease,text-decoration-color 240ms ease");

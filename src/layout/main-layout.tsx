@@ -6,19 +6,19 @@ import type { User } from "@/core/domain/user";
 type MainLayoutProps = {
   children: ReactNode;
   user: User | null;
-  navbarVariant?: "transparent" | "solid";
+  brandColor?: string;
   className?: string;
 };
 
 export function MainLayout({
   children,
   user,
-  navbarVariant = "transparent",
+  brandColor,
   className = "relative min-h-svh text-secondary-light",
 }: MainLayoutProps) {
   return (
     <main className={className}>
-      <Navbar user={user} variant={navbarVariant} />
+      <Navbar user={user} brandColor={brandColor} />
       {children}
       <Footer />
     </main>

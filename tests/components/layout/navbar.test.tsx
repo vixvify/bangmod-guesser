@@ -54,11 +54,13 @@ describe("Navbar", () => {
     expect(markup).not.toContain('href="/login"');
   });
 
-  it("renders a solid white navbar when variant is solid", () => {
-    const markup = renderToStaticMarkup(<Navbar user={null} variant="solid" />);
+  it("keeps one transparent navbar and lets pages set only the brand color", () => {
+    const markup = renderToStaticMarkup(
+      <Navbar user={null} brandColor="var(--color-secondary-dark)" />,
+    );
 
-    expect(markup).toContain("bg-white");
-    expect(markup).toContain("border-neutral-200");
+    expect(markup).toContain("bg-transparent");
+    expect(markup).not.toContain("border-neutral-200");
     expect(markup).toContain("color:var(--color-secondary-dark)");
   });
 });
