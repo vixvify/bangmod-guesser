@@ -26,7 +26,7 @@ describe("Navbar", () => {
     expect(markup).toContain("color:var(--color-primary-main)");
     expect(markup).toContain("width:2.5rem");
     expect(markup).toContain("height:2.5rem");
-    expect(markup).toContain("ตั้งค่าเกม — เร็ว ๆ นี้");
+    expect(markup).toContain("ตั้งค่าเกม");
     expect(markup).toContain("ตารางอันดับ — เร็ว ๆ นี้");
     expect(markup).toContain('href="/login"');
     expect(markup).toContain("เข้าสู่ระบบ");

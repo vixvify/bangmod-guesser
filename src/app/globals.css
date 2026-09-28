@@ -18,13 +18,14 @@
 
 @theme {
   --color-primary-main: #ff7a2f;
-  --color-primary-hover: #ff934f;
+  --color-primary-hover: #e85d10;
   --color-primary-light: #ffab78;
   --color-primary-soft: #ffd0ad;
   --color-primary-focus: #ffe16a;
   --color-secondary-main: #06131a;
   --color-secondary-dark: #1b120c;
   --color-secondary-light: #fff4e8;
+  --color-surface-hover: #d1d5db;
   --font-display: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
   --animate-home-enter: home-enter 850ms cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-countdown-beat: countdown-beat 1s cubic-bezier(0.16, 1, 0.3, 1) both;

@@ -27,7 +27,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
   } = useForm<LoginInput>({
     resolver: zodResolver(LoginSchema),
     defaultValues: { email: "", password: "" },
@@ -68,7 +68,11 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
         </p>
       </header>
 
-      <form noValidate onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
+      <form
+        noValidate
+        onSubmit={handleSubmit(onSubmit)}
+        className="flex flex-col gap-3"
+      >
         <Input
           {...register("email")}
           id="login-email"
@@ -98,7 +102,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
           <Button
             type="submit"
             variant="primary"
-            disabled={isSubmitting}
+            disabled={!isValid || isSubmitting}
             className="min-h-12 w-full"
           >
             {isSubmitting ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}

@@ -37,7 +37,7 @@ const buttonStyles: SystemStyleObject<Theme> = {
 const variantStyles: Record<ButtonVariant, SystemStyleObject<Theme>> = {
   primary: {
     backgroundColor: "var(--color-primary-main)",
-    color: "var(--color-secondary-dark)",
+    color: "#fff",
     boxShadow: "0 0.625rem 1.5rem rgb(255 122 47 / 25%)",
     "&:not(.Mui-disabled):hover": {
       backgroundColor: "var(--color-primary-hover)",
@@ -46,7 +46,7 @@ const variantStyles: Record<ButtonVariant, SystemStyleObject<Theme>> = {
     "&.Mui-disabled": {
       backgroundColor:
         "color-mix(in srgb, var(--color-primary-main) 45%, transparent)",
-      color: "color-mix(in srgb, var(--color-secondary-dark) 45%, transparent)",
+      color: "color-mix(in srgb, #fff 45%, transparent)",
       boxShadow: "none",
     },
   },
@@ -74,9 +74,10 @@ const variantStyles: Record<ButtonVariant, SystemStyleObject<Theme>> = {
     color: "#000",
     boxShadow: "0 0.125rem 0.5rem rgb(0 0 0 / 18%)",
     "&:not(.Mui-disabled):hover": {
-      borderColor: "var(--color-primary-main)",
-      backgroundColor: "var(--color-primary-main)",
-      boxShadow: "0 0.375rem 1.125rem rgb(255 122 47 / 38%)",
+      borderColor: "transparent",
+      backgroundColor: "var(--color-surface-hover)",
+      color: "#000",
+      boxShadow: "0 0.25rem 0.75rem rgb(0 0 0 / 16%)",
     },
     "&.Mui-disabled": {
       backgroundColor: "rgb(255 255 255 / 70%)",
@@ -88,7 +89,7 @@ const variantStyles: Record<ButtonVariant, SystemStyleObject<Theme>> = {
     border: "0.125rem solid var(--color-primary-light)",
     borderRadius: "0.75rem",
     background:
-      "linear-gradient(to bottom, var(--color-primary-hover), var(--color-primary-main))",
+      "linear-gradient(to bottom, var(--color-primary-light), var(--color-primary-main))",
     color: "var(--color-secondary-dark)",
     boxShadow:
       "0 0.3125rem 0 var(--color-secondary-dark), 0 0 0 rgb(255 122 47 / 0%), inset 0 0.125rem 0 var(--color-primary-soft)",

@@ -11,6 +11,7 @@ import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import MuiLink from "@mui/material/Link";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { SettingsDialog } from "@/components/ui/settings-dialog";
 import { AUTH_MESSAGES } from "@/core/constants/auth";
 import type { User } from "@/core/domain/user";
 import { AppRoutes } from "@/routes/app/routes";
@@ -25,6 +26,7 @@ export function Navbar({ user }: NavbarProps) {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   async function handleLogout() {
     setIsLoggingOut(true);
@@ -69,9 +71,9 @@ export function Navbar({ user }: NavbarProps) {
         <Button
           variant="surface"
           size="icon"
-          disabled
-          aria-label="ตั้งค่าเกม — เร็ว ๆ นี้"
-          title="ตั้งค่าเกม — เร็ว ๆ นี้"
+          onClick={() => setIsSettingsOpen(true)}
+          aria-label="ตั้งค่าเกม"
+          title="ตั้งค่าเกม"
         >
           <SettingsOutlinedIcon />
         </Button>
@@ -123,6 +125,10 @@ export function Navbar({ user }: NavbarProps) {
         cancelLabel={AUTH_MESSAGES.logout.cancel}
         onConfirm={handleLogout}
         onCancel={() => setIsLogoutDialogOpen(false)}
+      />
+      <SettingsDialog
+        open={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
       />
     </header>
   );

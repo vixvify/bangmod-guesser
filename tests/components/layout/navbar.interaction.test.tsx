@@ -105,4 +105,17 @@ describe("Navbar logout", () => {
     expect(getByRole("dialog")).toBeTruthy();
     expect(routerRefresh).not.toHaveBeenCalled();
   });
+
+  it("opens settings modal when settings button is clicked and closes on cancel", async () => {
+    const { getByRole, queryByRole } = render(<Navbar user={user} />);
+
+    fireEvent.click(getByRole("button", { name: "ตั้งค่าเกม" }));
+
+    expect(getByRole("dialog")).toBeTruthy();
+    expect(getByRole("heading", { name: "ตั้งค่าเกม" })).toBeTruthy();
+
+    fireEvent.click(getByRole("button", { name: "ยกเลิก" }));
+
+    await waitFor(() => expect(queryByRole("dialog")).toBeNull());
+  });
 });

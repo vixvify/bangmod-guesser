@@ -29,7 +29,7 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
   } = useForm<RegisterInput>({
     resolver: zodResolver(RegisterSchema),
     defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
@@ -125,7 +125,7 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
           <Button
             type="submit"
             variant="primary"
-            disabled={isSubmitting}
+            disabled={!isValid || isSubmitting}
             className="min-h-12 w-full"
           >
             {isSubmitting ? "กำลังสมัครสมาชิก..." : "สมัครสมาชิก"}

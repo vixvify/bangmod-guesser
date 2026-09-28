@@ -11,6 +11,7 @@ describe("Button", () => {
     expect(markup).toContain("background-color:var(--color-primary-main)");
     expect(markup).toContain(".Mui-disabled");
     expect(markup).toContain('type="button"');
+    expect(markup).toContain("color:#fff");
   });
 
   it("supports reusable outline icon buttons", () => {
@@ -54,7 +55,9 @@ describe("Button", () => {
     expect(markup).toContain("background-color:#fff");
     expect(markup).toContain("color:#000");
     expect(markup).toContain(":not(.Mui-disabled):hover");
-    expect(markup).toContain("border-color:var(--color-primary-main)");
+    expect(markup).toContain("border-color:transparent");
+    expect(markup).toContain("background-color:var(--color-surface-hover)");
+    expect(markup).toContain("color:#000");
     expect(markup).toContain("transition:background-color 180ms ease");
     expect(markup).not.toContain("translateY");
   });
