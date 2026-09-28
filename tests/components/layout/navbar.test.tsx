@@ -4,12 +4,12 @@ import { UserRole } from "@/core/domain/user";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
+  usePathname: () => "/",
 }));
 
 vi.mock("@/lib/auth-client", () => ({
   authClient: { signOut: vi.fn() },
 }));
-
 
 import { Navbar } from "@/components/layout/navbar";
 
@@ -52,5 +52,13 @@ describe("Navbar", () => {
     expect(markup).toContain("ตารางอันดับ — เร็ว ๆ นี้");
     expect(markup).toContain("ออกจากระบบ");
     expect(markup).not.toContain('href="/login"');
+  });
+
+  it("renders a solid white navbar when variant is solid", () => {
+    const markup = renderToStaticMarkup(<Navbar user={null} variant="solid" />);
+
+    expect(markup).toContain("bg-white");
+    expect(markup).toContain("border-neutral-200");
+    expect(markup).toContain("color:var(--color-secondary-dark)");
   });
 });

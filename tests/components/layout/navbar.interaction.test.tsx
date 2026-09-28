@@ -13,6 +13,7 @@ const { signOut, routerRefresh, toastError, toastSuccess } = vi.hoisted(() => ({
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: routerRefresh }),
+  usePathname: () => "/",
 }));
 
 vi.mock("@/lib/auth-client", () => ({

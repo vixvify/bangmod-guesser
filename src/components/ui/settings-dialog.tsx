@@ -41,11 +41,11 @@ const sliderStyles = {
     height: 20,
     backgroundColor: "#1b120c",
     boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-    "&:hover, &.Mui-focusVisible": {
-      boxShadow: "0 0 0 8px rgba(27, 18, 12, 0.12)",
+    "&:hover, &.Mui-focusVisible, &.Mui-active": {
+      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
     },
-    "&.Mui-active": {
-      boxShadow: "0 0 0 12px rgba(27, 18, 12, 0.18)",
+    "&::before": {
+      display: "none",
     },
   },
 };
