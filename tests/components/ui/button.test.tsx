@@ -57,6 +57,18 @@ describe("Button", () => {
     expect(markup).not.toContain("translateY");
   });
 
+  it("uses the same inherited font for surface links and native buttons", () => {
+    const login = renderToStaticMarkup(
+      <Button href="/login" variant="surface" size="small">เข้าสู่ระบบ</Button>,
+    );
+    const logout = renderToStaticMarkup(
+      <Button variant="surface" size="small">ออกจากระบบ</Button>,
+    );
+
+    expect(login).toContain("font-family:inherit");
+    expect(logout).toContain("font-family:inherit");
+  });
+
   it("only animates the Play glow on hover", () => {
     const markup = renderToStaticMarkup(<Button variant="play">PLAY</Button>);
 

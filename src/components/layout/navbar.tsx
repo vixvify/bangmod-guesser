@@ -9,6 +9,9 @@ import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutlineOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import MuiLink from "@mui/material/Link";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { AUTH_MESSAGES } from "@/core/constants/auth";
 import type { User } from "@/core/domain/user";
 import { AppRoutes } from "@/routes/app/routes";
 import { Button } from "@/components/ui/button";
@@ -21,15 +24,23 @@ type NavbarProps = {
 export function Navbar({ user }: NavbarProps) {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
 
   async function handleLogout() {
     setIsLoggingOut(true);
 
     try {
-      await authClient.signOut();
+      const { error } = await authClient.signOut();
+      if (error) {
+        toast.error(AUTH_MESSAGES.logout.failed);
+        return;
+      }
+
+      setIsLogoutDialogOpen(false);
+      toast.success(AUTH_MESSAGES.logout.success);
       router.refresh();
     } catch {
-      return;
+      toast.error(AUTH_MESSAGES.logout.failed);
     } finally {
       setIsLoggingOut(false);
     }
@@ -89,7 +100,7 @@ export function Navbar({ user }: NavbarProps) {
             <Button
               variant="surface"
               size="small"
-              onClick={handleLogout}
+              onClick={() => setIsLogoutDialogOpen(true)}
               disabled={isLoggingOut}
             >
               <LogoutOutlinedIcon fontSize="small" />
@@ -97,16 +108,22 @@ export function Navbar({ user }: NavbarProps) {
             </Button>
           </>
         ) : (
-          <Button
-            href={AppRoutes.login}
-            variant="surface"
-            size="small"
-          >
+          <Button href={AppRoutes.login} variant="surface" size="small">
             <LoginOutlinedIcon fontSize="small" />
             เข้าสู่ระบบ
           </Button>
         )}
       </nav>
+      <ConfirmDialog
+        open={isLogoutDialogOpen}
+        busy={isLoggingOut}
+        title={AUTH_MESSAGES.logout.title}
+        description={AUTH_MESSAGES.logout.description}
+        confirmLabel={AUTH_MESSAGES.logout.confirm}
+        cancelLabel={AUTH_MESSAGES.logout.cancel}
+        onConfirm={handleLogout}
+        onCancel={() => setIsLogoutDialogOpen(false)}
+      />
     </header>
   );
 }

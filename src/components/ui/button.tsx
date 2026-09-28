@@ -28,6 +28,7 @@ type ButtonProps = NativeButtonProps | LinkButtonProps;
 
 const buttonStyles: SystemStyleObject<Theme> = {
   borderRadius: "0.5rem",
+  fontFamily: "inherit",
   transition:
     "background-color 180ms ease, color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, filter 180ms ease",
 };
@@ -42,7 +43,8 @@ const variantStyles: Record<ButtonVariant, SystemStyleObject<Theme>> = {
       boxShadow: "0 0.875rem 1.875rem rgb(255 122 47 / 32%)",
     },
     "&.Mui-disabled": {
-      backgroundColor: "color-mix(in srgb, var(--color-primary-main) 45%, transparent)",
+      backgroundColor:
+        "color-mix(in srgb, var(--color-primary-main) 45%, transparent)",
       color: "color-mix(in srgb, var(--color-secondary-dark) 45%, transparent)",
       boxShadow: "none",
     },
@@ -57,7 +59,8 @@ const variantStyles: Record<ButtonVariant, SystemStyleObject<Theme>> = {
   },
   outline: {
     border: "0.0625rem solid rgb(255 255 255 / 15%)",
-    backgroundColor: "color-mix(in srgb, var(--color-secondary-main) 35%, transparent)",
+    backgroundColor:
+      "color-mix(in srgb, var(--color-secondary-main) 35%, transparent)",
     color: "var(--color-secondary-light)",
     "&:not(.Mui-disabled):hover": {
       backgroundColor: "rgb(255 255 255 / 10%)",
