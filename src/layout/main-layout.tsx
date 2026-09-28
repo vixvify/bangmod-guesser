@@ -6,12 +6,19 @@ import type { User } from "@/core/domain/user";
 type MainLayoutProps = {
   children: ReactNode;
   user: User | null;
+  navbarVariant?: "transparent" | "solid";
+  className?: string;
 };
 
-export function MainLayout({ children, user }: MainLayoutProps) {
+export function MainLayout({
+  children,
+  user,
+  navbarVariant = "transparent",
+  className = "relative min-h-svh text-secondary-light",
+}: MainLayoutProps) {
   return (
-    <main className="relative min-h-svh text-secondary-light">
-      <Navbar user={user} />
+    <main className={className}>
+      <Navbar user={user} variant={navbarVariant} />
       {children}
       <Footer />
     </main>
