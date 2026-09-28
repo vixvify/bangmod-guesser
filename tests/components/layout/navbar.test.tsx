@@ -14,18 +14,28 @@ vi.mock("@/lib/auth-client", () => ({
 import { Navbar } from "@/components/layout/navbar";
 
 describe("Navbar", () => {
-  it("shows settings and login actions for guests", () => {
+  it("shows the brand, settings, leaderboard, and login actions for guests", () => {
     const markup = renderToStaticMarkup(<Navbar user={null} />);
 
-    expect(markup).not.toContain("KMUTT · BANGMOD");
-    expect(markup).toContain("Game settings — coming soon");
+    expect(markup).toContain("Bangmod Guesser");
+    expect(markup).toContain("bg-transparent");
+    expect(markup).not.toContain("backdrop-blur-md");
+    expect(markup).toContain("font-weight:900");
+    expect(markup).toContain("color:var(--color-secondary-light)");
+    expect(markup).toContain(":hover{color:var(--color-primary-main)");
+    expect(markup).toContain("color:var(--color-primary-main)");
+    expect(markup).toContain("width:2.5rem");
+    expect(markup).toContain("height:2.5rem");
+    expect(markup).toContain("ตั้งค่าเกม — เร็ว ๆ นี้");
+    expect(markup).toContain("ตารางอันดับ — เร็ว ๆ นี้");
     expect(markup).toContain('href="/login"');
-    expect(markup).toContain("Login");
-    expect(markup).not.toContain("Logout");
+    expect(markup).toContain("เข้าสู่ระบบ");
+    expect(markup).not.toContain("ออกจากระบบ");
+    expect(markup).not.toContain('href="/profile"');
     expect(markup).toContain("disabled");
   });
 
-  it("shows profile and logout actions for authenticated users", () => {
+  it("shows settings, leaderboard, profile, and logout actions for authenticated users", () => {
     const markup = renderToStaticMarkup(
       <Navbar
         user={{
@@ -38,10 +48,9 @@ describe("Navbar", () => {
     );
 
     expect(markup).toContain('href="/profile"');
-    expect(markup).not.toContain("KMUTT · BANGMOD");
-    expect(markup).toContain("KMUTT Student");
-    expect(markup).toContain(">K</span>");
-    expect(markup).toContain("Logout");
+    expect(markup).toContain("โปรไฟล์ของ KMUTT Student");
+    expect(markup).toContain("ตารางอันดับ — เร็ว ๆ นี้");
+    expect(markup).toContain("ออกจากระบบ");
     expect(markup).not.toContain('href="/login"');
   });
 });

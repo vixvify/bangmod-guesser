@@ -43,13 +43,13 @@ export function IntroSection() {
           </p>
         </ScrollReveal>
         <ScrollReveal delay={0.12} className="px-3 pb-5 sm:px-8 lg:px-0">
-          <figure className="relative rotate-3 border-2 border-secondary-dark bg-secondary-light p-3 shadow-[12px_12px_0_var(--color-secondary-dark)] sm:p-4">
+          <figure className="relative rotate-3 border-2 border-secondary-dark bg-secondary-light p-3 shadow-[0.75rem_0.75rem_0_var(--color-secondary-dark)] sm:p-4">
             <div className="relative aspect-4/5 overflow-hidden bg-secondary-main">
               <Image
                 src={HomeBackgroundImages[1]}
                 alt="มุมหนึ่งในมหาวิทยาลัยบางมด ให้ลองสังเกตอาคารและทางเดิน"
                 fill
-                sizes="(min-width: 1024px) 460px, (min-width: 640px) 70vw, 90vw"
+                sizes="(min-width: 64rem) 28.75rem, (min-width: 40rem) 70vw, 90vw"
                 className="object-cover"
               />
               <span

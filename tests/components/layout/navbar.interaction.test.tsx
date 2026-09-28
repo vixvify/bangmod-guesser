@@ -42,7 +42,7 @@ describe("Navbar logout", () => {
     signOut.mockResolvedValue({});
     const { getByRole } = render(<Navbar user={user} />);
 
-    fireEvent.click(getByRole("button", { name: "Logout" }));
+    fireEvent.click(getByRole("button", { name: "ออกจากระบบ" }));
 
     await waitFor(() => {
       expect(signOut).toHaveBeenCalledOnce();
@@ -54,13 +54,13 @@ describe("Navbar logout", () => {
     signOut.mockRejectedValue(new Error("Logout failed"));
     const { getByRole } = render(<Navbar user={user} />);
 
-    fireEvent.click(getByRole("button", { name: "Logout" }));
+    fireEvent.click(getByRole("button", { name: "ออกจากระบบ" }));
 
     await waitFor(() => {
       expect(signOut).toHaveBeenCalledOnce();
     });
 
-    expect(getByRole("button", { name: "Logout" })).toBeTruthy();
+    expect(getByRole("button", { name: "ออกจากระบบ" })).toBeTruthy();
     expect(routerRefresh).not.toHaveBeenCalled();
   });
 });

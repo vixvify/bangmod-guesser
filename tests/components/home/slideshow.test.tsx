@@ -31,7 +31,7 @@ describe("BackgroundSlideshow", () => {
     );
     expect(getActiveImageSource(container)).toContain(HomeBackgroundImages[0]);
     expect(container.querySelector("filter#campus-tones")).toBeTruthy();
-    expect(container.querySelector("[class*='bg-size-[3px_3px]']")).toBeTruthy();
+    expect(container.querySelector("[class*='bg-size-[0.1875rem_0.1875rem]']")).toBeTruthy();
   });
 
   it("advances to the next image and wraps to the first image", () => {

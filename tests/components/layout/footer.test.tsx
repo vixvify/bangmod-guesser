@@ -16,5 +16,8 @@ describe("Footer", () => {
     expect(markup).toContain("All rights reserved");
     expect(markup).not.toContain("KMUTT Campus Guesser");
     expect(markup).not.toContain("โครงการพัฒนาขึ้นเพื่อการศึกษา");
+    expect(markup).toContain("transition:color 240ms ease,text-decoration-color 240ms ease");
+    expect(markup).toContain("text-decoration-color:transparent");
+    expect(markup).toMatch(/:hover,[^{]*:focus-visible\{color:var\(--color-primary-light\)/);
   });
 });

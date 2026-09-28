@@ -33,7 +33,7 @@ describe("Home page", () => {
     expect(markup).toContain("Bangmod");
     expect(markup).toContain("Guesser");
     expect(markup).toContain("Play");
-    expect(markup).toContain("Login");
+    expect(markup).toContain("เข้าสู่ระบบ");
     expect(markup).toContain("เกมทายสถานที่ในรั้วบางมด");
     expect(markup).toContain("ดูภาพ แล้วทายว่าอยู่ที่ไหน");
     expect(markup).toContain("คณะผู้จัดทำ");
@@ -56,8 +56,8 @@ describe("Home page", () => {
 
     const markup = await renderPage();
 
-    expect(markup).toContain("KMUTT Student");
-    expect(markup).toContain("Logout");
+    expect(markup).toContain("โปรไฟล์ของ KMUTT Student");
+    expect(markup).toContain("ออกจากระบบ");
     expect(markup).not.toContain('href="/login"');
   });
 
