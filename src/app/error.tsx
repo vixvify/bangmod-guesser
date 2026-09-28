@@ -53,7 +53,7 @@ export default function ErrorPage({ error, retry }: ErrorPageProps) {
         </p>
 
         <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
-          <Button onClick={retry} className="sm:min-w-44">
+          <Button variant="primary" onClick={retry} className="sm:min-w-44">
             ลองใหม่
           </Button>
           <Button href="/" variant="outline" className="sm:min-w-44">

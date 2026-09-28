@@ -29,6 +29,7 @@ type ButtonProps = NativeButtonProps | LinkButtonProps;
 const buttonStyles: SystemStyleObject<Theme> = {
   borderRadius: "0.5rem",
   fontFamily: "inherit",
+  textDecoration: "none",
   transition:
     "background-color 180ms ease, color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, filter 180ms ease",
 };

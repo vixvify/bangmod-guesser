@@ -59,7 +59,7 @@ export function ConfirmDialog({
           <Button variant="outline" size="small" onClick={onCancel} disabled={busy}>
             {cancelLabel}
           </Button>
-          <Button size="small" onClick={onConfirm} disabled={busy}>
+          <Button variant="primary" size="small" onClick={onConfirm} disabled={busy}>
             {confirmLabel}
           </Button>
         </div>

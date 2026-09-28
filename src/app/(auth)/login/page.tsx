@@ -95,7 +95,12 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
           ลืมรหัสผ่าน? (ยังไม่เปิดใช้งาน)
         </p>
         <div className="pt-6">
-          <Button type="submit" disabled={isSubmitting} className="min-h-12 w-full">
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={isSubmitting}
+            className="min-h-12 w-full"
+          >
             {isSubmitting ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
           </Button>
         </div>

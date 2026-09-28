@@ -108,8 +108,10 @@ body {
   min-height: 100%;
 }
 
-button {
-  font: inherit;
+@layer base {
+  button {
+    font: inherit;
+  }
 }
 
 .lobby-vignette {

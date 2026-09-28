@@ -40,7 +40,9 @@ describe("Button", () => {
       </Button>,
     );
 
-    expect(markup).toContain("color:color-mix(in srgb, var(--color-secondary-light) 75%, transparent)");
+    expect(markup).toContain(
+      "color:color-mix(in srgb, var(--color-secondary-light) 75%, transparent)",
+    );
     expect(markup).toContain("custom-button-class");
   });
 
@@ -59,14 +61,20 @@ describe("Button", () => {
 
   it("uses the same inherited font for surface links and native buttons", () => {
     const login = renderToStaticMarkup(
-      <Button href="/login" variant="surface" size="small">เข้าสู่ระบบ</Button>,
+      <Button href="/login" variant="surface" size="small">
+        เข้าสู่ระบบ
+      </Button>,
     );
     const logout = renderToStaticMarkup(
-      <Button variant="surface" size="small">ออกจากระบบ</Button>,
+      <Button variant="surface" size="small">
+        ออกจากระบบ
+      </Button>,
     );
 
     expect(login).toContain("font-family:inherit");
     expect(logout).toContain("font-family:inherit");
+    expect(login).toContain("text-decoration:none");
+    expect(logout).toContain("text-decoration:none");
   });
 
   it("only animates the Play glow on hover", () => {

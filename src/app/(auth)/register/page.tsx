@@ -124,6 +124,7 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
         <div className="pt-6">
           <Button
             type="submit"
+            variant="primary"
             disabled={isSubmitting}
             className="min-h-12 w-full"
           >
