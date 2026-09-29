@@ -22,12 +22,10 @@ export function BackgroundSlideshow() {
       timer: number | undefined;
       startedAt: number;
       remaining: number;
-      pausedAnimations: Animation[];
     } = {
       timer: undefined,
       startedAt: 0,
       remaining: slideshowIntervalMilliseconds,
-      pausedAnimations: [],
     };
     const zoom = { started: false, firstFrame: 0, secondFrame: 0 };
 
@@ -59,16 +57,15 @@ export function BackgroundSlideshow() {
           0,
           playback.remaining - (performance.now() - playback.startedAt),
         );
-        playback.pausedAnimations = (
-          scene.current?.getAnimations?.({ subtree: true }) ?? []
-        ).filter((animation) => animation.playState === "running");
-        playback.pausedAnimations.forEach((animation) => animation.pause());
+        for (const animation of scene.current?.getAnimations?.({ subtree: true }) ?? []) {
+          animation.cancel();
+        }
+        zoom.started = false;
+        setHasStarted(false);
         return;
       }
 
       if (playback.timer !== undefined) return;
-      playback.pausedAnimations.forEach((animation) => animation.play());
-      playback.pausedAnimations = [];
       if (!zoom.started) {
         zoom.firstFrame = window.requestAnimationFrame(() => {
           zoom.secondFrame = window.requestAnimationFrame(() => {
@@ -92,7 +89,6 @@ export function BackgroundSlideshow() {
       window.cancelAnimationFrame(zoom.firstFrame);
       window.cancelAnimationFrame(zoom.secondFrame);
       window.clearTimeout(playback.timer);
-      playback.pausedAnimations.forEach((animation) => animation.cancel());
     };
   }, []);
 
