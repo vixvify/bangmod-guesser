@@ -51,15 +51,22 @@ describe("BackgroundSlideshow", () => {
     expect(getActiveImageSource(container)).toContain(HomeBackgroundImages[0]);
   });
 
-  it.each(["hidden", "unfocused"])("resumes zoom and remaining slide time after being %s for a long time", (reason) => {
+  it.each(["hidden", "unfocused"])("restarts the current zoom and preserves slide time after being %s", (reason) => {
     vi.useFakeTimers();
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      (callback: FrameRequestCallback) => window.setTimeout(callback, 0),
+    );
+    vi.stubGlobal("cancelAnimationFrame", window.clearTimeout);
     const hidden = vi.spyOn(document, "hidden", "get").mockReturnValue(false);
     const { container } = render(<BackgroundSlideshow />);
-    const animation = { playState: "running", pause: vi.fn(), play: vi.fn(), cancel: vi.fn() };
+    const animation = { cancel: vi.fn() };
     Object.defineProperty(container.firstElementChild, "getAnimations", {
       value: () => [animation],
     });
 
+    act(() => vi.advanceTimersByTime(1));
+    expect(container.querySelector("img.opacity-75")?.classList.contains("scale-[1.08]")).toBe(true);
     act(() => vi.advanceTimersByTime(2000));
     act(() => {
       if (reason === "hidden") {
@@ -70,7 +77,8 @@ describe("BackgroundSlideshow", () => {
         window.dispatchEvent(new Event("blur"));
       }
     });
-    expect(animation.pause).toHaveBeenCalledOnce();
+    expect(animation.cancel).toHaveBeenCalledOnce();
+    expect(container.querySelector("img.opacity-75")?.classList.contains("scale-100")).toBe(true);
     act(() => vi.advanceTimersByTime(120000));
     expect(getActiveImageSource(container)).toContain(HomeBackgroundImages[0]);
 
@@ -80,8 +88,9 @@ describe("BackgroundSlideshow", () => {
       document.dispatchEvent(new Event("visibilitychange"));
       window.dispatchEvent(new Event("focus"));
     });
-    expect(animation.play).toHaveBeenCalledOnce();
-    act(() => vi.advanceTimersByTime(3999));
+    act(() => vi.advanceTimersByTime(1));
+    expect(container.querySelector("img.opacity-75")?.classList.contains("scale-[1.08]")).toBe(true);
+    act(() => vi.advanceTimersByTime(3997));
     expect(getActiveImageSource(container)).toContain(HomeBackgroundImages[0]);
     act(() => vi.advanceTimersByTime(1));
     expect(getActiveImageSource(container)).toContain(HomeBackgroundImages[1]);
