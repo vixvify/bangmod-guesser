@@ -19,6 +19,7 @@ export async function authCheck(): Promise<User | null> {
     id: session.user.id,
     name: session.user.name,
     email: session.user.email,
+    image: session.user.image,
     role: role === UserRole.ADMIN ? UserRole.ADMIN : UserRole.USER,
   };
 }

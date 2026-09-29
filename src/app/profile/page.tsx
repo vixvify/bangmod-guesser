@@ -1,15 +1,15 @@
-import { mockGameHistory, mockUser } from "@/_mock/_profile";
+import { mockGameHistory } from "@/_mock/_profile";
 import { GameHistory } from "@/components/profile/game-history";
 import { ProfileCard } from "@/components/profile/profile-card";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { ListPagination } from "@/components/ui/list-pagination";
 import { UserRole } from "@/core/domain/user";
 import { MainLayout } from "@/layout/main-layout";
-import { authCheck } from "@/lib/auth-check";
+import { requireAuth } from "@/lib/auth-check";
 import { hasRole } from "@/lib/role-check";
 
 export default async function ProfilePage() {
-  const user = await authCheck();
+  const user = await requireAuth();
 
   return (
     <MainLayout
@@ -19,7 +19,7 @@ export default async function ProfilePage() {
     >
       <div className="mx-auto w-full max-w-7xl px-4 pb-16 pt-24 sm:px-8 sm:pt-28">
         <ProfileCard
-          profile={mockUser}
+          profile={user}
           canManageSystem={hasRole(user, [UserRole.ADMIN])}
         />
         <section

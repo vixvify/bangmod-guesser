@@ -24,6 +24,7 @@ const domainUser = {
   id: "user_1",
   name: "KMUTT Student",
   email: "student@example.com",
+  image: "https://example.com/student.jpg",
   role: UserRole.USER,
 };
 
@@ -32,6 +33,7 @@ const session = {
     id: "user_1",
     name: "KMUTT Student",
     email: "student@example.com",
+    image: "https://example.com/student.jpg",
     role: "USER",
   },
   session: {
@@ -60,6 +62,15 @@ describe("authCheck", () => {
 
     await expect(authCheck()).resolves.toEqual(domainUser);
     expect(getSession).toHaveBeenCalledOnce();
+  });
+
+  it("preserves an absent profile image from the session", async () => {
+    getSession.mockResolvedValue({
+      ...session,
+      user: { ...session.user, image: null },
+    });
+
+    await expect(authCheck()).resolves.toEqual({ ...domainUser, image: null });
   });
 });
 

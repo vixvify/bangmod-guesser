@@ -21,6 +21,11 @@ const R2EnvironmentSchema = z.object({
   publicUrl: z.string().trim().url(),
 });
 
+const GoogleOAuthEnvironmentSchema = z.object({
+  clientId: z.string().trim().min(1),
+  clientSecret: z.string().trim().min(1),
+});
+
 export type R2Config = z.infer<typeof R2EnvironmentSchema>;
 
 function getR2Config(): R2Config {
@@ -59,6 +64,23 @@ function getAuthUrl() {
   return process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 }
 
+function getGoogleOAuthConfig() {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+  if (!clientId && !clientSecret) {
+    return null;
+  }
+
+  const result = GoogleOAuthEnvironmentSchema.safeParse({ clientId, clientSecret });
+
+  if (!result.success) {
+    throw new AppError("Google OAuth configuration is incomplete", 500);
+  }
+
+  return result.data;
+}
+
 export const config = {
   get apiUrl() {
     return getApiUrl();
@@ -70,6 +92,10 @@ export const config = {
 
   get authUrl() {
     return getAuthUrl();
+  },
+
+  get googleOAuth() {
+    return getGoogleOAuthConfig();
   },
 
   get environment() {

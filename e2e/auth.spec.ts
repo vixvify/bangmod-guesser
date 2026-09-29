@@ -55,7 +55,7 @@ test("signs up, then signs in and returns to the requested page", async ({ page 
 
   await page.getByRole("textbox", { name: "อีเมล" }).fill("  PLAYER@EXAMPLE.COM  ");
   await page.getByLabel("รหัสผ่าน", { exact: true }).fill(player.password);
-  await page.getByRole("button", { name: "เข้าสู่ระบบ" }).click();
+  await page.getByRole("button", { name: "เข้าสู่ระบบ", exact: true }).click();
 
   await expect(page).toHaveURL(/\/game$/);
   expect(loginBody).toEqual({ email: player.email, password: player.password });
@@ -110,8 +110,50 @@ test("shows invalid credentials and stays on login", async ({ page }) => {
   await page.goto("/login", { waitUntil: "networkidle" });
   await page.getByRole("textbox", { name: "อีเมล" }).fill(player.email);
   await page.getByLabel("รหัสผ่าน", { exact: true }).fill("WrongPassword1");
-  await page.getByRole("button", { name: "เข้าสู่ระบบ" }).click();
+  await page.getByRole("button", { name: "เข้าสู่ระบบ", exact: true }).click();
 
   await expect(page.getByText(AUTH_MESSAGES.submit.loginFailed)).toBeVisible();
   await expect(page).toHaveURL(/\/login$/);
+});
+
+test("starts Google sign-in from login and keeps the requested destination", async ({ page }) => {
+  let socialBody: unknown;
+
+  await page.route("**/api/auth/sign-in/social", async (route) => {
+    socialBody = route.request().postDataJSON();
+    await route.fulfill({
+      status: 400,
+      contentType: "application/json",
+      body: JSON.stringify({ code: "OAUTH_PROVIDER_NOT_FOUND", message: "Unavailable" }),
+    });
+  });
+
+  await page.goto("/login?callbackUrl=%2Fgame", { waitUntil: "networkidle" });
+  const googleButton = page.getByRole("button", { name: "เข้าสู่ระบบด้วย Google" });
+  const googleLogo = googleButton.locator("img");
+  const divider = page.getByText("หรือ", { exact: true });
+  const googleLabel = googleButton.getByText("เข้าสู่ระบบด้วย Google");
+  const [dividerBox, buttonBox, logoBox, labelBox] = await Promise.all([
+    divider.boundingBox(),
+    googleButton.boundingBox(),
+    googleLogo.boundingBox(),
+    googleLabel.boundingBox(),
+  ]);
+  expect(dividerBox && buttonBox && buttonBox.y - (dividerBox.y + dividerBox.height))
+    .toBeGreaterThanOrEqual(20);
+  expect(dividerBox && buttonBox && buttonBox.y - (dividerBox.y + dividerBox.height))
+    .toBeLessThanOrEqual(32);
+  expect(logoBox && labelBox && labelBox.x - (logoBox.x + logoBox.width))
+    .toBeGreaterThanOrEqual(16);
+  await expect(googleLogo).toHaveAttribute("src", /google\.webp/);
+  await expect.poll(() => googleLogo.evaluate((image) => (image as HTMLImageElement).naturalWidth))
+    .toBeGreaterThan(0);
+  await googleButton.click();
+
+  await expect(page.getByText(AUTH_MESSAGES.submit.googleLoginFailed)).toBeVisible();
+  expect(socialBody).toMatchObject({
+    provider: "google",
+    callbackURL: "/game",
+    errorCallbackURL: "/login?callbackUrl=%2Fgame",
+  });
 });

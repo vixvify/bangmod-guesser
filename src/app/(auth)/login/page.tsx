@@ -3,9 +3,10 @@
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { use } from "react";
+import { use, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -17,13 +18,17 @@ import { getAuthRedirect } from "@/lib/auth-redirect";
 import { AppRoutes } from "@/routes/app/routes";
 
 type LoginPageProps = {
-  searchParams: Promise<{ callbackUrl?: string | string[] }>;
+  searchParams: Promise<{
+    callbackUrl?: string | string[];
+    error?: string | string[];
+  }>;
 };
 
 export default function LoginPage({ searchParams }: LoginPageProps) {
-  const { callbackUrl } = use(searchParams);
+  const { callbackUrl, error } = use(searchParams);
   const redirectTo = getAuthRedirect(callbackUrl);
   const router = useRouter();
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const {
     register,
     handleSubmit,
@@ -53,6 +58,37 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
     redirectTo === AppRoutes.home
       ? AppRoutes.register
       : `${AppRoutes.register}?callbackUrl=${encodeURIComponent(redirectTo)}`;
+
+  const loginHref =
+    redirectTo === AppRoutes.home
+      ? AppRoutes.login
+      : `${AppRoutes.login}?callbackUrl=${encodeURIComponent(redirectTo)}`;
+
+  useEffect(() => {
+    if (error) {
+      toast.error(AUTH_MESSAGES.submit.googleLoginFailed);
+    }
+  }, [error]);
+
+  async function onGoogleSignIn() {
+    setIsGoogleSubmitting(true);
+
+    try {
+      const { error } = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: redirectTo,
+        errorCallbackURL: loginHref,
+      });
+
+      if (error) {
+        toast.error(AUTH_MESSAGES.submit.googleLoginFailed);
+      }
+    } catch {
+      toast.error(AUTH_MESSAGES.submit.networkError);
+    } finally {
+      setIsGoogleSubmitting(false);
+    }
+  }
 
   return (
     <>
@@ -102,13 +138,35 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
           <Button
             type="submit"
             variant="primary"
-            disabled={!isValid || isSubmitting}
+            disabled={!isValid || isSubmitting || isGoogleSubmitting}
             className="min-h-12 w-full"
           >
             {isSubmitting ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
           </Button>
         </div>
       </form>
+
+      <div className="mt-6 flex items-center gap-3" aria-hidden="true">
+        <span className="h-px flex-1 bg-secondary-dark/15" />
+        <span className="text-xs text-secondary-dark/50">หรือ</span>
+        <span className="h-px flex-1 bg-secondary-dark/15" />
+      </div>
+
+      <div className="mt-7">
+        <Button
+          type="button"
+          variant="surface"
+          size="small"
+          disabled={isGoogleSubmitting || isSubmitting}
+          onClick={onGoogleSignIn}
+          className="min-h-12 w-full"
+        >
+          <span className="inline-flex items-center gap-4">
+            <Image src="/logo/google.webp" alt="" width={20} height={20} />
+            <span>เข้าสู่ระบบด้วย Google</span>
+          </span>
+        </Button>
+      </div>
 
       <p className="mt-8 text-center text-sm text-secondary-dark/65">
         ยังไม่มีบัญชี?{" "}

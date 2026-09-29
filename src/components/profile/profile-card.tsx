@@ -6,15 +6,15 @@ import IconButton from "@mui/material/IconButton";
 import { useState } from "react";
 import { EditNameDialog } from "@/components/profile/edit-name-dialog";
 import { Button } from "@/components/ui/button";
-import type { UserProfile } from "@/core/domain/profile";
+import type { User } from "@/core/domain/user";
 
 type ProfileCardProps = {
-  profile: UserProfile;
+  profile: User;
   canManageSystem?: boolean;
 };
 
 export function ProfileCard({ profile, canManageSystem = false }: ProfileCardProps) {
-  const [username, setUsername] = useState(profile.username);
+  const [username, setUsername] = useState(profile.name);
   const [isEditOpen, setIsEditOpen] = useState(false);
 
   return (
@@ -23,7 +23,7 @@ export function ProfileCard({ profile, canManageSystem = false }: ProfileCardPro
       className="flex flex-wrap items-center gap-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:gap-6 sm:p-8"
     >
       <Avatar
-        src={profile.avatarUrl}
+        src={profile.image ?? undefined}
         alt={username}
         sx={{
           width: { xs: "4.5rem", sm: "5.5rem" },

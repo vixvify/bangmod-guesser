@@ -2,14 +2,37 @@
 
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { mockUser } from "@/_mock/_profile";
 import { ProfileCard } from "@/components/profile/profile-card";
+import { UserRole, type User } from "@/core/domain/user";
+
+const profile: User = {
+  id: "user_1",
+  name: "Username",
+  email: "example@gmail.com",
+  image: null,
+  role: UserRole.USER,
+};
 
 afterEach(cleanup);
 
 describe("ProfileCard", () => {
+  it("shows the Better Auth image when one is available", () => {
+    render(<ProfileCard profile={{ ...profile, image: "https://example.com/avatar.jpg" }} />);
+
+    expect(screen.getByRole("img", { name: "Username" }).getAttribute("src")).toBe(
+      "https://example.com/avatar.jpg",
+    );
+  });
+
+  it("shows the user's initial when no image is available", () => {
+    const { container } = render(<ProfileCard profile={profile} />);
+
+    expect(container.querySelector(".MuiAvatar-root")?.textContent).toBe("U");
+    expect(container.querySelector(".MuiAvatar-root img")).toBeNull();
+  });
+
   it("lets the user edit and save a trimmed username in a dialog", async () => {
-    render(<ProfileCard profile={mockUser} />);
+    render(<ProfileCard profile={profile} />);
 
     expect(screen.getByText("Username")).toBeTruthy();
     expect(screen.getByText("example@gmail.com")).toBeTruthy();
@@ -40,7 +63,7 @@ describe("ProfileCard", () => {
   });
 
   it("rejects an empty username and keeps the edit field open", () => {
-    render(<ProfileCard profile={mockUser} />);
+    render(<ProfileCard profile={profile} />);
     fireEvent.click(screen.getByRole("button", { name: "แก้ไขชื่อผู้ใช้" }));
     fireEvent.change(screen.getByRole("textbox", { name: "ชื่อผู้ใช้" }), {
       target: { value: "   " },
@@ -52,7 +75,7 @@ describe("ProfileCard", () => {
   });
 
   it("restores the previous username when editing is cancelled with Escape", async () => {
-    render(<ProfileCard profile={mockUser} />);
+    render(<ProfileCard profile={profile} />);
     fireEvent.click(screen.getByRole("button", { name: "แก้ไขชื่อผู้ใช้" }));
     fireEvent.change(screen.getByRole("textbox", { name: "ชื่อผู้ใช้" }), {
       target: { value: "Unsaved" },
@@ -66,7 +89,7 @@ describe("ProfileCard", () => {
   });
 
   it("shows a labeled edit form and discards changes when cancelled", async () => {
-    render(<ProfileCard profile={mockUser} />);
+    render(<ProfileCard profile={profile} />);
     fireEvent.click(screen.getByRole("button", { name: "แก้ไขชื่อผู้ใช้" }));
 
     expect(screen.getByText("ชื่อผู้ใช้").classList.contains("sr-only")).toBe(false);
@@ -87,7 +110,7 @@ describe("ProfileCard", () => {
   });
 
   it("shows the management action for an admin", () => {
-    render(<ProfileCard profile={mockUser} canManageSystem />);
+    render(<ProfileCard profile={profile} canManageSystem />);
 
     expect(screen.getByRole("button", { name: "จัดการระบบ" })).toBeTruthy();
   });
