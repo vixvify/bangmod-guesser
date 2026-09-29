@@ -127,11 +127,6 @@ export function DateRangePicker({
                 : "ยังไม่เลือก"}
             </p>
           </div>
-          <p className="col-span-2 text-xs text-primary-main">
-            {range.startDate && !range.endDate
-              ? "เลือกวันสิ้นสุด"
-              : "เลือกวันเริ่มต้น"}
-          </p>
         </div>
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="th">
           <DateCalendar
@@ -152,20 +147,54 @@ export function DateRangePicker({
                   day.isBefore(dayjs(range.endDate), "day"),
                 );
                 const isEndpoint = isStart || isEnd;
+                const hasContinuation = Boolean(
+                  range.endDate &&
+                  ((isStart && !isEnd && day.day() !== 6) ||
+                    (isEnd && !isStart && day.day() !== 0)),
+                );
+                const endpointBackground = isEndpoint
+                  ? `radial-gradient(circle calc(var(--PickerDay-size) / 2) at center, var(--range-endpoint-color) 99%, transparent 100%)${
+                      hasContinuation
+                        ? `, linear-gradient(${isStart ? "to right" : "to left"}, transparent 50%, var(--color-primary-soft) 50%)`
+                        : ""
+                    }, linear-gradient(#fff, #fff)`
+                  : undefined;
+                const radius =
+                  isBetween && day.day() === 0
+                    ? "50% 0 0 50%"
+                    : isBetween && day.day() === 6
+                      ? "0 50% 50% 0"
+                      : isEndpoint || isBetween
+                        ? 0
+                        : undefined;
 
                 return {
                   "aria-label": `${day.locale("th").format("D MMMM YYYY")}${isStart ? " วันเริ่มต้น" : isEnd ? " วันสิ้นสุด" : isBetween ? " อยู่ในช่วงที่เลือก" : ""}`,
                   sx: {
+                    "--range-endpoint-color": "var(--color-primary-main)",
+                    marginLeft: 0,
+                    marginRight: 0,
+                    width:
+                      "calc(var(--PickerDay-size) + 2 * var(--PickerDay-horizontalMargin))",
                     backgroundColor: isEndpoint
-                      ? "var(--color-primary-main)"
+                      ? "transparent"
                       : isBetween
                         ? "var(--color-primary-soft)"
                         : undefined,
+                    backgroundImage: endpointBackground,
                     color: isEndpoint ? "#fff" : undefined,
-                    borderRadius: isBetween ? 0 : undefined,
+                    borderRadius: radius,
+                    "&.MuiPickerDay-selected": {
+                      backgroundColor: isEndpoint ? "transparent" : undefined,
+                    },
+                    "&.MuiPickerDay-selected:hover, &.MuiPickerDay-selected:focus":
+                      {
+                        backgroundColor: isEndpoint ? "transparent" : undefined,
+                      },
                     "&:hover": {
+                      "--range-endpoint-color": "var(--color-primary-hover)",
                       backgroundColor: isEndpoint
-                        ? "var(--color-primary-hover)"
+                        ? "transparent"
                         : isBetween
                           ? "var(--color-primary-soft)"
                           : undefined,

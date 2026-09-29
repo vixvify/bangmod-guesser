@@ -34,6 +34,12 @@ async function renderPage(callbackUrl?: string) {
   });
 }
 
+async function submitValidLogin() {
+  const button = screen.getByRole("button", { name: "เข้าสู่ระบบ" }) as HTMLButtonElement;
+  await waitFor(() => expect(button.disabled).toBe(false));
+  fireEvent.click(button);
+}
+
 describe("LoginPage", () => {
   beforeEach(() => {
     signInEmail.mockReset();
@@ -55,12 +61,11 @@ describe("LoginPage", () => {
     expect(signInEmail).not.toHaveBeenCalled();
   });
 
-  it("validates required fields before sending credentials", async () => {
+  it("keeps submit disabled when required fields are empty", async () => {
     await renderPage();
-    fireEvent.click(await screen.findByRole("button", { name: "เข้าสู่ระบบ" }));
+    const button = await screen.findByRole("button", { name: "เข้าสู่ระบบ" }) as HTMLButtonElement;
 
-    expect(await screen.findByText("กรุณากรอกอีเมล")).toBeTruthy();
-    expect(screen.getByText("กรุณากรอกรหัสผ่าน")).toBeTruthy();
+    expect(button.disabled).toBe(true);
     expect(signInEmail).not.toHaveBeenCalled();
     expect(toastError).not.toHaveBeenCalled();
   });
@@ -75,7 +80,7 @@ describe("LoginPage", () => {
     fireEvent.change(screen.getByLabelText("รหัสผ่าน"), {
       target: { value: "Password1" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "เข้าสู่ระบบ" }));
+    await submitValidLogin();
 
     await waitFor(() => {
       expect(signInEmail).toHaveBeenCalledWith({
@@ -98,7 +103,7 @@ describe("LoginPage", () => {
     fireEvent.change(screen.getByLabelText("รหัสผ่าน"), {
       target: { value: "WrongPassword1" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "เข้าสู่ระบบ" }));
+    await submitValidLogin();
 
     await waitFor(() => {
       expect(toastError).toHaveBeenCalledWith(
@@ -118,7 +123,7 @@ describe("LoginPage", () => {
     fireEvent.change(screen.getByLabelText("รหัสผ่าน"), {
       target: { value: "Password1" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "เข้าสู่ระบบ" }));
+    await submitValidLogin();
 
     await waitFor(() => {
       expect(toastError).toHaveBeenCalledWith("ไม่สามารถเชื่อมต่อได้ กรุณาลองอีกครั้ง");

@@ -3,8 +3,8 @@
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import Avatar from "@mui/material/Avatar";
 import IconButton from "@mui/material/IconButton";
-import TextField from "@mui/material/TextField";
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
+import { EditNameDialog } from "@/components/profile/edit-name-dialog";
 import { Button } from "@/components/ui/button";
 import type { UserProfile } from "@/core/domain/profile";
 
@@ -15,24 +15,7 @@ type ProfileCardProps = {
 
 export function ProfileCard({ profile, canManageSystem = false }: ProfileCardProps) {
   const [username, setUsername] = useState(profile.username);
-  const [draft, setDraft] = useState(profile.username);
-  const [isEditing, setIsEditing] = useState(false);
-  const [error, setError] = useState("");
-
-  function handleSave(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const nextUsername = draft.trim();
-
-    if (!nextUsername) {
-      setError("กรุณากรอกชื่อผู้ใช้");
-      return;
-    }
-
-    setUsername(nextUsername);
-    setDraft(nextUsername);
-    setError("");
-    setIsEditing(false);
-  }
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   return (
     <section
@@ -59,57 +42,21 @@ export function ProfileCard({ profile, canManageSystem = false }: ProfileCardPro
       </Avatar>
 
       <div className="min-w-0 flex-1">
-        {isEditing ? (
-          <form onSubmit={handleSave} className="flex flex-wrap items-start gap-2">
-            <TextField
-              autoFocus
-              size="small"
-              value={draft}
-              onChange={(event) => {
-                setDraft(event.target.value);
-                setError("");
-              }}
-              onKeyDown={(event) => {
-                if (event.key === "Escape") {
-                  setDraft(username);
-                  setError("");
-                  setIsEditing(false);
-                }
-              }}
-              error={Boolean(error)}
-              helperText={error || undefined}
-              slotProps={{ htmlInput: { "aria-label": "ชื่อผู้ใช้", maxLength: 50 } }}
-              sx={{
-                "& .MuiInputBase-root": {
-                  backgroundColor: "#fff",
-                  fontFamily: "var(--font-prompt), sans-serif",
-                },
-                "& .MuiFormHelperText-root": {
-                  fontFamily: "var(--font-prompt), sans-serif",
-                },
-              }}
-            />
-            <Button type="submit" variant="primary" size="small">
-              บันทึก
-            </Button>
-          </form>
-        ) : (
-          <div className="flex items-center gap-2">
-            <h1 className="truncate text-xl font-bold text-secondary-dark sm:text-2xl">
-              {username}
-            </h1>
-            <IconButton
-              size="small"
-              aria-label="แก้ไขชื่อผู้ใช้"
-              title="แก้ไขชื่อผู้ใช้"
-              onClick={() => setIsEditing(true)}
-              sx={{ color: "var(--color-secondary-dark)" }}
-            >
-              <EditOutlinedIcon fontSize="small" />
-            </IconButton>
-          </div>
-        )}
-        <p className="truncate text-sm text-neutral-500 sm:text-base">
+        <div className="flex items-center gap-2">
+          <h1 className="truncate text-xl font-bold text-secondary-dark sm:text-2xl">
+            {username}
+          </h1>
+          <IconButton
+            size="small"
+            aria-label="แก้ไขชื่อผู้ใช้"
+            title="แก้ไขชื่อผู้ใช้"
+            onClick={() => setIsEditOpen(true)}
+            sx={{ color: "var(--color-secondary-dark)" }}
+          >
+            <EditOutlinedIcon fontSize="small" />
+          </IconButton>
+        </div>
+        <p className="mt-1 truncate text-sm text-neutral-500 sm:text-base">
           {profile.email}
         </p>
       </div>
@@ -118,6 +65,12 @@ export function ProfileCard({ profile, canManageSystem = false }: ProfileCardPro
           จัดการระบบ
         </Button>
       )}
+      <EditNameDialog
+        open={isEditOpen}
+        username={username}
+        onClose={() => setIsEditOpen(false)}
+        onSave={setUsername}
+      />
     </section>
   );
 }

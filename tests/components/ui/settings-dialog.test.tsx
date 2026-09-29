@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SettingsDialog } from "@/components/ui/settings-dialog";
 import { SETTINGS_MESSAGES } from "@/core/constants/settings";
@@ -18,6 +18,46 @@ describe("SettingsDialog", () => {
     expect(screen.getByLabelText(SETTINGS_MESSAGES.imageQuality)).toBeTruthy();
     expect(screen.getByRole("button", { name: SETTINGS_MESSAGES.cancel })).toBeTruthy();
     expect(screen.getByRole("button", { name: SETTINGS_MESSAGES.confirm })).toBeTruthy();
+    expect(screen.getByText("80%")).toBeTruthy();
+    expect(screen.getByText("50%")).toBeTruthy();
+    expect(
+      screen
+        .getByRole("slider", { name: SETTINGS_MESSAGES.sfxVolume })
+        .getAttribute("aria-valuemin"),
+    ).toBe("1");
+    expect(
+      screen
+        .getByRole("slider", { name: SETTINGS_MESSAGES.musicVolume })
+        .getAttribute("aria-valuemax"),
+    ).toBe("100");
+  });
+
+  it("updates the displayed percentage when a volume slider changes", () => {
+    render(<SettingsDialog open={true} onClose={vi.fn()} />);
+
+    const sfxSlider = screen.getByRole("slider", {
+      name: SETTINGS_MESSAGES.sfxVolume,
+    });
+    fireEvent.keyDown(sfxSlider, { key: "ArrowRight" });
+
+    expect(screen.getByText("81%")).toBeTruthy();
+    expect(sfxSlider.getAttribute("aria-valuenow")).toBe("81");
+  });
+
+  it("restores the initial percentages when the modal is reopened", async () => {
+    const { rerender } = render(<SettingsDialog open={true} onClose={vi.fn()} />);
+
+    fireEvent.keyDown(
+      screen.getByRole("slider", { name: SETTINGS_MESSAGES.sfxVolume }),
+      { key: "ArrowRight" },
+    );
+    expect(screen.getByText("81%")).toBeTruthy();
+
+    rerender(<SettingsDialog open={false} onClose={vi.fn()} />);
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    rerender(<SettingsDialog open={true} onClose={vi.fn()} />);
+
+    expect(screen.getByText("80%")).toBeTruthy();
   });
 
   it("calls onClose when the cancel button is clicked", () => {

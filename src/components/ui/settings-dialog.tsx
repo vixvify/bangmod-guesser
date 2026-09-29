@@ -4,7 +4,7 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import Dialog from "@mui/material/Dialog";
 import IconButton from "@mui/material/IconButton";
 import Slider from "@mui/material/Slider";
-import { useEffect, useId, useState } from "react";
+import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dropdown, type DropdownOption } from "@/components/ui/dropdown";
 import {
@@ -22,7 +22,7 @@ type SettingsDialogProps = {
 };
 
 const sliderStyles = {
-  width: { xs: "9.5rem", sm: "12rem" },
+  width: "100%",
   color: "#1b120c",
   height: 8,
   padding: "13px 0",
@@ -56,6 +56,38 @@ const qualityOptions: DropdownOption<ImageQuality>[] = [
   { value: "low", label: SETTINGS_MESSAGES.qualities.low },
 ];
 
+type VolumeControlProps = {
+  label: string;
+  value: number;
+  onChange: (value: number) => void;
+};
+
+function VolumeControl({ label, value, onChange }: VolumeControlProps) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span className="shrink-0 text-sm font-semibold text-secondary-dark sm:text-base">
+        {label}
+      </span>
+      <div className="flex w-52 min-w-0 items-center gap-3 sm:w-60">
+        <Slider
+          value={value}
+          onChange={(_, nextValue) => {
+            if (typeof nextValue === "number") onChange(nextValue);
+          }}
+          min={1}
+          max={100}
+          aria-label={label}
+          getAriaValueText={(currentValue) => `${currentValue}%`}
+          sx={sliderStyles}
+        />
+        <output className="w-11 shrink-0 text-right text-sm font-semibold tabular-nums text-secondary-dark">
+          {value}%
+        </output>
+      </div>
+    </div>
+  );
+}
+
 export function SettingsDialog({
   open,
   onClose,
@@ -64,12 +96,6 @@ export function SettingsDialog({
 }: SettingsDialogProps) {
   const titleId = useId();
   const [settings, setSettings] = useState<GameSettings>(initialSettings);
-
-  useEffect(() => {
-    if (open) {
-      setSettings(initialSettings);
-    }
-  }, [open, initialSettings]);
 
   const handleConfirm = () => {
     onSave?.(settings);
@@ -82,6 +108,7 @@ export function SettingsDialog({
       onClose={onClose}
       aria-labelledby={titleId}
       slotProps={{
+        transition: { onEnter: () => setSettings(initialSettings) },
         paper: {
           sx: {
             width: "min(100%, 28rem)",
@@ -125,43 +152,21 @@ export function SettingsDialog({
         <div className="mt-3.5 mb-6 border-b border-neutral-200" />
 
         <div className="space-y-6">
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-sm font-semibold text-secondary-dark sm:text-base">
-              {SETTINGS_MESSAGES.sfxVolume}
-            </span>
-            <Slider
-              value={settings.sfxVolume}
-              onChange={(_, value) =>
-                setSettings((prev) => ({
-                  ...prev,
-                  sfxVolume: value as number,
-                }))
-              }
-              min={0}
-              max={100}
-              aria-label={SETTINGS_MESSAGES.sfxVolume}
-              sx={sliderStyles}
-            />
-          </div>
+          <VolumeControl
+            label={SETTINGS_MESSAGES.sfxVolume}
+            value={settings.sfxVolume}
+            onChange={(value) =>
+              setSettings((prev) => ({ ...prev, sfxVolume: value }))
+            }
+          />
 
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-sm font-semibold text-secondary-dark sm:text-base">
-              {SETTINGS_MESSAGES.musicVolume}
-            </span>
-            <Slider
-              value={settings.musicVolume}
-              onChange={(_, value) =>
-                setSettings((prev) => ({
-                  ...prev,
-                  musicVolume: value as number,
-                }))
-              }
-              min={0}
-              max={100}
-              aria-label={SETTINGS_MESSAGES.musicVolume}
-              sx={sliderStyles}
-            />
-          </div>
+          <VolumeControl
+            label={SETTINGS_MESSAGES.musicVolume}
+            value={settings.musicVolume}
+            onChange={(value) =>
+              setSettings((prev) => ({ ...prev, musicVolume: value }))
+            }
+          />
 
           <div className="flex items-center justify-between gap-4">
             <label

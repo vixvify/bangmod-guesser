@@ -63,7 +63,7 @@
 
 ## Test rules
 
-- Put tests only under `tests/`: `unit`, `components`, `integration`, or `e2e` when a browser workflow is introduced.
+- Put unit, component, and integration tests under `tests/`; put browser E2E tests under the root `e2e/` directory.
 - Unit tests mock ports and verify services, schemas, factories, and utilities in isolation.
 - Integration tests call route handlers with mocked services and verify HTTP responses, cookies, and error mapping without a database.
 - Add E2E tests only when a critical browser workflow exists and its required infrastructure is available.

@@ -49,6 +49,12 @@ async function fillForm(confirmPassword = "Password1") {
   });
 }
 
+async function submitValidRegistration() {
+  const button = screen.getByRole("button", { name: "สมัครสมาชิก" }) as HTMLButtonElement;
+  await waitFor(() => expect(button.disabled).toBe(false));
+  fireEvent.click(button);
+}
+
 describe("RegisterPage", () => {
   beforeEach(() => {
     signUpEmail.mockReset();
@@ -72,13 +78,13 @@ describe("RegisterPage", () => {
     expect(signUpEmail).not.toHaveBeenCalled();
   });
 
-  it("rejects a password confirmation that does not match", async () => {
+  it("keeps submit disabled when password confirmation does not match", async () => {
     await renderPage();
     expect(screen.getByText("สร้างบัญชีของคุณเพื่อร่วมสนุกกับเรา")).toBeTruthy();
     await fillForm("Different1");
-    fireEvent.click(screen.getByRole("button", { name: "สมัครสมาชิก" }));
+    const button = screen.getByRole("button", { name: "สมัครสมาชิก" }) as HTMLButtonElement;
 
-    expect(await screen.findByText("รหัสผ่านไม่ตรงกัน")).toBeTruthy();
+    expect(button.disabled).toBe(true);
     expect(signUpEmail).not.toHaveBeenCalled();
     expect(toastError).not.toHaveBeenCalled();
   });
@@ -87,7 +93,7 @@ describe("RegisterPage", () => {
     signUpEmail.mockResolvedValue({ error: null });
     await renderPage("/game");
     await fillForm();
-    fireEvent.click(screen.getByRole("button", { name: "สมัครสมาชิก" }));
+    await submitValidRegistration();
 
     await waitFor(() => {
       expect(signUpEmail).toHaveBeenCalledWith({
@@ -105,7 +111,7 @@ describe("RegisterPage", () => {
     signUpEmail.mockResolvedValue({ error: { code: "VALIDATION_ERROR" } });
     await renderPage();
     await fillForm();
-    fireEvent.click(screen.getByRole("button", { name: "สมัครสมาชิก" }));
+    await submitValidRegistration();
 
     await waitFor(() => {
       expect(toastError).toHaveBeenCalledWith(
@@ -119,7 +125,7 @@ describe("RegisterPage", () => {
     signUpEmail.mockRejectedValue(new Error("Network unavailable"));
     await renderPage();
     await fillForm();
-    fireEvent.click(screen.getByRole("button", { name: "สมัครสมาชิก" }));
+    await submitValidRegistration();
 
     await waitFor(() => {
       expect(toastError).toHaveBeenCalledWith("ไม่สามารถเชื่อมต่อได้ กรุณาลองอีกครั้ง");

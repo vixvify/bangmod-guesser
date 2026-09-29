@@ -38,10 +38,10 @@ export function ConfirmDialog({
         paper: {
           sx: {
             width: "min(100%, 28rem)",
-            border: "0.0625rem solid var(--color-primary-main)",
+            border: "0.0625rem solid rgb(0 0 0 / 8%)",
             borderRadius: "1rem",
-            backgroundColor: "var(--color-secondary-main)",
-            color: "var(--color-secondary-light)",
+            backgroundColor: "#fff",
+            color: "var(--color-secondary-dark)",
           },
         },
       }}
@@ -51,12 +51,12 @@ export function ConfirmDialog({
           <h2 id={titleId} className="text-xl font-bold">
             {title}
           </h2>
-          <p id={descriptionId} className="text-sm text-secondary-light/75">
+          <p id={descriptionId} className="text-sm text-neutral-500">
             {description}
           </p>
         </div>
         <div className="flex flex-wrap justify-end gap-3">
-          <Button variant="outline" size="small" onClick={onCancel} disabled={busy}>
+          <Button variant="surface" size="small" onClick={onCancel} disabled={busy}>
             {cancelLabel}
           </Button>
           <Button variant="primary" size="small" onClick={onConfirm} disabled={busy}>

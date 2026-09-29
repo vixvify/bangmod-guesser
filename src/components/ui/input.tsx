@@ -13,7 +13,7 @@ import type { ReactNode, Ref } from "react";
 
 type InputProps = Omit<
   OutlinedInputProps,
-  "endAdornment" | "error" | "label" | "ref" | "size" | "startAdornment"
+  "endAdornment" | "error" | "label" | "ref" | "startAdornment"
 > & {
   id: string;
   label: string;
@@ -28,6 +28,7 @@ export function Input({
   error,
   icon,
   ref,
+  size = "medium",
   type,
   ...inputProps
 }: InputProps) {
@@ -52,6 +53,7 @@ export function Input({
       </FormLabel>
       <OutlinedInput
         {...inputProps}
+        size={size}
         type={isPassword && isPasswordVisible ? "text" : type}
         id={id}
         inputRef={ref}
@@ -85,7 +87,7 @@ export function Input({
           ) : null
         }
         sx={{
-          minHeight: "3.25rem",
+          minHeight: size === "small" ? "2.5rem" : "3.25rem",
           borderRadius: "0.75rem",
           backgroundColor: "#fff",
           color: "var(--color-secondary-dark)",
@@ -100,7 +102,7 @@ export function Input({
             borderColor: "var(--color-primary-main)",
           },
           "& .MuiOutlinedInput-input": {
-            py: "0.875rem",
+            py: size === "small" ? "0.5rem" : "0.875rem",
             fontFamily: "inherit",
             "&::placeholder": { fontFamily: "inherit" },
             "&:autofill, &:-webkit-autofill": {

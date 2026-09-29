@@ -7,6 +7,15 @@ import { Input } from "@/components/ui/input";
 afterEach(cleanup);
 
 describe("Input", () => {
+  it("supports a compact field with an accessible label", () => {
+    render(<Input id="username" label="ชื่อผู้ใช้" size="small" />);
+
+    const input = screen.getByRole("textbox", { name: "ชื่อผู้ใช้" });
+    expect(input).toBeTruthy();
+    expect(screen.getByText("ชื่อผู้ใช้")).toBeTruthy();
+    expect(input.closest(".MuiOutlinedInput-root")?.classList.contains("MuiInputBase-sizeSmall")).toBe(true);
+  });
+
   it("connects its label and displays a validation error", () => {
     render(
       <Input
