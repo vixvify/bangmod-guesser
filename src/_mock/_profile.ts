@@ -1,10 +1,4 @@
-import type { GameHistoryItem, UserProfile } from "@/core/domain/profile";
-
-export const mockUser: UserProfile = {
-  id: "USR-001",
-  username: "Username",
-  email: "example@gmail.com",
-};
+import type { GameHistoryItem } from "@/core/domain/profile";
 
 export const mockGameHistory: GameHistoryItem[] = [
   {

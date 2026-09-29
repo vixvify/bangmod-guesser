@@ -3,6 +3,8 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { config } from "@/config";
 import { prisma } from "@/lib/prisma";
 
+const googleOAuth = config.googleOAuth;
+
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
@@ -13,6 +15,7 @@ export const auth = betterAuth({
     enabled: true,
     autoSignIn: false,
   },
+  socialProviders: googleOAuth ? { google: googleOAuth } : {},
   user: {
     additionalFields: {
       role: {

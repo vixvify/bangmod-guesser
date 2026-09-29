@@ -29,6 +29,16 @@ Set `NEXT_PUBLIC_API_URL` to the API base URL, for example
 `http://localhost:3000/api`. API route constants append their endpoint paths
 to this value.
 
+## Google sign-in
+
+Create a Google OAuth client of type **Web application** and set the authorized
+redirect URI to `http://localhost:3000/api/auth/callback/google` for local
+development (use your deployed domain for production). Set `GOOGLE_CLIENT_ID`
+and `GOOGLE_CLIENT_SECRET` in `.env`, and set `BETTER_AUTH_URL` to the app origin,
+for example `http://localhost:3000`. The Google button on `/login` uses Better
+Auth's OAuth flow. Without both credentials, Google sign-in is unavailable;
+email/password sign-in still works.
+
 ## Cloudflare R2 image storage
 
 Image upload and deletion use a Cloudflare R2 bucket through the server-side

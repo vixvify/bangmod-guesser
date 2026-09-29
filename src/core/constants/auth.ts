@@ -25,6 +25,7 @@ export const AUTH_MESSAGES = {
   },
 
   submit: {
+    googleLoginFailed: "เข้าสู่ระบบด้วย Google ไม่สำเร็จ กรุณาลองอีกครั้ง",
     loginSuccess: "เข้าสู่ระบบสำเร็จ",
     loginFailed: "เข้าสู่ระบบไม่สำเร็จ กรุณาตรวจสอบอีเมลและรหัสผ่าน",
     registerSuccess: "สมัครสมาชิกสำเร็จ กรุณาเข้าสู่ระบบ",
