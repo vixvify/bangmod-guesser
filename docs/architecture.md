@@ -39,6 +39,8 @@ tests/
 ├── fixtures/
 ├── mocks/
 └── helpers/
+
+e2e/                            # Browser workflows with mocked external dependencies
 ```
 
 ## Request flow

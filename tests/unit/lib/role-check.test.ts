@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { UserRole, type User } from "@/core/domain/user";
-import { roleCheck } from "@/lib/role-check";
+import { hasRole, roleCheck } from "@/lib/role-check";
 
 const user: User = {
   id: "user_1",
@@ -20,5 +20,13 @@ describe("roleCheck", () => {
     expect(() => roleCheck(user, [UserRole.ADMIN])).toThrowError(
       expect.objectContaining({ status: 403 }),
     );
+  });
+});
+
+describe("hasRole", () => {
+  it("recognizes an allowed role without throwing", () => {
+    expect(hasRole({ ...user, role: UserRole.ADMIN }, [UserRole.ADMIN])).toBe(true);
+    expect(hasRole(user, [UserRole.ADMIN])).toBe(false);
+    expect(hasRole(null, [UserRole.ADMIN])).toBe(false);
   });
 });

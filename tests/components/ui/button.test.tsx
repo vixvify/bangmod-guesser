@@ -11,6 +11,7 @@ describe("Button", () => {
     expect(markup).toContain("background-color:var(--color-primary-main)");
     expect(markup).toContain(".Mui-disabled");
     expect(markup).toContain('type="button"');
+    expect(markup).toContain("color:#fff");
   });
 
   it("supports reusable outline icon buttons", () => {
@@ -40,7 +41,9 @@ describe("Button", () => {
       </Button>,
     );
 
-    expect(markup).toContain("color:color-mix(in srgb, var(--color-secondary-light) 75%, transparent)");
+    expect(markup).toContain(
+      "color:color-mix(in srgb, var(--color-secondary-light) 75%, transparent)",
+    );
     expect(markup).toContain("custom-button-class");
   });
 
@@ -52,9 +55,29 @@ describe("Button", () => {
     expect(markup).toContain("background-color:#fff");
     expect(markup).toContain("color:#000");
     expect(markup).toContain(":not(.Mui-disabled):hover");
-    expect(markup).toContain("border-color:var(--color-primary-main)");
+    expect(markup).toContain("border-color:transparent");
+    expect(markup).toContain("background-color:var(--color-surface-hover)");
+    expect(markup).toContain("color:#000");
     expect(markup).toContain("transition:background-color 180ms ease");
     expect(markup).not.toContain("translateY");
+  });
+
+  it("uses the same inherited font for surface links and native buttons", () => {
+    const login = renderToStaticMarkup(
+      <Button href="/login" variant="surface" size="small">
+        เข้าสู่ระบบ
+      </Button>,
+    );
+    const logout = renderToStaticMarkup(
+      <Button variant="surface" size="small">
+        ออกจากระบบ
+      </Button>,
+    );
+
+    expect(login).toContain("font-family:inherit");
+    expect(logout).toContain("font-family:inherit");
+    expect(login).toContain("text-decoration:none");
+    expect(logout).toContain("text-decoration:none");
   });
 
   it("only animates the Play glow on hover", () => {

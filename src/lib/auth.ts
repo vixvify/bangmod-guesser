@@ -11,6 +11,7 @@ export const auth = betterAuth({
   baseURL: config.authUrl,
   emailAndPassword: {
     enabled: true,
+    autoSignIn: false,
   },
   user: {
     additionalFields: {

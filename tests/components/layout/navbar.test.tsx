@@ -4,12 +4,12 @@ import { UserRole } from "@/core/domain/user";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
+  usePathname: () => "/",
 }));
 
 vi.mock("@/lib/auth-client", () => ({
   authClient: { signOut: vi.fn() },
 }));
-
 
 import { Navbar } from "@/components/layout/navbar";
 
@@ -26,7 +26,7 @@ describe("Navbar", () => {
     expect(markup).toContain("color:var(--color-primary-main)");
     expect(markup).toContain("width:2.5rem");
     expect(markup).toContain("height:2.5rem");
-    expect(markup).toContain("ตั้งค่าเกม — เร็ว ๆ นี้");
+    expect(markup).toContain("ตั้งค่าเกม");
     expect(markup).toContain("ตารางอันดับ — เร็ว ๆ นี้");
     expect(markup).toContain('href="/login"');
     expect(markup).toContain("เข้าสู่ระบบ");
@@ -52,5 +52,15 @@ describe("Navbar", () => {
     expect(markup).toContain("ตารางอันดับ — เร็ว ๆ นี้");
     expect(markup).toContain("ออกจากระบบ");
     expect(markup).not.toContain('href="/login"');
+  });
+
+  it("keeps one transparent navbar and lets pages set only the brand color", () => {
+    const markup = renderToStaticMarkup(
+      <Navbar user={null} brandColor="var(--color-secondary-dark)" />,
+    );
+
+    expect(markup).toContain("bg-transparent");
+    expect(markup).not.toContain("border-neutral-200");
+    expect(markup).toContain("color:var(--color-secondary-dark)");
   });
 });

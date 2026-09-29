@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Prompt } from "next/font/google";
 import type { ReactNode } from "react";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -34,7 +35,21 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${prompt.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <Toaster
+          position="top-center"
+          closeButton
+          toastOptions={{
+            style: {
+              background: "var(--color-secondary-light)",
+              border: "1px solid var(--color-primary-soft)",
+              color: "var(--color-secondary-dark)",
+              fontFamily: "var(--font-prompt), sans-serif",
+            },
+          }}
+        />
+      </body>
     </html>
   );
 }

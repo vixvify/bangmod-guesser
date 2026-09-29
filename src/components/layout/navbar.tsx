@@ -9,6 +9,10 @@ import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutlineOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import MuiLink from "@mui/material/Link";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { SettingsDialog } from "@/components/ui/settings-dialog";
+import { AUTH_MESSAGES } from "@/core/constants/auth";
 import type { User } from "@/core/domain/user";
 import { AppRoutes } from "@/routes/app/routes";
 import { Button } from "@/components/ui/button";
@@ -16,20 +20,33 @@ import { authClient } from "@/lib/auth-client";
 
 type NavbarProps = {
   user: User | null;
+  brandColor?: string;
 };
 
-export function Navbar({ user }: NavbarProps) {
+export function Navbar({
+  user,
+  brandColor = "var(--color-secondary-light)",
+}: NavbarProps) {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   async function handleLogout() {
     setIsLoggingOut(true);
 
     try {
-      await authClient.signOut();
+      const { error } = await authClient.signOut();
+      if (error) {
+        toast.error(AUTH_MESSAGES.logout.failed);
+        return;
+      }
+
+      setIsLogoutDialogOpen(false);
+      toast.success(AUTH_MESSAGES.logout.success);
       router.refresh();
     } catch {
-      return;
+      toast.error(AUTH_MESSAGES.logout.failed);
     } finally {
       setIsLoggingOut(false);
     }
@@ -43,7 +60,7 @@ export function Navbar({ user }: NavbarProps) {
         color="inherit"
         underline="none"
         sx={{
-          color: "var(--color-secondary-light)",
+          color: brandColor,
           fontSize: { xs: "1.125rem", sm: "1.5rem" },
           fontWeight: 900,
           transition: "color 280ms ease",
@@ -58,9 +75,9 @@ export function Navbar({ user }: NavbarProps) {
         <Button
           variant="surface"
           size="icon"
-          disabled
-          aria-label="ตั้งค่าเกม — เร็ว ๆ นี้"
-          title="ตั้งค่าเกม — เร็ว ๆ นี้"
+          onClick={() => setIsSettingsOpen(true)}
+          aria-label="ตั้งค่าเกม"
+          title="ตั้งค่าเกม"
         >
           <SettingsOutlinedIcon />
         </Button>
@@ -89,7 +106,7 @@ export function Navbar({ user }: NavbarProps) {
             <Button
               variant="surface"
               size="small"
-              onClick={handleLogout}
+              onClick={() => setIsLogoutDialogOpen(true)}
               disabled={isLoggingOut}
             >
               <LogoutOutlinedIcon fontSize="small" />
@@ -97,16 +114,26 @@ export function Navbar({ user }: NavbarProps) {
             </Button>
           </>
         ) : (
-          <Button
-            href={AppRoutes.login}
-            variant="surface"
-            size="small"
-          >
+          <Button href={AppRoutes.login} variant="surface" size="small">
             <LoginOutlinedIcon fontSize="small" />
             เข้าสู่ระบบ
           </Button>
         )}
       </nav>
+      <ConfirmDialog
+        open={isLogoutDialogOpen}
+        busy={isLoggingOut}
+        title={AUTH_MESSAGES.logout.title}
+        description={AUTH_MESSAGES.logout.description}
+        confirmLabel={AUTH_MESSAGES.logout.confirm}
+        cancelLabel={AUTH_MESSAGES.logout.cancel}
+        onConfirm={handleLogout}
+        onCancel={() => setIsLogoutDialogOpen(false)}
+      />
+      <SettingsDialog
+        open={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
     </header>
   );
 }

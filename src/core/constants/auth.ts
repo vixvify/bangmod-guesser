@@ -23,6 +23,22 @@ export const AUTH_MESSAGES = {
     required: "กรุณายืนยันรหัสผ่าน",
     mismatch: "รหัสผ่านไม่ตรงกัน",
   },
+
+  submit: {
+    loginSuccess: "เข้าสู่ระบบสำเร็จ",
+    loginFailed: "เข้าสู่ระบบไม่สำเร็จ กรุณาตรวจสอบอีเมลและรหัสผ่าน",
+    registerSuccess: "สมัครสมาชิกสำเร็จ กรุณาเข้าสู่ระบบ",
+    registerFailed: "สมัครสมาชิกไม่สำเร็จ กรุณาตรวจสอบข้อมูลแล้วลองอีกครั้ง",
+    networkError: "ไม่สามารถเชื่อมต่อได้ กรุณาลองอีกครั้ง",
+  },
+  logout: {
+    title: "ยืนยันการออกจากระบบ",
+    description: "คุณต้องการออกจากระบบใช่หรือไม่?",
+    confirm: "ยืนยัน",
+    cancel: "ยกเลิก",
+    success: "ออกจากระบบสำเร็จ",
+    failed: "ออกจากระบบไม่สำเร็จ กรุณาลองอีกครั้ง",
+  },
 } as const;
 
 export const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 7;

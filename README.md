@@ -52,7 +52,10 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-Run the test suite with `npm test`; its unit and route-handler integration tests do not require a running database.
+Run the full test suite with `npm test`. Install the Playwright browser once with
+`npx playwright install chromium`, or run only the browser tests with
+`npm run test:e2e`. The signup/login E2E tests in `e2e/` mock Auth API responses,
+so they do not require a running database.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
