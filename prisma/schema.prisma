@@ -112,13 +112,14 @@ model Verification {
 // ----------------------------------------------------
 
 model Location {
-  id          Int            @id @default(autoincrement())
+  id          String         @id @default(cuid())
   name        String
   description String?
   latitude    Float
   longitude   Float
   status      LocationStatus @default(ACTIVE)
   createdAt   DateTime       @default(now())
+  updatedAt  DateTime?       @updatedAt
 
   images     LocationImage[]
   gameRounds GameRound[]
@@ -127,22 +128,23 @@ model Location {
 }
 
 model LocationImage {
-  id          Int    @id @default(autoincrement())
+  imageNumber Int
   imageUrl    String
-  imageNumber Int?
+  createdAt   DateTime   @default(now())
 
-  locationId Int
+  locationId String
   location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
 
+  @@id([locationId, imageNumber])
   @@index([locationId])
   @@map("location_images")
 }
 
 model Game {
-  id         Int        @id @default(autoincrement())
+  id         String     @id @default(cuid())
   status     GameStatus @default(PLAYING)
   startedAt  DateTime   @default(now())
-  // finishedAt DateTime?
+  finishedAt DateTime?
   totalScore Int?
 
   userId String
@@ -155,18 +157,18 @@ model Game {
 }
 
 model GameRound {
-  id               Int          @id @default(autoincrement())
   questionNumber   Int
   guessedLatitude  Float?
   guessedLongitude Float?
   score            Int          @default(0)
   playTimeSeconds  Int?
   status           RoundStatus? @default(PENDING)
+  createdAt        DateTime     @default(now())
 
-  gameId Int
+  gameId String
   game   Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
 
-  locationId Int
+  locationId String
   location   Location @relation(fields: [locationId], references: [id])
 
   @@unique([gameId, questionNumber])
