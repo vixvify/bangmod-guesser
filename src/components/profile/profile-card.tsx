@@ -3,10 +3,15 @@
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import Avatar from "@mui/material/Avatar";
 import IconButton from "@mui/material/IconButton";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { EditNameDialog } from "@/components/profile/edit-name-dialog";
 import { Button } from "@/components/ui/button";
+import { PROFILE_MESSAGES } from "@/core/constants/profile";
 import type { User } from "@/core/domain/user";
+import { authClient } from "@/lib/auth-client";
+import { getProfileImageUrl } from "@/lib/profile-image";
 
 type ProfileCardProps = {
   profile: User;
@@ -14,8 +19,28 @@ type ProfileCardProps = {
 };
 
 export function ProfileCard({ profile, canManageSystem = false }: ProfileCardProps) {
+  const router = useRouter();
   const [username, setUsername] = useState(profile.name);
   const [isEditOpen, setIsEditOpen] = useState(false);
+
+  async function handleSave(nextUsername: string): Promise<boolean> {
+    try {
+      const { error } = await authClient.updateUser({ name: nextUsername });
+
+      if (error) {
+        toast.error(PROFILE_MESSAGES.updateFailed);
+        return false;
+      }
+
+      setUsername(nextUsername);
+      toast.success(PROFILE_MESSAGES.updateSuccess);
+      router.refresh();
+      return true;
+    } catch {
+      toast.error(PROFILE_MESSAGES.updateFailed);
+      return false;
+    }
+  }
 
   return (
     <section
@@ -23,7 +48,7 @@ export function ProfileCard({ profile, canManageSystem = false }: ProfileCardPro
       className="flex flex-wrap items-center gap-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:gap-6 sm:p-8"
     >
       <Avatar
-        src={profile.image ?? undefined}
+        src={getProfileImageUrl(profile.image)}
         alt={username}
         sx={{
           width: { xs: "4.5rem", sm: "5.5rem" },
@@ -69,7 +94,7 @@ export function ProfileCard({ profile, canManageSystem = false }: ProfileCardPro
         open={isEditOpen}
         username={username}
         onClose={() => setIsEditOpen(false)}
-        onSave={setUsername}
+        onSave={handleSave}
       />
     </section>
   );
