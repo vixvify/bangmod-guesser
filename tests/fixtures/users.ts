@@ -1,4 +1,4 @@
-import { Role as PrismaRole } from "@prisma/client";
+import { Role as PrismaRole, UserStatus } from "@prisma/client";
 import type { UserModel } from "../../prisma/types/user";
 
 export const validRegistration = {
@@ -21,6 +21,8 @@ export function createUserModel(overrides: Partial<UserModel> = {}): UserModel {
     emailVerified: false,
     image: null,
     role: PrismaRole.USER,
+    status: UserStatus.ACTIVE,
+    suspendedUntil: null,  
     createdAt: new Date("2026-01-01T00:00:00.000Z"),
     updatedAt: new Date("2026-01-01T00:00:00.000Z"),
     ...overrides,
