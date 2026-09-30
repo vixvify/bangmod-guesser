@@ -30,6 +30,7 @@ describe("Home page", () => {
     const markup = await renderPage();
 
     expect(markup).toContain('aria-label="Bangmod Guesser lobby"');
+    expect(markup).not.toContain('data-layout-content="contained"');
     expect(markup).toContain("Bangmod");
     expect(markup).toContain("Guesser");
     expect(markup).toContain("Play");

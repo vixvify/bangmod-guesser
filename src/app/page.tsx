@@ -9,7 +9,7 @@ export default async function Page() {
   const user = await authCheck();
 
   return (
-    <MainLayout user={user}>
+    <MainLayout user={user} variant="fullBleed">
       <LobbySection />
       <IntroSection />
       <HowToPlaySection />

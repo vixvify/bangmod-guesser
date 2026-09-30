@@ -1,5 +1,6 @@
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
 import MuiLink from "@mui/material/Link";
+import { ContentContainer } from "@/components/layout/content-container";
 import { HomeBackdrop } from "@/components/home/home-backdrop";
 import { LobbyEmblem } from "@/components/home/lobby-emblem";
 import { LobbyMenu } from "@/components/home/lobby-menu";
@@ -8,10 +9,10 @@ export function LobbySection() {
   return (
     <section
       aria-label="Bangmod Guesser lobby"
-      className="relative isolate flex min-h-[90svh] items-center overflow-hidden px-6 pt-20 pb-12 text-center sm:min-h-[90svh] sm:px-10 sm:pt-24 sm:pb-16 lg:min-h-[95svh]"
+      className="relative isolate flex min-h-[90svh] items-center overflow-hidden pt-20 pb-12 text-center sm:min-h-[90svh] sm:pt-24 sm:pb-16 lg:min-h-[95svh]"
     >
       <HomeBackdrop />
-      <div className="relative z-10 mx-auto w-full max-w-3xl">
+      <ContentContainer contentWidth="narrow" className="relative z-10">
         <div className="motion-safe:animate-home-enter">
           <LobbyEmblem />
         </div>
@@ -39,7 +40,7 @@ export function LobbySection() {
           <span>เลื่อนลงเพื่อทำความรู้จักเกม</span>
           <KeyboardArrowDownRoundedIcon className="size-5 motion-safe:animate-bounce" />
         </MuiLink>
-      </div>
+      </ContentContainer>
     </section>
   );
 }
