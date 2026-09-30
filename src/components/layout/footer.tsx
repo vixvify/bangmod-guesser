@@ -1,4 +1,5 @@
 import MuiLink from "@mui/material/Link";
+import { ContentContainer } from "@/components/layout/content-container";
 import { AppRoutes } from "@/routes/app/routes";
 
 const footerLinks = [
@@ -24,9 +25,9 @@ export function Footer() {
   return (
     <footer
       aria-label="Site footer"
-      className="border-t border-secondary-light/10 bg-secondary-dark px-6 py-14 text-secondary-light/75 sm:px-12 lg:py-16"
+      className="border-t border-secondary-light/10 bg-secondary-dark py-14 text-secondary-light/75 lg:py-16"
     >
-      <div className="mx-auto max-w-6xl">
+      <ContentContainer>
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-4 lg:col-span-2">
             <div>
@@ -73,7 +74,7 @@ export function Footer() {
             © {new Date().getFullYear()} Bangmod Guesser. All rights reserved.
           </p>
         </div>
-      </div>
+      </ContentContainer>
     </footer>
   );
 }

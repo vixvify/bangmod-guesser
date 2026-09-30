@@ -1,6 +1,7 @@
 import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
 import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
+import { ContentContainer } from "@/components/layout/content-container";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { Steps } from "@/core/constants/home";
 
@@ -15,9 +16,9 @@ export function HowToPlaySection() {
     <section
       id="how-to-play"
       aria-labelledby="how-to-play-title"
-      className="relative flex min-h-svh items-center overflow-hidden bg-secondary-light px-6 py-24 text-secondary-dark sm:px-12 lg:py-32"
+      className="relative flex min-h-svh items-center overflow-hidden bg-secondary-light py-24 text-secondary-dark lg:py-32"
     >
-      <div className="mx-auto w-full max-w-6xl">
+      <ContentContainer>
         <ScrollReveal className="border-b-2 border-secondary-dark pb-10">
           <p className="font-mono text-xs uppercase tracking-widest">
             02 — HOW TO PLAY
@@ -66,7 +67,7 @@ export function HowToPlaySection() {
             );
           })}
         </ol>
-      </div>
+      </ContentContainer>
     </section>
   );
 }

@@ -35,6 +35,7 @@ describe("ProfilePage", () => {
     expect(markup).not.toContain("ตั้งแต่วันที่");
     expect(markup).toContain("#GAME-0001");
     expect(markup).toContain("bg-slate-50 text-secondary-dark");
+    expect(markup).toContain('data-layout-content="contained"');
     expect(markup).toContain("border-slate-200 bg-white");
     expect(markup).toContain("color:var(--color-secondary-dark)");
     expect(markup).toContain("ออกจากระบบ");

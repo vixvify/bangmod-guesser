@@ -1,4 +1,5 @@
 import InstagramIcon from "@mui/icons-material/Instagram";
+import { ContentContainer } from "@/components/layout/content-container";
 import MuiLink from "@mui/material/Link";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { Contributors } from "@/core/constants/home";
@@ -14,7 +15,7 @@ export function CreditsSection() {
     <section
       id="credits"
       aria-labelledby="credits-title"
-      className="relative isolate flex min-h-svh flex-col justify-center overflow-hidden bg-secondary-main px-6 py-24 text-secondary-light sm:px-12 lg:py-32"
+      className="relative isolate flex min-h-svh flex-col justify-center overflow-hidden bg-secondary-main py-24 text-secondary-light lg:py-32"
     >
       <span
         aria-hidden="true"
@@ -22,7 +23,7 @@ export function CreditsSection() {
       >
         BANGMOD
       </span>
-      <div className="mx-auto w-full max-w-6xl">
+      <ContentContainer>
         <ScrollReveal className="grid items-end gap-6 pb-12 md:grid-cols-2">
           <div>
             <p className="font-mono text-xs uppercase tracking-widest text-primary-light">
@@ -76,7 +77,7 @@ export function CreditsSection() {
             </li>
           ))}
         </ol>
-      </div>
+      </ContentContainer>
     </section>
   );
 }

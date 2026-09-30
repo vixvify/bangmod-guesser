@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { ContentContainer } from "@/components/layout/content-container";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { HomeBackgroundImages } from "@/core/constants/home";
 
@@ -7,13 +8,13 @@ export function IntroSection() {
     <section
       id="introduction"
       aria-labelledby="introduction-title"
-      className="relative isolate flex min-h-svh items-center overflow-hidden bg-primary-main px-6 py-24 text-secondary-dark sm:px-12 lg:py-32"
+      className="relative isolate flex min-h-svh items-center overflow-hidden bg-primary-main py-24 text-secondary-dark lg:py-32"
     >
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -right-64 top-1/2 size-200 -translate-y-1/2 rounded-full border border-secondary-dark/15 before:absolute before:inset-16 before:rounded-full before:border before:border-secondary-dark/15 after:absolute after:inset-32 after:rounded-full after:border after:border-secondary-dark/15"
       />
-      <div className="relative mx-auto grid w-full max-w-6xl items-center gap-14 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
+      <ContentContainer className="relative grid items-center gap-14 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
         <ScrollReveal>
           <p className="flex items-center gap-3 font-mono text-xs uppercase tracking-widest">
             <span className="size-2 bg-secondary-dark" />
@@ -75,7 +76,7 @@ export function IntroSection() {
             </span>
           </figure>
         </ScrollReveal>
-      </div>
+      </ContentContainer>
     </section>
   );
 }
