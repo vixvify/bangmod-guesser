@@ -7,22 +7,55 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ----------------------------------------------------
+// Enums
+// ----------------------------------------------------
+
 enum Role {
   USER
   ADMIN
 }
 
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum LocationStatus {
+  ACTIVE
+  HIDDEN
+}
+
+enum GameStatus {
+  PLAYING
+  COMPLETED
+  // ABANDONED
+}
+
+enum RoundStatus {
+  PENDING
+  COMPLETED
+}
+
+// ----------------------------------------------------
+// Authentication Models (Better Auth)
+// ----------------------------------------------------
+
 model User {
-  id            String    @id @default(cuid())
-  name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false)
-  image         String?
-  role          Role      @default(USER)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  sessions      Session[]
-  accounts      Account[]
+  id             String     @id @default(cuid())
+  name           String
+  email          String     @unique
+  emailVerified  Boolean    @default(false)
+  image          String?
+  role           Role       @default(USER)
+  status         UserStatus @default(ACTIVE)
+  suspendedUntil DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  sessions Session[]
+  accounts Account[]
+  games    Game[]
 
   @@map("users")
 }
@@ -74,3 +107,70 @@ model Verification {
   @@map("verifications")
 }
 
+// ----------------------------------------------------
+// Core Gameplay Models (Bangmod Guesser)
+// ----------------------------------------------------
+
+model Location {
+  id          Int            @id @default(autoincrement())
+  name        String
+  description String?
+  latitude    Float
+  longitude   Float
+  status      LocationStatus @default(ACTIVE)
+  createdAt   DateTime       @default(now())
+
+  images     LocationImage[]
+  gameRounds GameRound[]
+
+  @@map("locations")
+}
+
+model LocationImage {
+  id          Int    @id @default(autoincrement())
+  imageUrl    String
+  imageNumber Int?
+
+  locationId Int
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@index([locationId])
+  @@map("location_images")
+}
+
+model Game {
+  id         Int        @id @default(autoincrement())
+  status     GameStatus @default(PLAYING)
+  startedAt  DateTime   @default(now())
+  // finishedAt DateTime?
+  totalScore Int?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  rounds GameRound[]
+
+  @@index([userId])
+  @@map("games")
+}
+
+model GameRound {
+  id               Int          @id @default(autoincrement())
+  questionNumber   Int
+  guessedLatitude  Float?
+  guessedLongitude Float?
+  score            Int          @default(0)
+  playTimeSeconds  Int?
+  status           RoundStatus? @default(PENDING)
+
+  gameId Int
+  game   Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  locationId Int
+  location   Location @relation(fields: [locationId], references: [id])
+
+  @@unique([gameId, questionNumber])
+  @@index([gameId])
+  @@index([locationId])
+  @@map("game_rounds")
+}
