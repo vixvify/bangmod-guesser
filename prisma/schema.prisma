@@ -23,13 +23,13 @@ enum UserStatus {
 
 enum LocationStatus {
   ACTIVE
-  HIDDEN
+  INACTIVE
 }
 
 enum GameStatus {
   PLAYING
   COMPLETED
-  // ABANDONED
+  INCOMPLETE
 }
 
 enum RoundStatus {
