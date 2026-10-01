@@ -2,7 +2,7 @@ import "server-only";
 
 import { S3Client } from "@aws-sdk/client-s3";
 
-import { config } from "@/config";
+import { config } from "@/lib/config";
 
 let r2Client: S3Client | undefined;
 

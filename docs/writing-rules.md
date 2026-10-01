@@ -8,7 +8,7 @@
 - Add request, form, param, and query validation to a Zod schema in `src/core/schema`; derive input types from that schema.
 - Add Prisma access only to `src/infrastructure/repositories`.
 - Add transformations from Prisma records to API/domain output to `src/infrastructure/factories` and call them from services, never repositories.
-- Add framework-independent helpers to `src/utils`; add technical integrations and setup to `src/lib`.
+- Add framework-independent helpers to `src/lib/utils.ts`; add runtime configuration to `src/lib/config.ts` and other technical integrations to `src/lib`.
 
 ## Naming and file conventions
 

@@ -8,7 +8,6 @@ KMUTT Guesser is a fullstack Next.js application. The App Router owns routing an
 src/
 ├── app/                         # App Router
 ├── components/                  # Reusable UI
-├── config/                      # Runtime configuration
 ├── core/
 │   ├── constants/
 │   ├── domain/
@@ -22,7 +21,7 @@ src/
 │   ├── repositories/
 │   └── container
 ├── layout/                      # Page-level composition
-├── lib/                         # Technical helpers and initialisation
+├── lib/                         # Technical helpers, config.ts, and utils.ts
 ├── routes/                      # Shared route constants
 └── store/                       # Shared client state
 
@@ -65,7 +64,7 @@ Server Components and server-only code may call a service from `src/infrastructu
 | Location | Responsibility |
 | --- | --- |
 | `src/app` | Route-specific concerns, pages, layouts, route handlers, cookies, and HTTP responses. Keep it thin. |
-| `src/config` | Shared application configuration. It exports the API base URL and server runtime configuration; application code consumes it instead of reading `process.env` directly. |
+| `src/lib/config.ts` | Shared application configuration. It exports the API base URL and server runtime configuration; application code consumes it instead of reading `process.env` directly. |
 | `src/components` | Reusable UI. Use Server Components by default; add a client boundary only for browser interaction or state. |
 | `src/core/domain` | Public application models and domain rules, including the `UserRole` authorization enum. It must not contain Prisma or UI concerns. |
 | `src/core/schema` | Zod validation schemas and inferred input types. |
@@ -75,7 +74,7 @@ Server Components and server-only code may call a service from `src/infrastructu
 | `src/infrastructure/repositories` | Prisma queries and external storage operations. Repositories return the values requested by their ports. |
 | `src/infrastructure/factories` | Maps Prisma records to public domain output, including Prisma role enum values to domain `UserRole`. Factories remove sensitive fields. |
 | `src/infrastructure/container.ts` | Creates repository and service instances. |
-| `src/lib` | Technical helpers: Prisma global instance, password hashing, API response formatting, validation parsing, auth checks, and client HTTP setup. |
+| `src/lib` | Technical helpers: configuration, reusable pure utilities, Prisma global instance, password hashing, API response formatting, validation parsing, auth checks, and client HTTP setup. |
 | `prisma/types` | Prisma-only types for records with included relations. These are not domain models. |
 
 ## Auth and session model

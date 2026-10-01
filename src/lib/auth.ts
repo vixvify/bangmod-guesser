@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { config } from "@/config";
+import { config } from "@/lib/config";
 import { prisma } from "@/lib/prisma";
 
 const googleOAuth = config.googleOAuth;

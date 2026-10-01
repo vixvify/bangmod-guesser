@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getPagination } from "@/utils/pagination";
+import { getPagination } from "@/lib/utils";
 
 describe("getPagination", () => {
   it("calculates the visible range for the first and last pages", () => {

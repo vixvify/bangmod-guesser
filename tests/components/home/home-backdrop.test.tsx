@@ -8,7 +8,7 @@ describe("HomeBackdrop", () => {
 
     expect(markup).toContain("kmutt-bangmod-1.jpg");
     expect(markup).toContain("lobby-fx");
-    expect(markup).toContain("lobby-vignette");
+    expect(markup).toContain("data-home-vignette");
     expect(markup).not.toContain("border-primary-soft/50");
   });
 });

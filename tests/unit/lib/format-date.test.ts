@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatThaiDateRange, formatThaiDateTime } from "@/utils/format-date";
+import { formatThaiDateRange, formatThaiDateTime } from "@/lib/utils";
 
 describe("formatThaiDateTime", () => {
   it("formats ISO date string into readable Thai datetime string", () => {

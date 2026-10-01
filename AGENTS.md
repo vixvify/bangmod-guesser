@@ -9,7 +9,6 @@ The project follows this structure:
 ```text
 .
 ├── src/
-│   ├── config/
 │   ├── app/
 │   │   ├── (auth)/
 │   │   ├── api/
@@ -28,9 +27,10 @@ The project follows this structure:
 │   │   ├── repositories/
 │   │   └── container.ts
 │   ├── lib/
+│   │   ├── config.ts
+│   │   └── utils.ts
 │   ├── routes/
-│   ├── store/
-│   └── utils/
+│   └── store/
 │
 ├── prisma/
 │   ├── schema.prisma
@@ -107,7 +107,7 @@ Do not immediately create new abstractions or files before inspecting the existi
 
 # Source Structure
 
-## `src/config`
+## `src/lib/config.ts`
 
 Contains shared application configuration and server runtime environment parsing. Application code must consume the exported config instead of reading `process.env` directly. Keep secrets and provider credentials inside the server runtime portion of this boundary.
 
@@ -549,11 +549,11 @@ Examples:
 
 ```text
 lib/
-├── db.ts
 ├── auth.ts
-├── env.ts
-├── redis.ts
-└── api-client.ts
+├── config.ts
+├── http.ts
+├── prisma.ts
+└── utils.ts
 ```
 
 Do not put application business logic inside `lib`.
@@ -587,7 +587,7 @@ Avoid one giant global store responsible for unrelated concerns.
 
 # Utils
 
-## `src/utils`
+## `src/lib/utils.ts`
 
 Contains generic reusable utility functions.
 
@@ -602,11 +602,8 @@ Utilities should preferably be:
 Examples:
 
 ```text
-utils/
-├── format-date.ts
-├── format-currency.ts
-├── calculate-age.ts
-└── slugify.ts
+lib/
+└── utils.ts
 ```
 
 Do not put application workflows inside `utils`.
@@ -932,7 +929,7 @@ tests/
     │   └── domain/
     │       └── course.test.ts
     │
-    ├── utils/
+    ├── lib/
     │   ├── format-date.test.ts
     │   └── calculate-age.test.ts
     │

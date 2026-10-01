@@ -11,7 +11,7 @@ import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import dayjs, { type Dayjs } from "dayjs";
 import { useId, useState } from "react";
-import { formatThaiDateRange } from "@/utils/format-date";
+import { formatThaiDateRange } from "@/lib/utils";
 import "dayjs/locale/th";
 
 type DateRange = {
