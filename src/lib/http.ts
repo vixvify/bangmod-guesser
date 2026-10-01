@@ -5,7 +5,7 @@ import axios, {
   AxiosError,
   AxiosResponse,
 } from "axios";
-import { config } from "@/config";
+import { config } from "@/lib/config";
 import { ApiResponse } from "@/infrastructure/interface/response";
 
 const http: AxiosInstance = axios.create({

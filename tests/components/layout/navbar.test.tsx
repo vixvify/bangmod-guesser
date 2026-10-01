@@ -22,8 +22,7 @@ describe("Navbar", () => {
     expect(markup).not.toContain("backdrop-blur-md");
     expect(markup).toContain("font-weight:900");
     expect(markup).toContain("color:var(--color-secondary-light)");
-    expect(markup).toContain(":hover{color:var(--color-primary-main)");
-    expect(markup).toContain("color:var(--color-primary-main)");
+    expect(markup).toContain("hover:text-primary-main");
     expect(markup).toContain("width:2.5rem");
     expect(markup).toContain("height:2.5rem");
     expect(markup).toContain("ตั้งค่าเกม");

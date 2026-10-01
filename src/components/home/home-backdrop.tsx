@@ -1,5 +1,6 @@
 import { LobbyFx } from "@/components/home/lobby-fx";
 import { BackgroundSlideshow } from "@/components/home/slideshow";
+import styles from "./home-backdrop.module.css";
 
 export function HomeBackdrop() {
   return (
@@ -9,7 +10,7 @@ export function HomeBackdrop() {
     >
       <BackgroundSlideshow />
       <div className="absolute inset-0 bg-secondary-main/25" />
-      <div className="lobby-vignette absolute inset-0" />
+      <div data-home-vignette className={`${styles.vignette} absolute inset-0`} />
       <LobbyFx />
     </div>
   );

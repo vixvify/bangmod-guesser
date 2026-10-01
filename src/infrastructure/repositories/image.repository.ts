@@ -1,6 +1,6 @@
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 
-import { config } from "@/config";
+import { config } from "@/lib/config";
 import type { ImageRepository } from "@/core/ports/image.repository";
 import type { UploadImageInput } from "@/core/schema/image.schema";
 import { getR2Client } from "@/lib/r2";

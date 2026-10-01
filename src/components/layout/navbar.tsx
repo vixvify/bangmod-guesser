@@ -9,7 +9,6 @@ import LoginOutlinedIcon from "@mui/icons-material/LoginOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutlineOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
-import MuiLink from "@mui/material/Link";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { SettingsDialog } from "@/components/ui/settings-dialog";
@@ -55,23 +54,22 @@ export function Navbar({
 
   return (
     <header className="absolute inset-x-0 top-0 z-50 h-16 w-full bg-transparent text-secondary-light">
-      <ContentContainer contentWidth="full" className="flex h-full items-center justify-between gap-3">
-        <MuiLink
-          component={NextLink}
+      <ContentContainer
+        contentWidth="full"
+        className="flex h-full items-center justify-between gap-3"
+      >
+        <NextLink
           href={AppRoutes.home}
-          color="inherit"
-          underline="none"
-          sx={{
-            color: brandColor,
-            fontSize: { xs: "1.125rem", sm: "1.5rem" },
-            fontWeight: 900,
-            transition: "color 280ms ease",
-            "&:hover": { color: "var(--color-primary-main)" },
-          }}
-          className="tracking-tight focus-visible:outline-2 focus-visible:outline-primary-focus"
+          style={
+            {
+              "--brand-color": brandColor,
+              fontWeight: 900,
+            } as React.CSSProperties
+          }
+          className="text-[var(--brand-color)] text-lg tracking-tight no-underline transition-colors duration-[280ms] hover:text-primary-main focus-visible:outline-2 focus-visible:outline-primary-focus sm:text-2xl"
         >
           Bangmod Guesser
-        </MuiLink>
+        </NextLink>
 
         <nav aria-label="เมนูหลัก" className="flex items-center gap-2">
           <Button

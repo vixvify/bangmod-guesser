@@ -3,7 +3,7 @@ import { betterAuth } from "better-auth";
 
 vi.mock("better-auth", () => ({ betterAuth: vi.fn(() => ({})) }));
 vi.mock("better-auth/adapters/prisma", () => ({ prismaAdapter: vi.fn(() => ({})) }));
-vi.mock("@/config", () => ({
+vi.mock("@/lib/config", () => ({
   config: {
     authSecret: "test-secret",
     authUrl: "http://localhost:3000",

@@ -1,3 +1,46 @@
+export type ScoreTier = "SSS" | "S" | "A" | "B" | "C" | "D";
+
+export interface TierInfo {
+  tier: ScoreTier;
+  label: string;
+  minScore: number;
+  maxScore: number;
+  percentage: string;
+  description: string;
+  badgeClassName: string;
+}
+
+export function formatScore(score: number): string {
+  return score.toLocaleString("en-US");
+}
+
+export function calculateScoreTier(score: number): ScoreTier {
+  if (score >= 4750) return "SSS";
+  if (score >= 4200) return "S";
+  if (score >= 3350) return "A";
+  if (score >= 2500) return "B";
+  if (score >= 1650) return "C";
+  return "D";
+}
+
+export function formatTime(totalSeconds: number): string {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+export function getPagination(totalItems: number, page: number, pageSize: number) {
+  if (pageSize < 1) {
+    throw new RangeError("pageSize must be greater than zero");
+  }
+
+  return {
+    pageCount: Math.max(1, Math.ceil(totalItems / pageSize)),
+    firstItem: totalItems === 0 ? 0 : (page - 1) * pageSize + 1,
+    lastItem: Math.min(page * pageSize, totalItems),
+  };
+}
+
 const THAI_MONTHS_SHORT = [
   "ม.ค.",
   "ก.พ.",

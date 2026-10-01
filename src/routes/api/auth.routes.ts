@@ -1,4 +1,4 @@
-import { config } from "@/config";
+import { config } from "@/lib/config";
 
 export const AuthRoutes = {
   register: `${config.apiUrl}/auth/sign-up/email`,
