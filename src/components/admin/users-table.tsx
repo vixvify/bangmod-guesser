@@ -26,7 +26,8 @@ const statusLabels: Record<AdminUserStatus, string> = {
   DEACTIVATED: "ปิดใช้งาน",
 };
 
-const badgeClass = "inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-semibold whitespace-nowrap";
+const badgeClass =
+  "inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-semibold whitespace-nowrap";
 const roleClasses = {
   [UserRole.ADMIN]: "border-orange-200 bg-orange-50 text-orange-800",
   [UserRole.USER]: "border-slate-200 bg-slate-100 text-slate-700",
@@ -94,9 +95,7 @@ export function UsersTable({ users, onEdit, onDelete }: UsersTableProps) {
               </TableCell>
               <TableCell>
                 <div className="flex flex-wrap gap-2">
-                  <span
-                    className={`${badgeClass} ${roleClasses[user.role]}`}
-                  >
+                  <span className={`${badgeClass} ${roleClasses[user.role]}`}>
                     {user.role === UserRole.ADMIN ? "ผู้ดูแล" : "ผู้เล่น"}
                   </span>
                   <span
