@@ -10,8 +10,8 @@ import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutlineOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import { toast } from "sonner";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { SettingsDialog } from "@/components/ui/settings-dialog";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
+import { SettingsModal } from "@/components/ui/settings-modal";
 import { AUTH_MESSAGES } from "@/core/constants/auth";
 import type { User } from "@/core/domain/user";
 import { AppRoutes } from "@/routes/app/routes";
@@ -29,7 +29,7 @@ export function Navbar({
 }: NavbarProps) {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   async function handleLogout() {
@@ -42,7 +42,7 @@ export function Navbar({
         return;
       }
 
-      setIsLogoutDialogOpen(false);
+      setIsLogoutModalOpen(false);
       toast.success(AUTH_MESSAGES.logout.success);
       router.refresh();
     } catch {
@@ -106,7 +106,7 @@ export function Navbar({
               <Button
                 variant="surface"
                 size="small"
-                onClick={() => setIsLogoutDialogOpen(true)}
+                onClick={() => setIsLogoutModalOpen(true)}
                 disabled={isLoggingOut}
               >
                 <LogoutOutlinedIcon fontSize="small" />
@@ -121,17 +121,17 @@ export function Navbar({
           )}
         </nav>
       </ContentContainer>
-      <ConfirmDialog
-        open={isLogoutDialogOpen}
+      <ConfirmModal
+        open={isLogoutModalOpen}
         busy={isLoggingOut}
         title={AUTH_MESSAGES.logout.title}
         description={AUTH_MESSAGES.logout.description}
         confirmLabel={AUTH_MESSAGES.logout.confirm}
         cancelLabel={AUTH_MESSAGES.logout.cancel}
         onConfirm={handleLogout}
-        onCancel={() => setIsLogoutDialogOpen(false)}
+        onCancel={() => setIsLogoutModalOpen(false)}
       />
-      <SettingsDialog
+      <SettingsModal
         open={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
       />

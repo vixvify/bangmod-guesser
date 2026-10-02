@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import dayjs from "dayjs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { Input } from "@/components/ui/input";
 
 vi.mock("@mui/material/Popover", () => ({
   default: ({ open, children }: { open: boolean; children: React.ReactNode }) =>
@@ -55,6 +56,22 @@ vi.mock("@mui/x-date-pickers/DateCalendar", () => ({
 afterEach(cleanup);
 
 describe("DateRangePicker", () => {
+  it("uses the same label typography as Input", () => {
+    render(
+      <>
+        <DateRangePicker label="ระยะเวลาการระงับ" />
+        <Input id="reason" label="เหตุผล" />
+      </>,
+    );
+
+    const rangeLabel = getComputedStyle(screen.getByText("ระยะเวลาการระงับ"));
+    const inputLabel = getComputedStyle(screen.getByText("เหตุผล"));
+    expect(rangeLabel.fontSize).toBe(inputLabel.fontSize);
+    expect(rangeLabel.fontWeight).toBe(inputLabel.fontWeight);
+    expect(rangeLabel.fontFamily).toBe(inputLabel.fontFamily);
+    expect(rangeLabel.color).toBe(inputLabel.color);
+  });
+
   it("joins the selected dates into one rounded strip", () => {
     render(
       <DateRangePicker

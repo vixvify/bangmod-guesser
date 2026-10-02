@@ -7,8 +7,8 @@ import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import { Button } from "@/components/ui/button";
 import { GameBackdrop } from "@/components/game/game-backdrop";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { SettingsDialog } from "@/components/ui/settings-dialog";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
+import { SettingsModal } from "@/components/ui/settings-modal";
 import { GAME_MESSAGES } from "@/core/constants/game";
 import { AppRoutes } from "@/routes/app/routes";
 
@@ -20,10 +20,10 @@ type GameLayoutProps = {
 export function GameLayout({ children, headerCenter }: GameLayoutProps) {
   const router = useRouter();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isExitDialogOpen, setIsExitDialogOpen] = useState(false);
+  const [isExitModalOpen, setIsExitModalOpen] = useState(false);
 
   function handleExitConfirm() {
-    setIsExitDialogOpen(false);
+    setIsExitModalOpen(false);
     router.push(AppRoutes.home);
   }
 
@@ -48,7 +48,7 @@ export function GameLayout({ children, headerCenter }: GameLayoutProps) {
           <Button
             variant="surface"
             size="small"
-            onClick={() => setIsExitDialogOpen(true)}
+            onClick={() => setIsExitModalOpen(true)}
           >
             <LogoutRoundedIcon fontSize="small" />
             {GAME_MESSAGES.exitGame.button}
@@ -63,18 +63,18 @@ export function GameLayout({ children, headerCenter }: GameLayoutProps) {
         </div>
       </div>
 
-      <SettingsDialog
+      <SettingsModal
         open={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
       />
-      <ConfirmDialog
-        open={isExitDialogOpen}
+      <ConfirmModal
+        open={isExitModalOpen}
         title={GAME_MESSAGES.exitGame.title}
         description={GAME_MESSAGES.exitGame.description}
         confirmLabel={GAME_MESSAGES.exitGame.confirm}
         cancelLabel={GAME_MESSAGES.exitGame.cancel}
         onConfirm={handleExitConfirm}
-        onCancel={() => setIsExitDialogOpen(false)}
+        onCancel={() => setIsExitModalOpen(false)}
       />
     </div>
   );

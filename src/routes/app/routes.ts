@@ -5,4 +5,5 @@ export const AppRoutes = {
   register: "/register",
   dashboard: "/dashboard",
   profile: "/profile",
+  adminUsers: "/admin/users",
 } as const;

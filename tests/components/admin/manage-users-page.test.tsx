@@ -1,0 +1,98 @@
+// @vitest-environment jsdom
+
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import ManageUsersPage from "@/app/admin/users/page";
+
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
+
+describe("ManageUsersPage", () => {
+  it("shows mock users in the MUI table with controls and static pagination", () => {
+    render(<ManageUsersPage />);
+
+    const table = screen.getByRole("table", { name: "รายชื่อผู้ใช้" });
+    expect(screen.getByRole("heading", { name: "จัดการผู้ใช้" })).toBeTruthy();
+    expect(within(table).getAllByRole("row")).toHaveLength(10);
+    expect(within(table).getByText("vixvify_v")).toBeTruthy();
+    expect(screen.getByLabelText("กรองตามบทบาท")).toBeTruthy();
+    expect(screen.getByLabelText("กรองตามสถานะ")).toBeTruthy();
+    expect(screen.getByText(/แสดง 1–9 จาก 372 ผู้ใช้/)).toBeTruthy();
+  });
+
+  it("uses a consistent badge style while distinguishing roles and account states", () => {
+    render(<ManageUsersPage />);
+
+    const admin = screen.getByRole("row", { name: /vixvify_v/ });
+    const player = screen.getByRole("row", { name: /ponddd/ });
+    const temporarilySuspended = screen.getByRole("row", { name: /mind_mint/ });
+    const suspended = screen.getByRole("row", { name: /phobrak/ });
+
+    expect(within(admin).getByText("ผู้ดูแล").className).toContain("bg-orange-50");
+    expect(within(player).getByText("ผู้เล่น").className).toContain("bg-slate-100");
+    expect(within(admin).getByText("ปกติ").className).toContain("bg-emerald-50");
+    expect(within(temporarilySuspended).getByText("ระงับชั่วคราว").className).toContain("bg-amber-50");
+    expect(within(suspended).getByText("ระงับถาวร").className).toContain("bg-rose-50");
+  });
+
+  it("keeps all mock rows visible when the UI-only filters are selected", async () => {
+    render(<ManageUsersPage />);
+    fireEvent.mouseDown(screen.getByRole("combobox", { name: "กรองตามบทบาท" }));
+    fireEvent.click(await screen.findByRole("option", { name: "ผู้ดูแล" }));
+
+    const table = screen.getByRole("table", { name: "รายชื่อผู้ใช้" });
+    expect(screen.getByRole("combobox", { name: "กรองตามบทบาท" }).textContent).toContain("ผู้ดูแล");
+    expect(within(table).getAllByRole("row")).toHaveLength(10);
+    expect(within(table).getByText("ponddd")).toBeTruthy();
+
+    fireEvent.mouseDown(screen.getByRole("combobox", { name: "กรองตามสถานะ" }));
+    fireEvent.click(await screen.findByRole("option", { name: "ระงับชั่วคราว" }));
+    expect(screen.getByRole("combobox", { name: "กรองตามสถานะ" }).textContent).toContain("ระงับชั่วคราว");
+    expect(within(table).getAllByRole("row")).toHaveLength(10);
+    expect(within(table).getByText("vixvify_v")).toBeTruthy();
+  });
+
+  it("opens the edit modal with read-only email and logs valid changes without mutating the mock row", async () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    render(<ManageUsersPage />);
+    fireEvent.click(screen.getByRole("button", { name: "แก้ไข vixvify_v" }));
+
+    const modal = screen.getByRole("dialog", { name: "แก้ไขผู้ใช้" });
+    const email = within(modal).getByLabelText("อีเมล");
+    expect(email.hasAttribute("readonly")).toBe(true);
+    expect(email.hasAttribute("disabled")).toBe(true);
+    expect(within(modal).getByRole("button", { name: "บันทึก" }).hasAttribute("disabled")).toBe(true);
+
+    fireEvent.change(within(modal).getByRole("textbox", { name: "ชื่อผู้ใช้" }), { target: { value: "New Admin" } });
+    await waitFor(() => expect(within(modal).getByRole("button", { name: "บันทึก" }).hasAttribute("disabled")).toBe(false));
+    fireEvent.click(within(modal).getByRole("button", { name: "บันทึก" }));
+
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "แก้ไขผู้ใช้" })).toBeNull());
+    expect(log).toHaveBeenCalledWith("Mock user update:", expect.objectContaining({ id: "u-01", name: "New Admin" }));
+    expect(screen.getByRole("table", { name: "รายชื่อผู้ใช้" }).textContent).toContain("vixvify_v");
+  });
+
+  it("reveals date and reason fields for temporary suspension and requires dates", async () => {
+    render(<ManageUsersPage />);
+    fireEvent.click(screen.getByRole("button", { name: "แก้ไข ponddd" }));
+    const modal = screen.getByRole("dialog", { name: "แก้ไขผู้ใช้" });
+    fireEvent.click(within(modal).getByRole("radio", { name: /ระงับชั่วคราว/ }));
+
+    expect(within(modal).getByRole("textbox", { name: "ระยะเวลาการระงับ" })).toBeTruthy();
+    expect(within(modal).getByRole("textbox", { name: "เหตุผล (ไม่บังคับ)" })).toBeTruthy();
+    await waitFor(() => expect(within(modal).getByRole("button", { name: "บันทึก" }).hasAttribute("disabled")).toBe(true));
+  });
+
+  it("asks for confirmation before logging a mock delete", () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    render(<ManageUsersPage />);
+    fireEvent.click(screen.getByRole("button", { name: "ลบ ponddd" }));
+    const modal = screen.getByRole("dialog", { name: "ลบผู้ใช้" });
+    fireEvent.click(within(modal).getByRole("button", { name: "ยืนยัน" }));
+
+    expect(log).toHaveBeenCalledWith("Mock user delete:", "u-04");
+    expect(screen.getByRole("table", { name: "รายชื่อผู้ใช้" }).textContent).toContain("ponddd");
+  });
+});

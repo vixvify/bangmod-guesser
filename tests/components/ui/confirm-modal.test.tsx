@@ -2,14 +2,14 @@
 
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 
 afterEach(cleanup);
 
-describe("ConfirmDialog", () => {
+describe("ConfirmModal", () => {
   it("uses a light dialog surface with readable actions", () => {
     render(
-      <ConfirmDialog
+      <ConfirmModal
         open
         title="ยืนยันการออกจากระบบ"
         description="คุณต้องการออกจากระบบใช่หรือไม่?"

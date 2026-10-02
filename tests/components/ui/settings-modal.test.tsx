@@ -2,14 +2,14 @@
 
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { SettingsDialog } from "@/components/ui/settings-dialog";
+import { SettingsModal } from "@/components/ui/settings-modal";
 import { SETTINGS_MESSAGES } from "@/core/constants/settings";
 
-describe("SettingsDialog", () => {
+describe("SettingsModal", () => {
   afterEach(cleanup);
 
   it("renders the settings modal with title, sliders, select, and action buttons", () => {
-    render(<SettingsDialog open={true} onClose={vi.fn()} />);
+    render(<SettingsModal open={true} onClose={vi.fn()} />);
 
     expect(screen.getByRole("dialog")).toBeTruthy();
     expect(screen.getByRole("heading", { name: SETTINGS_MESSAGES.title })).toBeTruthy();
@@ -33,7 +33,7 @@ describe("SettingsDialog", () => {
   });
 
   it("updates the displayed percentage when a volume slider changes", () => {
-    render(<SettingsDialog open={true} onClose={vi.fn()} />);
+    render(<SettingsModal open={true} onClose={vi.fn()} />);
 
     const sfxSlider = screen.getByRole("slider", {
       name: SETTINGS_MESSAGES.sfxVolume,
@@ -45,7 +45,7 @@ describe("SettingsDialog", () => {
   });
 
   it("restores the initial percentages when the modal is reopened", async () => {
-    const { rerender } = render(<SettingsDialog open={true} onClose={vi.fn()} />);
+    const { rerender } = render(<SettingsModal open={true} onClose={vi.fn()} />);
 
     fireEvent.keyDown(
       screen.getByRole("slider", { name: SETTINGS_MESSAGES.sfxVolume }),
@@ -53,16 +53,16 @@ describe("SettingsDialog", () => {
     );
     expect(screen.getByText("81%")).toBeTruthy();
 
-    rerender(<SettingsDialog open={false} onClose={vi.fn()} />);
+    rerender(<SettingsModal open={false} onClose={vi.fn()} />);
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
-    rerender(<SettingsDialog open={true} onClose={vi.fn()} />);
+    rerender(<SettingsModal open={true} onClose={vi.fn()} />);
 
     expect(screen.getByText("80%")).toBeTruthy();
   });
 
   it("calls onClose when the cancel button is clicked", () => {
     const handleClose = vi.fn();
-    render(<SettingsDialog open={true} onClose={handleClose} />);
+    render(<SettingsModal open={true} onClose={handleClose} />);
 
     fireEvent.click(screen.getByRole("button", { name: SETTINGS_MESSAGES.cancel }));
     expect(handleClose).toHaveBeenCalledTimes(1);
@@ -72,7 +72,7 @@ describe("SettingsDialog", () => {
     const handleClose = vi.fn();
     const handleSave = vi.fn();
     render(
-      <SettingsDialog
+      <SettingsModal
         open={true}
         onClose={handleClose}
         onSave={handleSave}
@@ -98,7 +98,7 @@ describe("SettingsDialog", () => {
 
   it("calls onClose when the close icon button is clicked", () => {
     const handleClose = vi.fn();
-    render(<SettingsDialog open={true} onClose={handleClose} />);
+    render(<SettingsModal open={true} onClose={handleClose} />);
 
     fireEvent.click(screen.getByRole("button", { name: SETTINGS_MESSAGES.close }));
     expect(handleClose).toHaveBeenCalledTimes(1);
