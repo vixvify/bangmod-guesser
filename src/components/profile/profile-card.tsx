@@ -87,7 +87,7 @@ export function ProfileCard({ profile, canManageSystem = false }: ProfileCardPro
         </p>
       </div>
       {canManageSystem && (
-        <Button href={AppRoutes.adminUsers} variant="primary" size="small" className="ml-auto shrink-0">
+        <Button href={AppRoutes.admin} variant="primary" size="small" className="ml-auto shrink-0">
           จัดการระบบ
         </Button>
       )}

@@ -11,18 +11,18 @@ import { Button } from "@/components/ui/button";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Input } from "@/components/ui/input";
 import { UserStatusPicker } from "@/components/admin/user-status-picker";
-import type { ManagedUser } from "@/core/domain/admin-user";
+import type { UserAccount } from "@/core/domain/user";
 import { UserRole } from "@/core/domain/user";
 import {
-  ManageUserFormSchema,
-  type ManageUserFormInput,
-} from "@/core/schema/manage-user.schema";
+  UserFormSchema,
+  type UserFormInput,
+} from "@/core/schema/user.schema";
 import { getProfileImageUrl } from "@/lib/profile-image";
 
 type EditUserModalProps = {
-  user: ManagedUser;
+  user: UserAccount;
   onClose: () => void;
-  onSave: (values: ManageUserFormInput) => void;
+  onSave: (values: UserFormInput) => void;
 };
 
 export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
@@ -33,8 +33,8 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
     control,
     setValue,
     formState: { errors, isDirty, isValid },
-  } = useForm<ManageUserFormInput>({
-    resolver: zodResolver(ManageUserFormSchema),
+  } = useForm<UserFormInput>({
+    resolver: zodResolver(UserFormSchema),
     mode: "onChange",
     defaultValues: {
       name: user.name,

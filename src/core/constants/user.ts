@@ -1,4 +1,4 @@
-export const MANAGE_USER_MESSAGES = {
+export const USER_MESSAGES = {
   delete: {
     title: "ลบผู้ใช้",
     description: (name: string) => `คุณต้องการลบ ${name} หรือไม่?`,

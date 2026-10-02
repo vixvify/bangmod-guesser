@@ -2,17 +2,16 @@
 
 import { useState } from "react";
 import { Dropdown } from "@/components/ui/dropdown";
-import type { AdminUserStatus } from "@/core/domain/admin-user";
-import { UserRole } from "@/core/domain/user";
+import { UserRole, type UserStatus } from "@/core/domain/user";
 
 type RoleFilter = "ALL" | UserRole;
-type StatusFilter = "ALL" | AdminUserStatus;
+type StatusFilter = "ALL" | UserStatus;
 
 export function UsersFilters() {
   const [role, setRole] = useState<RoleFilter>("ALL");
   const [status, setStatus] = useState<StatusFilter>("ALL");
   return (
-    <div className="mb-4 flex flex-wrap justify-end gap-3">
+    <div className="flex w-full flex-wrap justify-end gap-3 sm:w-auto">
       <label className="flex flex-col gap-1 text-xs font-medium text-slate-500">
         กรองตามบทบาท
         <Dropdown<RoleFilter>

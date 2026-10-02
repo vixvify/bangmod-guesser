@@ -2,16 +2,16 @@
 
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import ManageUsersPage from "@/app/admin/users/page";
+import UsersPage from "@/app/admin/users/page";
 
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
 });
 
-describe("ManageUsersPage", () => {
+describe("UsersPage", () => {
   it("shows mock users in the MUI table with controls and static pagination", () => {
-    render(<ManageUsersPage />);
+    render(<UsersPage />);
 
     const table = screen.getByRole("table", { name: "รายชื่อผู้ใช้" });
     expect(screen.getByRole("heading", { name: "จัดการผู้ใช้" })).toBeTruthy();
@@ -22,8 +22,18 @@ describe("ManageUsersPage", () => {
     expect(screen.getByText(/แสดง 1–9 จาก 372 ผู้ใช้/)).toBeTruthy();
   });
 
+  it("keeps both filters alongside the management heading", () => {
+    render(<UsersPage />);
+
+    const headingRow = screen.getByRole("heading", { name: "จัดการผู้ใช้" })
+      .parentElement?.parentElement;
+    expect(headingRow?.classList.contains("items-end")).toBe(true);
+    expect(headingRow?.contains(screen.getByLabelText("กรองตามบทบาท"))).toBe(true);
+    expect(headingRow?.contains(screen.getByLabelText("กรองตามสถานะ"))).toBe(true);
+  });
+
   it("uses a consistent badge style while distinguishing roles and account states", () => {
-    render(<ManageUsersPage />);
+    render(<UsersPage />);
 
     const admin = screen.getByRole("row", { name: /vixvify_v/ });
     const player = screen.getByRole("row", { name: /ponddd/ });
@@ -38,7 +48,7 @@ describe("ManageUsersPage", () => {
   });
 
   it("keeps all mock rows visible when the UI-only filters are selected", async () => {
-    render(<ManageUsersPage />);
+    render(<UsersPage />);
     fireEvent.mouseDown(screen.getByRole("combobox", { name: "กรองตามบทบาท" }));
     fireEvent.click(await screen.findByRole("option", { name: "ผู้ดูแล" }));
 
@@ -56,7 +66,7 @@ describe("ManageUsersPage", () => {
 
   it("opens the edit modal with read-only email and logs valid changes without mutating the mock row", async () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => {});
-    render(<ManageUsersPage />);
+    render(<UsersPage />);
     fireEvent.click(screen.getByRole("button", { name: "แก้ไข vixvify_v" }));
 
     const modal = screen.getByRole("dialog", { name: "แก้ไขผู้ใช้" });
@@ -71,11 +81,13 @@ describe("ManageUsersPage", () => {
 
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "แก้ไขผู้ใช้" })).toBeNull());
     expect(log).toHaveBeenCalledWith("Mock user update:", expect.objectContaining({ id: "u-01", name: "New Admin" }));
-    expect(screen.getByRole("table", { name: "รายชื่อผู้ใช้" }).textContent).toContain("vixvify_v");
+    await waitFor(() =>
+      expect(screen.getByRole("table", { name: "รายชื่อผู้ใช้" }).textContent).toContain("vixvify_v"),
+    );
   });
 
   it("reveals date and reason fields for temporary suspension and requires dates", async () => {
-    render(<ManageUsersPage />);
+    render(<UsersPage />);
     fireEvent.click(screen.getByRole("button", { name: "แก้ไข ponddd" }));
     const modal = screen.getByRole("dialog", { name: "แก้ไขผู้ใช้" });
     fireEvent.click(within(modal).getByRole("radio", { name: /ระงับชั่วคราว/ }));
@@ -87,7 +99,7 @@ describe("ManageUsersPage", () => {
 
   it("asks for confirmation before logging a mock delete", () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => {});
-    render(<ManageUsersPage />);
+    render(<UsersPage />);
     fireEvent.click(screen.getByRole("button", { name: "ลบ ponddd" }));
     const modal = screen.getByRole("dialog", { name: "ลบผู้ใช้" });
     fireEvent.click(within(modal).getByRole("button", { name: "ยืนยัน" }));

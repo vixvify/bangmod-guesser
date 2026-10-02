@@ -229,6 +229,6 @@ describe("ProfileCard", () => {
   it("shows the management action for an admin", () => {
     render(<ProfileCard profile={profile} canManageSystem />);
 
-    expect(screen.getByRole("link", { name: "จัดการระบบ" }).getAttribute("href")).toBe("/admin/users");
+    expect(screen.getByRole("link", { name: "จัดการระบบ" }).getAttribute("href")).toBe("/admin");
   });
 });

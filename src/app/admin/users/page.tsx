@@ -9,16 +9,16 @@ import { UsersFilters } from "@/components/admin/users-filters";
 import { UsersTable } from "@/components/admin/users-table";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { ListPagination } from "@/components/ui/list-pagination";
-import { MANAGE_USER_MESSAGES } from "@/core/constants/manage-user";
-import type { ManagedUser } from "@/core/domain/admin-user";
-import type { ManageUserFormInput } from "@/core/schema/manage-user.schema";
+import { USER_MESSAGES } from "@/core/constants/user";
+import type { UserAccount } from "@/core/domain/user";
+import type { UserFormInput } from "@/core/schema/user.schema";
 import { AppRoutes } from "@/routes/app/routes";
 
-export default function ManageUsersPage() {
-  const [editingUser, setEditingUser] = useState<ManagedUser | null>(null);
-  const [deletingUser, setDeletingUser] = useState<ManagedUser | null>(null);
+export default function UsersPage() {
+  const [editingUser, setEditingUser] = useState<UserAccount | null>(null);
+  const [deletingUser, setDeletingUser] = useState<UserAccount | null>(null);
 
-  function saveUser(values: ManageUserFormInput) {
+  function saveUser(values: UserFormInput) {
     console.log("Mock user update:", { id: editingUser?.id, ...values });
     setEditingUser(null);
   }
@@ -26,22 +26,23 @@ export default function ManageUsersPage() {
   return (
     <div className="mx-auto w-full max-w-6xl">
       <Link
-        href={AppRoutes.profile}
+        href={AppRoutes.admin}
         className="inline-flex items-center gap-1 text-sm text-slate-500 transition-colors hover:text-primary-main"
       >
         <ArrowBackRoundedIcon fontSize="small" />
-        กลับไปหน้าโปรไฟล์
+        กลับไปภาพรวมระบบ
       </Link>
-      <div className="mt-3 mb-7">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          จัดการผู้ใช้
-        </h1>
-        <p className="mt-1 text-sm text-slate-500 sm:text-base">
-          จัดการบัญชีผู้เล่นและสิทธิ์การใช้งานระบบ
-        </p>
+      <div className="mt-3 mb-7 flex flex-wrap items-end justify-between gap-5">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            จัดการผู้ใช้
+          </h1>
+          <p className="mt-1 text-sm text-slate-500 sm:text-base">
+            จัดการบัญชีผู้เล่นและสิทธิ์การใช้งานระบบ
+          </p>
+        </div>
+        <UsersFilters />
       </div>
-
-      <UsersFilters />
       <UsersTable
         users={mockUsers}
         onEdit={setEditingUser}
@@ -64,12 +65,12 @@ export default function ManageUsersPage() {
       )}
       <ConfirmModal
         open={Boolean(deletingUser)}
-        title={MANAGE_USER_MESSAGES.delete.title}
-        description={MANAGE_USER_MESSAGES.delete.description(
+        title={USER_MESSAGES.delete.title}
+        description={USER_MESSAGES.delete.description(
           deletingUser?.name ?? "ผู้ใช้",
         )}
-        cancelLabel={MANAGE_USER_MESSAGES.delete.cancel}
-        confirmLabel={MANAGE_USER_MESSAGES.delete.confirm}
+        cancelLabel={USER_MESSAGES.delete.cancel}
+        confirmLabel={USER_MESSAGES.delete.confirm}
         onCancel={() => setDeletingUser(null)}
         onConfirm={() => {
           console.log("Mock user delete:", deletingUser?.id);

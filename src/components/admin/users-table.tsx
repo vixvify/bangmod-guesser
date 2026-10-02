@@ -10,16 +10,15 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-import type { AdminUserStatus, ManagedUser } from "@/core/domain/admin-user";
-import { UserRole } from "@/core/domain/user";
+import { UserRole, type UserAccount, type UserStatus } from "@/core/domain/user";
 
 type UsersTableProps = {
-  users: ManagedUser[];
-  onEdit: (user: ManagedUser) => void;
-  onDelete: (user: ManagedUser) => void;
+  users: UserAccount[];
+  onEdit: (user: UserAccount) => void;
+  onDelete: (user: UserAccount) => void;
 };
 
-const statusLabels: Record<AdminUserStatus, string> = {
+const statusLabels: Record<UserStatus, string> = {
   ACTIVE: "ปกติ",
   TEMPORARY: "ระงับชั่วคราว",
   SUSPENDED: "ระงับถาวร",
@@ -32,7 +31,7 @@ const roleClasses = {
   [UserRole.ADMIN]: "border-orange-200 bg-orange-50 text-orange-800",
   [UserRole.USER]: "border-slate-200 bg-slate-100 text-slate-700",
 };
-const statusClasses: Record<AdminUserStatus, string> = {
+const statusClasses: Record<UserStatus, string> = {
   ACTIVE: "border-emerald-200 bg-emerald-50 text-emerald-800",
   TEMPORARY: "border-amber-200 bg-amber-50 text-amber-800",
   SUSPENDED: "border-rose-200 bg-rose-50 text-rose-800",

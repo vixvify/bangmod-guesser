@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { AdminUserStatus } from "@/core/domain/admin-user";
+import type { UserStatus } from "@/core/domain/user";
 import { UserRole } from "@/core/domain/user";
 import { UpdateUsernameSchema } from "@/core/schema/profile.schema";
-import { MANAGE_USER_MESSAGES } from "@/core/constants/manage-user";
+import { USER_MESSAGES } from "@/core/constants/user";
 
-export const ManageUserFormSchema = z
+export const UserFormSchema = z
   .object({
     name: UpdateUsernameSchema,
     role: z.enum(UserRole),
@@ -13,12 +13,12 @@ export const ManageUserFormSchema = z
       "TEMPORARY",
       "SUSPENDED",
       "DEACTIVATED",
-    ] satisfies AdminUserStatus[]),
+    ] satisfies UserStatus[]),
     suspension: z.object({
       startDate: z.iso.date().nullable(),
       endDate: z.iso.date().nullable(),
     }),
-    reason: z.string().trim().max(200, MANAGE_USER_MESSAGES.reasonMax),
+    reason: z.string().trim().max(200, USER_MESSAGES.reasonMax),
   })
   .superRefine((value, context) => {
     if (value.status !== "TEMPORARY") return;
@@ -27,15 +27,15 @@ export const ManageUserFormSchema = z
       context.addIssue({
         code: "custom",
         path: ["suspension"],
-        message: MANAGE_USER_MESSAGES.suspensionRequired,
+        message: USER_MESSAGES.suspensionRequired,
       });
     } else if (value.suspension.endDate < value.suspension.startDate) {
       context.addIssue({
         code: "custom",
         path: ["suspension"],
-        message: MANAGE_USER_MESSAGES.suspensionOrder,
+        message: USER_MESSAGES.suspensionOrder,
       });
     }
   });
 
-export type ManageUserFormInput = z.input<typeof ManageUserFormSchema>;
+export type UserFormInput = z.input<typeof UserFormSchema>;

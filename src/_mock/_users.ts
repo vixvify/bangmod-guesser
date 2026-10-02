@@ -1,7 +1,7 @@
 import { UserRole } from "@/core/domain/user";
-import type { ManagedUser } from "@/core/domain/admin-user";
+import type { UserAccount } from "@/core/domain/user";
 
-const users: (Omit<ManagedUser, "suspension" | "reason"> & Partial<Pick<ManagedUser, "suspension" | "reason">>)[] = [
+const users: (Omit<UserAccount, "suspension" | "reason"> & Partial<Pick<UserAccount, "suspension" | "reason">>)[] = [
   {
     id: "u-01",
     name: "vixvify_v",
@@ -88,7 +88,7 @@ const users: (Omit<ManagedUser, "suspension" | "reason"> & Partial<Pick<ManagedU
   },
 ];
 
-export const mockUsers: ManagedUser[] = users.map((user) => ({
+export const mockUsers: UserAccount[] = users.map((user) => ({
   ...user,
   suspension: user.suspension ?? { startDate: null, endDate: null },
   reason: user.reason ?? "",

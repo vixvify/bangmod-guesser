@@ -3,15 +3,15 @@
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
-import type { AdminUserStatus } from "@/core/domain/admin-user";
+import type { UserStatus } from "@/core/domain/user";
 
 type UserStatusPickerProps = {
-  value: AdminUserStatus;
-  onChange: (value: AdminUserStatus) => void;
+  value: UserStatus;
+  onChange: (value: UserStatus) => void;
 };
 
 const options: {
-  value: AdminUserStatus;
+  value: UserStatus;
   label: string;
   description: string;
 }[] = [
@@ -37,7 +37,7 @@ export function UserStatusPicker({ value, onChange }: UserStatusPickerProps) {
   return (
     <RadioGroup
       value={value}
-      onChange={(event) => onChange(event.target.value as AdminUserStatus)}
+      onChange={(event) => onChange(event.target.value as UserStatus)}
       aria-label="สถานะบัญชี"
       sx={{
         display: "grid",
