@@ -13,14 +13,12 @@ export async function authCheck(): Promise<User | null> {
     return null;
   }
 
-  const role = (session.user as { role?: string }).role;
-
   return {
     id: session.user.id,
     name: session.user.name,
     email: session.user.email,
     image: session.user.image,
-    role: role === UserRole.ADMIN ? UserRole.ADMIN : UserRole.USER,
+    role: session.user.role === UserRole.ADMIN ? UserRole.ADMIN : UserRole.USER,
   };
 }
 
@@ -33,4 +31,3 @@ export async function requireAuth(): Promise<User> {
 
   return user;
 }
-

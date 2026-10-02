@@ -24,6 +24,30 @@ npx prisma migrate deploy
 
 The current schema supports Better Auth and stores user roles as the Prisma `Role` enum (`USER` or `ADMIN`).
 
+Better Auth's Admin plugin manages these roles using the same uppercase values.
+Apply migrations with `npx prisma migrate deploy` before starting the app after
+updating. An existing `ADMIN` can list users, assign either `USER` or `ADMIN`
+with `authClient.admin.setRole({ userId, role: "ADMIN" })`, update only a user's
+name with `authClient.admin.updateUser`, ban or unban with
+`authClient.admin.banUser` / `authClient.admin.unbanUser`, and permanently delete
+another user with `authClient.admin.removeUser`. Regular users cannot perform
+these operations, and public signup always creates a `USER`. The first admin
+must be promoted with the explicit seed command below; never expose that step
+through public signup. The plugin does not grant email or image edits,
+impersonation, or password changes. Deleting a user also removes their sessions,
+accounts, and game history through the database's cascade relations.
+
+To bootstrap the first admin, register the intended account normally, set
+`INITIAL_ADMIN_EMAIL` in `.env` to that account's email, then run:
+
+```bash
+npm run seed:admin
+```
+
+The seed does not create an account. It is safe to rerun for the same admin,
+but refuses to promote a different user once an admin exists. Run this command
+only against the intended database; it is not part of migrations or app startup.
+
 
 Set `NEXT_PUBLIC_API_URL` to the API base URL, for example
 `http://localhost:3000/api`. API route constants append their endpoint paths

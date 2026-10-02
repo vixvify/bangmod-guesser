@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "seed:admin": "tsx prisma/seed.ts",
     "test": "npm run test:unit && npm run test:component && npm run test:integration && npm run test:e2e",
     "test:unit": "vitest run tests/unit",
     "test:component": "vitest run tests/components",
@@ -40,6 +41,7 @@
     "zod": "^4.5.4"
   },
   "devDependencies": {
+    "@next/env": "^16.3.4",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/react": "^16.3.3",
@@ -53,6 +55,7 @@
     "jsdom": "^29.1.1",
     "prisma": "6.19.3",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^4.1.11"
   }
