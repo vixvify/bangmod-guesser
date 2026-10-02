@@ -28,3 +28,19 @@ describe("Google OAuth configuration", () => {
     expect(() => config.googleOAuth).toThrow("Google OAuth configuration is incomplete");
   });
 });
+
+describe("initial admin configuration", () => {
+  it("normalizes a configured email", () => {
+    vi.stubEnv("INITIAL_ADMIN_EMAIL", "  Admin@Example.com  ");
+
+    expect(config.initialAdminEmail).toBe("admin@example.com");
+  });
+
+  it("rejects a missing or invalid email", () => {
+    vi.stubEnv("INITIAL_ADMIN_EMAIL", "");
+    expect(() => config.initialAdminEmail).toThrow("INITIAL_ADMIN_EMAIL must be a valid email address");
+
+    vi.stubEnv("INITIAL_ADMIN_EMAIL", "not-an-email");
+    expect(() => config.initialAdminEmail).toThrow("INITIAL_ADMIN_EMAIL must be a valid email address");
+  });
+});

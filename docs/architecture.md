@@ -88,7 +88,7 @@ Server Components and server-only code may call a service from `src/infrastructu
 ## Persistence and local services
 
 - Prisma client is initialised once in `src/lib/prisma.ts` with a global instance.
-- User roles are represented by the Prisma `Role` enum with `USER` and `ADMIN` values; there is no role table, service, repository, or seed data.
+- User roles are represented by the Prisma `Role` enum with `USER` and `ADMIN` values; there is no role table, service, or repository. The explicit initial-admin seed promotes one existing account, while Better Auth's Admin plugin handles later role and ban changes.
 - The role-table-to-enum change uses `prisma db push --force-reset` because this project has no migration directory; resetting the development database removes existing data.
 - `docker-compose.yml` runs PostgreSQL for local development.
 - `.env` contains local values and is ignored. `.env.example` lists required variables only.

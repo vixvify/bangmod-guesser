@@ -26,6 +26,8 @@ const GoogleOAuthEnvironmentSchema = z.object({
   clientSecret: z.string().trim().min(1),
 });
 
+const InitialAdminEmailSchema = z.string().trim().toLowerCase().email();
+
 export type R2Config = z.infer<typeof R2EnvironmentSchema>;
 
 function getR2Config(): R2Config {
@@ -96,6 +98,16 @@ export const config = {
 
   get googleOAuth() {
     return getGoogleOAuthConfig();
+  },
+
+  get initialAdminEmail() {
+    const result = InitialAdminEmailSchema.safeParse(process.env.INITIAL_ADMIN_EMAIL);
+
+    if (!result.success) {
+      throw new Error("INITIAL_ADMIN_EMAIL must be a valid email address");
+    }
+
+    return result.data;
   },
 
   get environment() {
