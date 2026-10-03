@@ -5,6 +5,7 @@ export enum LocationStatus {
 
 export type LocationImage = {
   imageNumber: number;
+  name: string;
   url: string;
 };
 

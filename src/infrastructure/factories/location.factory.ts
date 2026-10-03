@@ -18,6 +18,7 @@ export const LocationFactory = {
         .sort((a, b) => a.imageNumber - b.imageNumber)
         .map((img) => ({
           imageNumber: img.imageNumber,
+          name: `location-${String(img.imageNumber).padStart(2, "0")}.jpg`,
           url: img.imageUrl,
         })),
       createdAt: model.createdAt,

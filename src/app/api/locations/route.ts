@@ -115,7 +115,7 @@ export async function POST(request: Request) {
 
     const validatedData = parseSchema(LocationFormSchema, {
       name,
-      description: description ? String(description) : null,
+      description: description !== null ? String(description) : "",
       latitude,
       longitude,
     });

@@ -26,7 +26,10 @@ export const LocationFormSchema = z.object({
     .trim()
     .min(1, LOCATION_MESSAGES.nameRequired)
     .max(100, LOCATION_MESSAGES.nameMax),
-  description: z.string().trim().max(500, LOCATION_MESSAGES.descriptionMax),
+  description: z.preprocess(
+    (val) => (val === null || val === undefined ? "" : val),
+    z.string().trim().max(500, LOCATION_MESSAGES.descriptionMax),
+  ),
   latitude: coordinate("ละติจูด", -90, 90),
   longitude: coordinate("ลองจิจูด", -180, 180),
 });
