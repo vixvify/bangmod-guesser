@@ -72,11 +72,28 @@ describe("GameImageViewer", () => {
     expect(screen.getByRole("button", { name: "ออกจากเต็มจอ" })).toBeTruthy();
   });
 
+  it("shows the image in a proportional popup rather than a full-screen panel", () => {
+    render(<GameImageViewer {...defaultProps} />);
+    const openButton = screen.getByRole("button", { name: "เต็มจอ" });
+    const imageFrame = openButton.parentElement?.parentElement as HTMLElement;
+    vi.spyOn(imageFrame, "getBoundingClientRect").mockReturnValue({
+      width: 1200,
+      height: 700,
+    } as DOMRect);
+    fireEvent.click(openButton);
+
+    const dialog = screen.getByRole("dialog");
+    expect(parseFloat(dialog.style.aspectRatio)).toBeCloseTo(1200 / 700);
+    expect(dialog.classList.contains("h-dvh")).toBe(false);
+  });
+
   it("closes the fullscreen dialog when the exit button is clicked", async () => {
     render(<GameImageViewer {...defaultProps} />);
 
     fireEvent.click(screen.getByRole("button", { name: "เต็มจอ" }));
     fireEvent.click(screen.getByRole("button", { name: "ออกจากเต็มจอ" }));
+
+    expect(screen.getByRole("dialog")).toBeTruthy();
 
     await waitFor(() => {
       expect(
