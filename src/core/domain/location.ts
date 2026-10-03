@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 export enum LocationStatus {
   ACTIVE = "ACTIVE",
   INACTIVE = "INACTIVE",
@@ -27,3 +28,19 @@ export interface PaginatedLocations {
   total: number;
   totalPages: number;
 }
+=======
+export type LocationImage = {
+  imageNumber: number;
+  name: string;
+  url: string;
+};
+
+export type Location = {
+  id: string;
+  name: string;
+  description: string;
+  latitude: number;
+  longitude: number;
+  images: LocationImage[];
+};
+>>>>>>> origin/main

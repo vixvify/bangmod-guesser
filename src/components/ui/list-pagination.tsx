@@ -2,7 +2,7 @@
 
 import Pagination from "@mui/material/Pagination";
 import { useState } from "react";
-import { getPagination } from "@/utils/pagination";
+import { getPagination } from "@/lib/utils";
 
 type ListPaginationProps = {
   totalItems: number;

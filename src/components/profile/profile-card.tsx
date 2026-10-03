@@ -6,12 +6,13 @@ import IconButton from "@mui/material/IconButton";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { EditNameDialog } from "@/components/profile/edit-name-dialog";
+import { EditNameModal } from "@/components/profile/edit-name-modal";
 import { Button } from "@/components/ui/button";
 import { PROFILE_MESSAGES } from "@/core/constants/profile";
 import type { User } from "@/core/domain/user";
 import { authClient } from "@/lib/auth-client";
 import { getProfileImageUrl } from "@/lib/profile-image";
+import { AppRoutes } from "@/routes/app/routes";
 
 type ProfileCardProps = {
   profile: User;
@@ -86,11 +87,11 @@ export function ProfileCard({ profile, canManageSystem = false }: ProfileCardPro
         </p>
       </div>
       {canManageSystem && (
-        <Button variant="primary" size="small" className="ml-auto shrink-0">
+        <Button href={AppRoutes.admin} variant="primary" size="small" className="ml-auto shrink-0">
           จัดการระบบ
         </Button>
       )}
-      <EditNameDialog
+      <EditNameModal
         open={isEditOpen}
         username={username}
         onClose={() => setIsEditOpen(false)}

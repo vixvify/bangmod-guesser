@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Dialog from "@mui/material/Dialog";
+import Modal from "@mui/material/Modal";
 
 type CountdownProps = {
   onComplete: () => void;
@@ -27,12 +27,8 @@ export function Countdown({ onComplete }: CountdownProps) {
   }, [onComplete]);
 
   return (
-    <Dialog
+    <Modal
       open
-      fullScreen
-      aria-label="กำลังเข้าสู่เกม"
-      transitionDuration={0}
-      onClose={() => undefined}
       slotProps={{
         backdrop: {
           sx: {
@@ -41,23 +37,10 @@ export function Countdown({ onComplete }: CountdownProps) {
             backdropFilter: "blur(0.75rem)",
           },
         },
-        paper: {
-          sx: {
-            margin: 0,
-            height: "100dvh",
-            maxHeight: "none",
-            width: "100%",
-            maxWidth: "none",
-            borderRadius: 0,
-            backgroundColor:
-              "color-mix(in srgb, var(--color-secondary-main) 85%, transparent)",
-            color: "var(--color-secondary-light)",
-            padding: "1.5rem",
-          },
-        },
       }}
+      sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
     >
-      <div className="flex h-full flex-col items-center justify-center text-center">
+      <div role="dialog" aria-modal="true" aria-label="กำลังเข้าสู่เกม" tabIndex={-1} className="flex h-dvh w-full flex-col items-center justify-center bg-secondary-main/85 p-6 text-center text-secondary-light outline-none">
         <p className="text-xs font-bold tracking-[0.3em] text-primary-soft">
           GET READY
         </p>
@@ -80,6 +63,6 @@ export function Countdown({ onComplete }: CountdownProps) {
         </div>
         <p className="text-sm text-secondary-light/70">เตรียมตัวออกสำรวจ</p>
       </div>
-    </Dialog>
+    </Modal>
   );
 }

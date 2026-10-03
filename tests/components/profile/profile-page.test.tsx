@@ -54,6 +54,7 @@ describe("ProfilePage", () => {
     const markup = renderToStaticMarkup(await ProfilePage());
 
     expect(markup).toContain("จัดการระบบ");
+    expect(markup).toContain('href="/admin"');
     expect(markup).toContain("var(--color-primary-main)");
   });
 

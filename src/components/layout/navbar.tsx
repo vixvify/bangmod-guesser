@@ -9,10 +9,9 @@ import LoginOutlinedIcon from "@mui/icons-material/LoginOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutlineOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
-import MuiLink from "@mui/material/Link";
 import { toast } from "sonner";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { SettingsDialog } from "@/components/ui/settings-dialog";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
+import { SettingsModal } from "@/components/ui/settings-modal";
 import { AUTH_MESSAGES } from "@/core/constants/auth";
 import type { User } from "@/core/domain/user";
 import { AppRoutes } from "@/routes/app/routes";
@@ -30,7 +29,7 @@ export function Navbar({
 }: NavbarProps) {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   async function handleLogout() {
@@ -43,7 +42,7 @@ export function Navbar({
         return;
       }
 
-      setIsLogoutDialogOpen(false);
+      setIsLogoutModalOpen(false);
       toast.success(AUTH_MESSAGES.logout.success);
       router.refresh();
     } catch {
@@ -55,23 +54,22 @@ export function Navbar({
 
   return (
     <header className="absolute inset-x-0 top-0 z-50 h-16 w-full bg-transparent text-secondary-light">
-      <ContentContainer contentWidth="full" className="flex h-full items-center justify-between gap-3">
-        <MuiLink
-          component={NextLink}
+      <ContentContainer
+        contentWidth="full"
+        className="flex h-full items-center justify-between gap-3"
+      >
+        <NextLink
           href={AppRoutes.home}
-          color="inherit"
-          underline="none"
-          sx={{
-            color: brandColor,
-            fontSize: { xs: "1.125rem", sm: "1.5rem" },
-            fontWeight: 900,
-            transition: "color 280ms ease",
-            "&:hover": { color: "var(--color-primary-main)" },
-          }}
-          className="tracking-tight focus-visible:outline-2 focus-visible:outline-primary-focus"
+          style={
+            {
+              "--brand-color": brandColor,
+              fontWeight: 900,
+            } as React.CSSProperties
+          }
+          className="text-[var(--brand-color)] text-lg tracking-tight no-underline transition-colors duration-[280ms] hover:text-primary-main focus-visible:outline-2 focus-visible:outline-primary-focus sm:text-2xl"
         >
           Bangmod Guesser
-        </MuiLink>
+        </NextLink>
 
         <nav aria-label="เมนูหลัก" className="flex items-center gap-2">
           <Button
@@ -108,7 +106,7 @@ export function Navbar({
               <Button
                 variant="surface"
                 size="small"
-                onClick={() => setIsLogoutDialogOpen(true)}
+                onClick={() => setIsLogoutModalOpen(true)}
                 disabled={isLoggingOut}
               >
                 <LogoutOutlinedIcon fontSize="small" />
@@ -123,17 +121,17 @@ export function Navbar({
           )}
         </nav>
       </ContentContainer>
-      <ConfirmDialog
-        open={isLogoutDialogOpen}
+      <ConfirmModal
+        open={isLogoutModalOpen}
         busy={isLoggingOut}
         title={AUTH_MESSAGES.logout.title}
         description={AUTH_MESSAGES.logout.description}
         confirmLabel={AUTH_MESSAGES.logout.confirm}
         cancelLabel={AUTH_MESSAGES.logout.cancel}
         onConfirm={handleLogout}
-        onCancel={() => setIsLogoutDialogOpen(false)}
+        onCancel={() => setIsLogoutModalOpen(false)}
       />
-      <SettingsDialog
+      <SettingsModal
         open={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
       />

@@ -11,7 +11,7 @@ import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import dayjs, { type Dayjs } from "dayjs";
 import { useId, useState } from "react";
-import { formatThaiDateRange } from "@/utils/format-date";
+import { formatThaiDateRange } from "@/lib/utils";
 import "dayjs/locale/th";
 
 type DateRange = {
@@ -64,7 +64,17 @@ export function DateRangePicker({
   return (
     <div className="w-full sm:w-80">
       <FormControl fullWidth>
-        <FormLabel htmlFor={inputId} sx={{ mb: 0.5, fontSize: "0.75rem" }}>
+        <FormLabel
+          htmlFor={inputId}
+          sx={{
+            mb: "0.5rem",
+            color: "var(--color-secondary-dark)",
+            fontFamily: "var(--font-prompt), sans-serif",
+            fontSize: "0.875rem",
+            fontWeight: 700,
+            "&.Mui-focused": { color: "var(--color-secondary-dark)" },
+          }}
+        >
           {label}
         </FormLabel>
         <OutlinedInput
@@ -203,7 +213,12 @@ export function DateRangePicker({
                 };
               },
             }}
-            sx={{ fontFamily: "var(--font-prompt), sans-serif" }}
+            sx={{
+              fontFamily: "var(--font-prompt), sans-serif",
+              "& .MuiPickersCalendarHeader-label, & .MuiDayCalendar-weekDayLabel, & .MuiPickersDay-root, & .MuiPickersYear-yearButton": {
+                fontFamily: "var(--font-prompt), sans-serif",
+              },
+            }}
           />
         </LocalizationProvider>
       </Popover>
