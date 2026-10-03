@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import FullscreenRoundedIcon from "@mui/icons-material/FullscreenRounded";
 import FullscreenExitRoundedIcon from "@mui/icons-material/FullscreenExitRounded";
 import SyncAltRoundedIcon from "@mui/icons-material/SyncAltRounded";
 import IconButton from "@mui/material/IconButton";
+import Fade from "@mui/material/Fade";
 import Modal from "@mui/material/Modal";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import { Button } from "@/components/ui/button";
@@ -54,16 +55,28 @@ export function GameImageViewer({
 }: GameImageViewerProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isSwapped, setIsSwapped] = useState(false);
+  const [popupAspectRatio, setPopupAspectRatio] = useState(4 / 3);
+  const imageFrameRef = useRef<HTMLDivElement>(null);
 
   const mainContent = isSwapped ? "map" : "image";
   const miniContent = isSwapped ? "image" : "map";
 
   const handleSwap = useCallback(() => setIsSwapped((prev) => !prev), []);
+  const handleOpenFullscreen = useCallback(() => {
+    const frame = imageFrameRef.current?.getBoundingClientRect();
+    if (frame?.height) {
+      setPopupAspectRatio(frame.width / frame.height);
+    }
+    setIsFullscreen(true);
+  }, []);
 
   return (
     <>
       <div className="relative w-full">
-        <div className="relative aspect-4/3 w-full max-h-[78svh] overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
+        <div
+          ref={imageFrameRef}
+          className="relative aspect-4/3 w-full max-h-[78svh] overflow-hidden rounded-2xl border border-white/10 shadow-2xl"
+        >
           {mainContent === "image" ? (
             <Image
               src={imageSrc}
@@ -85,7 +98,7 @@ export function GameImageViewer({
           {mainContent === "image" && (
             <div className="absolute top-3 right-3 z-10">
               <IconButton
-                onClick={() => setIsFullscreen(true)}
+                onClick={handleOpenFullscreen}
                 aria-label="เต็มจอ"
                 size="small"
                 sx={iconButtonSx}
@@ -147,17 +160,28 @@ export function GameImageViewer({
       <Modal
         open={isFullscreen}
         onClose={() => setIsFullscreen(false)}
+        closeAfterTransition
         sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
       >
-        <div role="dialog" aria-modal="true" aria-label="ภาพสถานที่เต็มจอ" tabIndex={-1} className="relative flex h-dvh w-full items-center justify-center bg-secondary-main p-3 outline-none">
-          <div className="relative aspect-4/3 w-full max-w-[min(72rem,125svh)] overflow-hidden rounded-2xl border border-white/10">
+        <Fade in={isFullscreen} timeout={{ enter: 200, exit: 150 }}>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="ภาพสถานที่เต็มจอ"
+            tabIndex={-1}
+            className="relative overflow-hidden rounded-2xl border border-white/10 bg-secondary-main shadow-2xl outline-none"
+            style={{
+              aspectRatio: popupAspectRatio,
+              width: `min(96vw, ${popupAspectRatio * 90}dvh, 80rem)`,
+            }}
+          >
             <Image
               src={imageSrc}
               alt={imageAlt}
               fill
               priority
-              sizes="100vw"
-              className="object-contain"
+              sizes="(min-width: 80rem) 80rem, 96vw"
+              className="object-cover"
             />
 
             <div className="absolute top-3 right-3 z-10">
@@ -171,7 +195,7 @@ export function GameImageViewer({
               </IconButton>
             </div>
           </div>
-        </div>
+        </Fade>
       </Modal>
     </>
   );
