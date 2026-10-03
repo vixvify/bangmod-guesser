@@ -1,48 +1,20 @@
 import { AppError } from "../errors/app.error";
-import type { LocationRepository } from "../ports/location.repository";
-import type { ImageService } from "./image.service";
-import type { UploadImageInput } from "../schema/image.schema";
+import { LOCATION_MAX_IMAGES } from "../constants/location";
 import {
   LocationStatus,
   type Location,
   type PaginatedLocations,
 } from "../domain/location";
+import type { LocationRepository } from "../ports/location.repository";
+import type {
+  CreateLocationInput,
+  SearchLocationQueryInput,
+  UpdateLocationInput,
+  UpdateLocationRecordInput,
+} from "../schema/location.schema";
+import type { ImageService } from "./image.service";
 import { LocationFactory } from "@/infrastructure/factories/location.factory";
-
-export interface CreateLocationImageItem {
-  contentType: UploadImageInput["contentType"];
-  content: UploadImageInput["content"];
-}
-
-export interface CreateLocationDto {
-  name: string;
-  description?: string | null;
-  latitude: number;
-  longitude: number;
-  images: CreateLocationImageItem[];
-}
-
-export interface ReplaceImageItem {
-  imageNumber: number;
-  contentType: UploadImageInput["contentType"];
-  content: UploadImageInput["content"];
-}
-
-export interface UpdateLocationDto {
-  name?: string;
-  description?: string | null;
-  latitude?: number;
-  longitude?: number;
-  status?: LocationStatus;
-  deleteImageNumbers?: number[];
-  replacementImages?: ReplaceImageItem[];
-  newImages?: CreateLocationImageItem[];
-}
-
-function extractImageKey(url: string): string | null {
-  const match = url.match(/images\/[a-f0-9-]+\.(jpg|png|webp)/);
-  return match ? match[0] : null;
-}
+import { extractImageKey } from "@/lib/image-key";
 
 export class LocationService {
   constructor(
@@ -50,281 +22,164 @@ export class LocationService {
     private readonly imageService: ImageService,
   ) {}
 
-  async getLocations(params: {
-    search?: string;
-    searchBy?: "name" | "description";
-    page: number;
-    pageSize: number;
-    orderBy?: "asc" | "desc";
-  }): Promise<PaginatedLocations> {
-    const skip = (params.page - 1) * params.pageSize;
-    const take = params.pageSize;
-
+  async getLocations(
+    query: SearchLocationQueryInput,
+  ): Promise<PaginatedLocations> {
     const { items, total } = await this.locationRepository.findMany({
-      search: params.search,
-      searchBy: params.searchBy,
-      skip,
-      take,
-      orderBy: params.orderBy,
+      search: query.search,
+      searchBy: query.searchBy,
+      skip: (query.page - 1) * query.pageSize,
+      take: query.pageSize,
+      orderBy: query.orderBy,
     });
 
     return LocationFactory.toPaginatedDomain(
       items,
       total,
-      params.page,
-      params.pageSize,
+      query.page,
+      query.pageSize,
     );
   }
 
   async getLocationById(id: string): Promise<Location> {
     const record = await this.locationRepository.findById(id);
-
     if (!record) {
       throw new AppError("Location not found", 404);
     }
-
     return LocationFactory.toDomain(record);
   }
 
-  async createLocation(input: CreateLocationDto): Promise<Location> {
-    if (!input.images || input.images.length < 1) {
-      throw new AppError("At least 1 image is required", 400);
+  async createLocation(input: CreateLocationInput): Promise<Location> {
+    if (input.images.length < 1 || input.images.length > LOCATION_MAX_IMAGES) {
+      throw new AppError("Location requires 1 to 5 images", 400);
     }
 
-    if (input.images.length > 5) {
-      throw new AppError("Maximum 5 images allowed", 400);
-    }
-
-    const newlyUploadedKeys: string[] = [];
-    const uploadedImages: Array<{ imageNumber: number; imageUrl: string }> = [];
-
+    const uploadedKeys: string[] = [];
     try {
-      for (let index = 0; index < input.images.length; index += 1) {
-        const item = input.images[index];
-        const uploaded = await this.imageService.upload({
-          contentType: item.contentType,
-          content: item.content,
-        });
-
-        newlyUploadedKeys.push(uploaded.key);
-        uploadedImages.push({
-          imageNumber: index + 1,
-          imageUrl: uploaded.url,
-        });
+      const images = [];
+      for (const image of input.images) {
+        const uploaded = await this.imageService.upload(image);
+        uploadedKeys.push(uploaded.key);
+        images.push({ imageNumber: images.length + 1, imageUrl: uploaded.url });
       }
 
-      const created = await this.locationRepository.create({
+      const record = await this.locationRepository.create({
         name: input.name,
         description: input.description,
         latitude: input.latitude,
         longitude: input.longitude,
         status: LocationStatus.ACTIVE,
-        images: uploadedImages,
+        images,
       });
-
-      return LocationFactory.toDomain(created);
+      return LocationFactory.toDomain(record);
     } catch (error) {
-      for (const key of newlyUploadedKeys) {
-        try {
-          await this.imageService.delete({ key });
-        } catch {}
-      }
+      await this.deleteImagesFromStorage(uploadedKeys);
       throw error;
     }
   }
 
-  async updateLocation(
-    id: string,
-    input: UpdateLocationDto,
-  ): Promise<Location> {
+  async updateLocation(id: string, input: UpdateLocationInput): Promise<Location> {
     const existing = await this.locationRepository.findById(id);
-
     if (!existing) {
       throw new AppError("Location not found", 404);
     }
 
-    const newlyUploadedKeys: string[] = [];
-    const keysToDeleteFromR2: string[] = [];
+    const existingImages = [...existing.images].sort(
+      (first, second) => first.imageNumber - second.imageNumber,
+    );
+    const keepNumbers = input.keepImageNumbers;
+    if (
+      keepNumbers?.some(
+        (number) => !existingImages.some((image) => image.imageNumber === number),
+      )
+    ) {
+      throw new AppError("Image not found", 404);
+    }
+    if (keepNumbers && new Set(keepNumbers).size !== keepNumbers.length) {
+      throw new AppError("Duplicate image number", 400);
+    }
 
-    try {
-      let currentImages = existing.images.map((img) => ({
-        imageNumber: img.imageNumber,
-        imageUrl: img.imageUrl,
-      }));
-
-      let hasImageChanges = false;
-
-      if (input.deleteImageNumbers && input.deleteImageNumbers.length > 0) {
-        hasImageChanges = true;
-        for (const num of input.deleteImageNumbers) {
-          const target = currentImages.find((img) => img.imageNumber === num);
-          if (target) {
-            const key = extractImageKey(target.imageUrl);
-            if (key) {
-              keysToDeleteFromR2.push(key);
-            }
-            currentImages = currentImages.filter((img) => img.imageNumber !== num);
-          }
-        }
-      }
-
-      if (input.replacementImages && input.replacementImages.length > 0) {
-        hasImageChanges = true;
-        for (const replacement of input.replacementImages) {
-          const oldImage = currentImages.find(
-            (img) => img.imageNumber === replacement.imageNumber,
+    const keptImages =
+      keepNumbers === undefined
+        ? existingImages
+        : existingImages.filter((image) =>
+            keepNumbers.includes(image.imageNumber),
           );
+    const newImages = input.newImages ?? [];
+    const hasImageChanges = keepNumbers !== undefined || newImages.length > 0;
+    const imageCount = keptImages.length + newImages.length;
+    if (hasImageChanges && (imageCount < 1 || imageCount > LOCATION_MAX_IMAGES)) {
+      throw new AppError("Location requires 1 to 5 images", 400);
+    }
 
-          if (oldImage) {
-            const key = extractImageKey(oldImage.imageUrl);
-            if (key) {
-              keysToDeleteFromR2.push(key);
-            }
-
-            const uploaded = await this.imageService.upload({
-              contentType: replacement.contentType,
-              content: replacement.content,
-            });
-
-            newlyUploadedKeys.push(uploaded.key);
-            oldImage.imageUrl = uploaded.url;
-          }
-        }
+    const uploadedKeys: string[] = [];
+    try {
+      const images = keptImages.map((image, index) => ({
+        imageNumber: index + 1,
+        imageUrl: image.imageUrl,
+      }));
+      for (const image of newImages) {
+        const uploaded = await this.imageService.upload(image);
+        uploadedKeys.push(uploaded.key);
+        images.push({ imageNumber: images.length + 1, imageUrl: uploaded.url });
       }
 
-      if (input.newImages && input.newImages.length > 0) {
-        hasImageChanges = true;
-        for (const newImg of input.newImages) {
-          if (currentImages.length >= 5) {
-            throw new AppError("Maximum 5 images allowed", 400);
-          }
+      const update: UpdateLocationRecordInput = {
+        name: input.name,
+        description: input.description,
+        latitude: input.latitude,
+        longitude: input.longitude,
+        status: input.status,
+        ...(hasImageChanges ? { images } : {}),
+      };
+      const record = await this.locationRepository.update(id, update);
 
-          const uploaded = await this.imageService.upload({
-            contentType: newImg.contentType,
-            content: newImg.content,
-          });
-
-          newlyUploadedKeys.push(uploaded.key);
-          currentImages.push({
-            imageNumber: currentImages.length + 1,
-            imageUrl: uploaded.url,
-          });
-        }
-      }
-
-      if (hasImageChanges) {
-        if (currentImages.length < 1) {
-          throw new AppError("Location must have at least 1 image", 400);
-        }
-
-        if (currentImages.length > 5) {
-          throw new AppError("Maximum 5 images allowed", 400);
-        }
-
-        currentImages.sort((a, b) => a.imageNumber - b.imageNumber);
-        const resequenced = currentImages.map((img, index) => ({
-          imageNumber: index + 1,
-          imageUrl: img.imageUrl,
-        }));
-
-        await this.locationRepository.setLocationImages(id, resequenced);
-      }
-
-      const hasFieldUpdates =
-        input.name !== undefined ||
-        input.description !== undefined ||
-        input.latitude !== undefined ||
-        input.longitude !== undefined ||
-        input.status !== undefined;
-
-      if (hasFieldUpdates) {
-        await this.locationRepository.update(id, {
-          name: input.name,
-          description: input.description,
-          latitude: input.latitude,
-          longitude: input.longitude,
-          status: input.status,
-        });
-      }
-
-      for (const key of keysToDeleteFromR2) {
-        try {
-          await this.imageService.delete({ key });
-        } catch {}
-      }
-
-      const updated = await this.locationRepository.findById(id);
-      return LocationFactory.toDomain(updated!);
+      const removedKeys = existingImages
+        .filter((image) => !keptImages.includes(image))
+        .flatMap((image) => extractImageKey(image.imageUrl) ?? []);
+      await this.deleteImagesFromStorage(removedKeys);
+      return LocationFactory.toDomain(record);
     } catch (error) {
-      for (const key of newlyUploadedKeys) {
-        try {
-          await this.imageService.delete({ key });
-        } catch {}
-      }
+      await this.deleteImagesFromStorage(uploadedKeys);
       throw error;
     }
   }
 
-  async deleteLocationImage(
-    locationId: string,
-    imageNumber: number,
-  ): Promise<Location> {
-    const existing = await this.locationRepository.findById(locationId);
-
+  async deleteLocationImage(id: string, imageNumber: number): Promise<Location> {
+    const existing = await this.locationRepository.findById(id);
     if (!existing) {
       throw new AppError("Location not found", 404);
     }
-
-    if (existing.images.length <= 1) {
-      throw new AppError("Location must have at least 1 image", 400);
-    }
-
-    const target = existing.images.find(
-      (img) => img.imageNumber === imageNumber,
-    );
-
-    if (!target) {
+    if (!existing.images.some((image) => image.imageNumber === imageNumber)) {
       throw new AppError("Image not found", 404);
     }
 
-    const remaining = existing.images
-      .filter((img) => img.imageNumber !== imageNumber)
-      .sort((a, b) => a.imageNumber - b.imageNumber);
-
-    const resequenced = remaining.map((img, index) => ({
-      imageNumber: index + 1,
-      imageUrl: img.imageUrl,
-    }));
-
-    await this.locationRepository.setLocationImages(locationId, resequenced);
-
-    const key = extractImageKey(target.imageUrl);
-    if (key) {
-      try {
-        await this.imageService.delete({ key });
-      } catch {}
-    }
-
-    const updated = await this.locationRepository.findById(locationId);
-    return LocationFactory.toDomain(updated!);
+    return this.updateLocation(id, {
+      keepImageNumbers: existing.images
+        .filter((image) => image.imageNumber !== imageNumber)
+        .map((image) => image.imageNumber),
+    });
   }
 
   async deleteLocation(id: string): Promise<void> {
     const existing = await this.locationRepository.findById(id);
-
     if (!existing) {
       throw new AppError("Location not found", 404);
     }
 
-    for (const image of existing.images) {
-      const key = extractImageKey(image.imageUrl);
-      if (key) {
-        try {
-          await this.imageService.delete({ key });
-        } catch {}
+    await this.locationRepository.delete(id);
+    const keys = existing.images.flatMap((image) => extractImageKey(image.imageUrl) ?? []);
+    await this.deleteImagesFromStorage(keys);
+  }
+
+  private async deleteImagesFromStorage(keys: string[]): Promise<void> {
+    const results = await Promise.allSettled(
+      keys.map((key) => this.imageService.delete({ key })),
+    );
+    for (const result of results) {
+      if (result.status === "rejected") {
+        console.error("Failed to remove location image from storage", result.reason);
       }
     }
-
-    await this.locationRepository.delete(id);
   }
 }

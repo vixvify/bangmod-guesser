@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  CreateLocationSchema,
   LocationFormSchema,
   LocationIdParamSchema,
   SearchLocationQuerySchema,
@@ -48,6 +49,28 @@ describe("LocationFormSchema", () => {
 });
 
 describe("Location schemas", () => {
+  describe("CreateLocationSchema", () => {
+    it("converts coordinates and validates uploaded images", () => {
+      const result = CreateLocationSchema.parse({
+        ...validLocation,
+        images: [
+          {
+            contentType: "image/jpeg",
+            content: new Uint8Array([0xff, 0xd8, 0xff]),
+          },
+        ],
+      });
+
+      expect(result.latitude).toBe(13.6516);
+      expect(result.longitude).toBe(100.4952);
+      expect(result.images).toHaveLength(1);
+    });
+
+    it("rejects a location without images", () => {
+      expect(CreateLocationSchema.safeParse({ ...validLocation, images: [] }).success).toBe(false);
+    });
+  });
+
   describe("SearchLocationQuerySchema", () => {
     it("applies default pagination, searchBy, and orderBy values", () => {
       const result = SearchLocationQuerySchema.parse({});
@@ -82,6 +105,23 @@ describe("Location schemas", () => {
       });
       expect(result.name).toBe("Updated Name");
       expect(result.status).toBe(LocationStatus.INACTIVE);
+    });
+
+    it("parses image ordering and new uploads", () => {
+      const result = UpdateLocationSchema.parse({
+        keepImageNumbers: ["3", "1"],
+        latitude: "13.7",
+        newImages: [
+          {
+            contentType: "image/jpeg",
+            content: new Uint8Array([0xff, 0xd8, 0xff]),
+          },
+        ],
+      });
+
+      expect(result.keepImageNumbers).toEqual([3, 1]);
+      expect(result.latitude).toBe(13.7);
+      expect(result.newImages).toHaveLength(1);
     });
   });
 

@@ -1,18 +1,18 @@
 import { prisma } from "@/lib/prisma";
+import type { LocationRepository } from "@/core/ports/location.repository";
 import type {
-  CreateLocationRepositoryInput,
-  FindLocationsQuery,
-  LocationRepository,
-  UpdateLocationRepositoryInput,
-} from "@/core/ports/location.repository";
-import type { LocationModelWithImages } from "../../../prisma/types/location";
+  CreateLocationRecordInput,
+  GetLocationRecordsInput,
+  UpdateLocationRecordInput,
+} from "@/core/schema/location.schema";
+import type {
+  GetLocationRecordsResult,
+  LocationModelWithImages,
+} from "../../../prisma/types/location";
 import type { Prisma } from "@prisma/client";
 
 export class LocationRepositoryImpl implements LocationRepository {
-  async findMany(query: FindLocationsQuery): Promise<{
-    items: LocationModelWithImages[];
-    total: number;
-  }> {
+  async findMany(query: GetLocationRecordsInput): Promise<GetLocationRecordsResult> {
     const searchField =
       query.searchBy === "description" ? "description" : "name";
 
@@ -55,7 +55,7 @@ export class LocationRepositoryImpl implements LocationRepository {
   }
 
   async create(
-    data: CreateLocationRepositoryInput,
+    data: CreateLocationRecordInput,
   ): Promise<LocationModelWithImages> {
     return prisma.location.create({
       data: {
@@ -79,20 +79,31 @@ export class LocationRepositoryImpl implements LocationRepository {
 
   async update(
     id: string,
-    data: UpdateLocationRepositoryInput,
+    data: UpdateLocationRecordInput,
   ): Promise<LocationModelWithImages> {
-    return prisma.location.update({
-      where: { id },
-      data: {
-        name: data.name,
-        description: data.description,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        status: data.status,
-      },
-      include: {
-        images: true,
-      },
+    const { images, ...fields } = data;
+    if (images === undefined) {
+      return prisma.location.update({
+        where: { id },
+        data: fields,
+        include: { images: true },
+      });
+    }
+
+    return prisma.$transaction(async (transaction) => {
+      await transaction.location.update({ where: { id }, data: fields });
+      await transaction.locationImage.deleteMany({ where: { locationId: id } });
+      await transaction.locationImage.createMany({
+        data: images.map((image) => ({
+          locationId: id,
+          imageNumber: image.imageNumber,
+          imageUrl: image.imageUrl,
+        })),
+      });
+      return transaction.location.findUniqueOrThrow({
+        where: { id },
+        include: { images: true },
+      });
     });
   }
 
@@ -102,61 +113,4 @@ export class LocationRepositoryImpl implements LocationRepository {
     });
   }
 
-  async updateImage(
-    locationId: string,
-    imageNumber: number,
-    imageUrl: string,
-  ): Promise<void> {
-    await prisma.locationImage.upsert({
-      where: {
-        locationId_imageNumber: {
-          locationId,
-          imageNumber,
-        },
-      },
-      update: {
-        imageUrl,
-      },
-      create: {
-        locationId,
-        imageNumber,
-        imageUrl,
-      },
-    });
-  }
-
-  async deleteImages(
-    locationId: string,
-    imageNumbers: number[],
-  ): Promise<void> {
-    await prisma.locationImage.deleteMany({
-      where: {
-        locationId,
-        imageNumber: {
-          in: imageNumbers,
-        },
-      },
-    });
-  }
-
-  async setLocationImages(
-    locationId: string,
-    images: Array<{
-      imageNumber: number;
-      imageUrl: string;
-    }>,
-  ): Promise<void> {
-    await prisma.$transaction([
-      prisma.locationImage.deleteMany({
-        where: { locationId },
-      }),
-      prisma.locationImage.createMany({
-        data: images.map((img) => ({
-          locationId,
-          imageNumber: img.imageNumber,
-          imageUrl: img.imageUrl,
-        })),
-      }),
-    ]);
-  }
 }

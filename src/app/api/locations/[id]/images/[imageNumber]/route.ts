@@ -13,18 +13,9 @@ interface RouteContext {
   }>;
 }
 
-async function verifyAdmin() {
-  const skipRoleCheck = true;
-  if (skipRoleCheck) {
-    return;
-  }
-  const user = await requireAuth();
-  roleCheck(user, [UserRole.ADMIN]);
-}
-
-export async function DELETE(request: Request, context: RouteContext) {
+export async function DELETE(_request: Request, context: RouteContext) {
   try {
-    await verifyAdmin();
+    roleCheck(await requireAuth(), [UserRole.ADMIN]);
 
     const params = await context.params;
     const validated = parseSchema(LocationImageParamSchema, params);

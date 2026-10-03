@@ -1,8 +1,11 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { AppError } from "@/core/errors/app.error";
+import { UserRole } from "@/core/domain/user";
 
 const sampleJpeg = new Uint8Array([0xff, 0xd8, 0xff]);
 
-const { mockLocationService } = vi.hoisted(() => ({
+const { mockLocationService, mockRequireAuth } = vi.hoisted(() => ({
+  mockRequireAuth: vi.fn(),
   mockLocationService: {
     getLocations: vi.fn(),
     getLocationById: vi.fn(),
@@ -19,6 +22,8 @@ vi.mock("@/infrastructure/container", () => ({
   locationService: mockLocationService,
 }));
 
+vi.mock("@/lib/auth-check", () => ({ requireAuth: mockRequireAuth }));
+
 import { GET as getLocations, POST as createLocation } from "@/app/api/locations/route";
 import {
   GET as getLocationById,
@@ -28,6 +33,18 @@ import {
 import { DELETE as deleteLocationImage } from "@/app/api/locations/[id]/images/[imageNumber]/route";
 
 describe("Locations API routes", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockRequireAuth.mockReset();
+    mockRequireAuth.mockResolvedValue({
+      id: "admin_1",
+      name: "Admin",
+      email: "admin@example.com",
+      image: null,
+      role: UserRole.ADMIN,
+    });
+  });
+
   describe("GET /api/locations", () => {
     it("returns paginated location results", async () => {
       mockLocationService.getLocations.mockResolvedValue({
@@ -111,6 +128,29 @@ describe("Locations API routes", () => {
         }),
       );
     });
+
+    it("rejects more than five images before uploading", async () => {
+      const form = new FormData();
+      form.append("name", "Library");
+      form.append("latitude", "13.65");
+      form.append("longitude", "100.49");
+      for (let index = 0; index < 6; index += 1) {
+        form.append(
+          "images",
+          new File([sampleJpeg], `image-${index}.jpg`, { type: "image/jpeg" }),
+        );
+      }
+
+      const response = await createLocation(
+        new Request("http://localhost/api/locations", {
+          method: "POST",
+          body: form,
+        }),
+      );
+
+      expect(response.status).toBe(400);
+      expect(mockLocationService.createLocation).not.toHaveBeenCalled();
+    });
   });
 
   describe("GET /api/locations/[id]", () => {
@@ -139,7 +179,7 @@ describe("Locations API routes", () => {
   });
 
   describe("PUT /api/locations/[id]", () => {
-    it("updates location fields and deletes specified image numbers via JSON", async () => {
+    it("updates location fields and keeps specified image numbers via JSON", async () => {
       mockLocationService.updateLocation.mockResolvedValue({
         id: "loc_1",
         name: "CB2 Updated",
@@ -157,7 +197,7 @@ describe("Locations API routes", () => {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           name: "CB2 Updated",
-          deleteImageNumbers: [2],
+          keepImageNumbers: [1, 3],
         }),
       });
 
@@ -172,7 +212,40 @@ describe("Locations API routes", () => {
         "loc_1",
         expect.objectContaining({
           name: "CB2 Updated",
-          deleteImageNumbers: [2],
+          keepImageNumbers: [1, 3],
+        }),
+      );
+    });
+
+    it("passes validated retained numbers and new images to the service", async () => {
+      mockLocationService.updateLocation.mockResolvedValue({ id: "loc_1" });
+      const form = new FormData();
+      form.append("keepImageNumbers", "2");
+      form.append("keepImageNumbers", "3");
+      form.append(
+        "newImages",
+        new File([sampleJpeg], "new.jpg", { type: "image/jpeg" }),
+      );
+
+      const response = await updateLocation(
+        new Request("http://localhost/api/locations/loc_1", {
+          method: "PUT",
+          body: form,
+        }),
+        { params: Promise.resolve({ id: "loc_1" }) },
+      );
+
+      expect(response.status).toBe(200);
+      expect(mockLocationService.updateLocation).toHaveBeenCalledWith(
+        "loc_1",
+        expect.objectContaining({
+          keepImageNumbers: [2, 3],
+          newImages: [
+            expect.objectContaining({
+              contentType: "image/jpeg",
+              content: expect.any(Uint8Array),
+            }),
+          ],
         }),
       );
     });
@@ -227,6 +300,39 @@ describe("Locations API routes", () => {
         "loc_1",
         2,
       );
+    });
+  });
+
+  describe("admin authorization", () => {
+    it("rejects unauthenticated create requests", async () => {
+      mockRequireAuth.mockRejectedValueOnce(new AppError("Unauthorized", 401));
+      const response = await createLocation(
+        new Request("http://localhost/api/locations", { method: "POST" }),
+      );
+
+      expect(response.status).toBe(401);
+      expect(mockLocationService.createLocation).not.toHaveBeenCalled();
+    });
+
+    it("rejects non-admin update requests", async () => {
+      mockRequireAuth.mockResolvedValueOnce({
+        id: "user_1",
+        name: "Player",
+        email: "player@example.com",
+        image: null,
+        role: UserRole.USER,
+      });
+      const response = await updateLocation(
+        new Request("http://localhost/api/locations/loc_1", {
+          method: "PUT",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ name: "Changed" }),
+        }),
+        { params: Promise.resolve({ id: "loc_1" }) },
+      );
+
+      expect(response.status).toBe(403);
+      expect(mockLocationService.updateLocation).not.toHaveBeenCalled();
     });
   });
 });

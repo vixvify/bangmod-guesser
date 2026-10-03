@@ -1,43 +1,25 @@
 import { UserRole } from "@/core/domain/user";
+import { LOCATION_MAX_IMAGES } from "@/core/constants/location";
+import { IMAGE_MAX_SIZE_BYTES, IMAGE_MESSAGES } from "@/core/constants/image";
+import { AppError } from "@/core/errors/app.error";
 import {
   LocationIdParamSchema,
   UpdateLocationSchema,
 } from "@/core/schema/location.schema";
-import {
-  UploadImageSchema,
-  type ImageContentType,
-} from "@/core/schema/image.schema";
 import { locationService } from "@/infrastructure/container";
 import { errorResponse, successResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth-check";
 import { roleCheck } from "@/lib/role-check";
 import { parseSchema } from "@/lib/validation";
-import type {
-  CreateLocationImageItem,
-  ReplaceImageItem,
-  UpdateLocationDto,
-} from "@/core/service/location.service";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
 }
 
-async function verifyAdmin() {
-  const skipRoleCheck = true;
-  if (skipRoleCheck) {
-    return;
-  }
-  const user = await requireAuth();
-  roleCheck(user, [UserRole.ADMIN]);
-}
-
-export async function GET(request: Request, context: RouteContext) {
+export async function GET(_request: Request, context: RouteContext) {
   try {
-    const params = await context.params;
-    const { id } = parseSchema(LocationIdParamSchema, params);
-
-    const location = await locationService.getLocationById(id);
-    return successResponse(location, 200);
+    const { id } = parseSchema(LocationIdParamSchema, await context.params);
+    return successResponse(await locationService.getLocationById(id));
   } catch (error) {
     return errorResponse(error);
   }
@@ -45,142 +27,53 @@ export async function GET(request: Request, context: RouteContext) {
 
 export async function PUT(request: Request, context: RouteContext) {
   try {
-    await verifyAdmin();
+    roleCheck(await requireAuth(), [UserRole.ADMIN]);
+    const { id } = parseSchema(LocationIdParamSchema, await context.params);
 
-    const params = await context.params;
-    const { id } = parseSchema(LocationIdParamSchema, params);
-
-    const contentType = request.headers.get("content-type") || "";
-
-    if (contentType.includes("multipart/form-data")) {
-      const formData = await request.formData();
-
-      const name = formData.get("name");
-      const description = formData.get("description");
-      const latitude = formData.get("latitude");
-      const longitude = formData.get("longitude");
-      const status = formData.get("status");
-
-      const validatedFields = parseSchema(UpdateLocationSchema, {
-        name: name !== null ? name : undefined,
-        description: description !== null ? String(description) : undefined,
-        latitude: latitude !== null ? latitude : undefined,
-        longitude: longitude !== null ? longitude : undefined,
-        status: status !== null ? status : undefined,
-      });
-
-      const deleteImageNumbers: number[] = [];
-      const rawDeleteNumbers = formData.getAll("deleteImageNumbers");
-      for (const item of rawDeleteNumbers) {
-        const num = Number(item);
-        if (!Number.isNaN(num) && num >= 1 && num <= 5) {
-          deleteImageNumbers.push(num);
-        }
-      }
-
-      for (let num = 1; num <= 5; num += 1) {
-        if (formData.get(`delete_${num}`) === "true") {
-          deleteImageNumbers.push(num);
-        }
-      }
-
-      const replacementImages: ReplaceImageItem[] = [];
-
-      for (let num = 1; num <= 5; num += 1) {
-        const file =
-          formData.get(`image_${num}`) ||
-          formData.get(`replace_${num}`) ||
-          formData.get(`image${num}`);
-
-        if (file instanceof File) {
-          const buffer = new Uint8Array(await file.arrayBuffer());
-          parseSchema(UploadImageSchema, {
-            contentType: file.type,
-            content: buffer,
-          });
-
-          replacementImages.push({
-            imageNumber: num,
-            contentType: file.type as ImageContentType,
-            content: buffer,
-          });
-        }
-      }
-
-      const newImages: CreateLocationImageItem[] = [];
-      const newFiles = formData
-        .getAll("new_images")
-        .concat(formData.getAll("add_images"))
-        .filter((item): item is File => item instanceof File);
-
-      for (const file of newFiles) {
-        const buffer = new Uint8Array(await file.arrayBuffer());
-        parseSchema(UploadImageSchema, {
-          contentType: file.type,
-          content: buffer,
-        });
-
-        newImages.push({
-          contentType: file.type as ImageContentType,
-          content: buffer,
-        });
-      }
-
-      const updatePayload: UpdateLocationDto = {
-        name: validatedFields.name,
-        description: validatedFields.description,
-        latitude:
-          validatedFields.latitude !== undefined
-            ? Number(validatedFields.latitude)
-            : undefined,
-        longitude:
-          validatedFields.longitude !== undefined
-            ? Number(validatedFields.longitude)
-            : undefined,
-        status: validatedFields.status,
-        deleteImageNumbers:
-          deleteImageNumbers.length > 0 ? deleteImageNumbers : undefined,
-        replacementImages:
-          replacementImages.length > 0 ? replacementImages : undefined,
-        newImages: newImages.length > 0 ? newImages : undefined,
-      };
-
-      const updated = await locationService.updateLocation(id, updatePayload);
-      return successResponse(updated, 200);
+    if (!request.headers.get("content-type")?.includes("multipart/form-data")) {
+      const input = parseSchema(UpdateLocationSchema, await request.json());
+      return successResponse(await locationService.updateLocation(id, input));
     }
 
-    const body = await request.json();
-    const validatedData = parseSchema(UpdateLocationSchema, body);
-
-    const updated = await locationService.updateLocation(id, {
-      name: validatedData.name,
-      description: validatedData.description,
-      latitude:
-        validatedData.latitude !== undefined
-          ? Number(validatedData.latitude)
-          : undefined,
-      longitude:
-        validatedData.longitude !== undefined
-          ? Number(validatedData.longitude)
-          : undefined,
-      status: validatedData.status,
-      deleteImageNumbers: validatedData.deleteImageNumbers,
+    const form = await request.formData();
+    const files = form.getAll("newImages");
+    if (files.length > LOCATION_MAX_IMAGES) {
+      throw new AppError("Maximum 5 images allowed", 400);
+    }
+    if (files.some((file) => file instanceof File && file.size > IMAGE_MAX_SIZE_BYTES)) {
+      throw new AppError(IMAGE_MESSAGES.tooLarge, 400);
+    }
+    const newImages = await Promise.all(
+      files.map(async (value) =>
+        value instanceof File
+          ? { contentType: value.type, content: new Uint8Array(await value.arrayBuffer()) }
+          : value,
+      ),
+    );
+    const input = parseSchema(UpdateLocationSchema, {
+      name: form.get("name") ?? undefined,
+      description: form.get("description") ?? undefined,
+      latitude: form.get("latitude") ?? undefined,
+      longitude: form.get("longitude") ?? undefined,
+      status: form.get("status") ?? undefined,
+      keepImageNumbers: form.has("keepImageNumbers")
+        ? form.getAll("keepImageNumbers").filter((value) => value !== "")
+        : undefined,
+      newImages,
     });
-    return successResponse(updated, 200);
+
+    return successResponse(await locationService.updateLocation(id, input));
   } catch (error) {
     return errorResponse(error);
   }
 }
 
-export async function DELETE(request: Request, context: RouteContext) {
+export async function DELETE(_request: Request, context: RouteContext) {
   try {
-    await verifyAdmin();
-
-    const params = await context.params;
-    const { id } = parseSchema(LocationIdParamSchema, params);
-
+    roleCheck(await requireAuth(), [UserRole.ADMIN]);
+    const { id } = parseSchema(LocationIdParamSchema, await context.params);
     await locationService.deleteLocation(id);
-    return successResponse(null, 200);
+    return successResponse(null);
   } catch (error) {
     return errorResponse(error);
   }

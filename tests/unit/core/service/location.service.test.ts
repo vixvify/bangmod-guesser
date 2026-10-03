@@ -110,7 +110,7 @@ describe("LocationService", () => {
           longitude: 100.49,
           images: [],
         }),
-      ).rejects.toThrowError(new AppError("At least 1 image is required", 400));
+      ).rejects.toThrowError(new AppError("Location requires 1 to 5 images", 400));
     });
 
     it("rejects when images count exceeds 5", async () => {
@@ -127,7 +127,7 @@ describe("LocationService", () => {
           longitude: 100.49,
           images: sixImages,
         }),
-      ).rejects.toThrowError(new AppError("Maximum 5 images allowed", 400));
+      ).rejects.toThrowError(new AppError("Location requires 1 to 5 images", 400));
     });
 
     it("uploads 3 images and saves location dynamically", async () => {
@@ -255,18 +255,20 @@ describe("LocationService", () => {
       });
 
       imageRepository.delete.mockResolvedValue();
-      locationRepository.setLocationImages.mockResolvedValue();
+      locationRepository.update.mockImplementation(async () =>
+        (await locationRepository.findById("loc_1"))!,
+      );
 
       await locationService.updateLocation("loc_1", {
-        deleteImageNumbers: [2],
+        keepImageNumbers: [1, 3],
       });
 
       expect(imageRepository.delete).toHaveBeenCalledWith(
         "images/3f2504e0-4f89-11d3-9a0c-0305e82c3302.jpg",
       );
-      expect(locationRepository.setLocationImages).toHaveBeenCalledWith(
+      expect(locationRepository.update).toHaveBeenCalledWith(
         "loc_1",
-        [
+        expect.objectContaining({ images: [
           {
             imageNumber: 1,
             imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3301.jpg",
@@ -275,7 +277,7 @@ describe("LocationService", () => {
             imageNumber: 2,
             imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3303.jpg",
           },
-        ],
+        ] }),
       );
     });
 
@@ -303,9 +305,9 @@ describe("LocationService", () => {
 
       await expect(
         locationService.updateLocation("loc_1", {
-          deleteImageNumbers: [1],
+          keepImageNumbers: [],
         }),
-      ).rejects.toThrowError(new AppError("Location must have at least 1 image", 400));
+      ).rejects.toThrowError(new AppError("Location requires 1 to 5 images", 400));
     });
 
     it("cleans up newly uploaded images from storage if database update fails", async () => {
@@ -337,7 +339,7 @@ describe("LocationService", () => {
       );
       imageRepository.delete.mockResolvedValue();
 
-      locationRepository.setLocationImages.mockRejectedValue(
+      locationRepository.update.mockRejectedValue(
         new Error("Failed to update images"),
       );
 
@@ -377,7 +379,7 @@ describe("LocationService", () => {
 
       await expect(
         locationService.deleteLocationImage("loc_1", 1),
-      ).rejects.toThrowError(new AppError("Location must have at least 1 image", 400));
+      ).rejects.toThrowError(new AppError("Location requires 1 to 5 images", 400));
     });
 
     it("throws 404 if image to delete is not found", async () => {
@@ -448,16 +450,18 @@ describe("LocationService", () => {
       });
 
       imageRepository.delete.mockResolvedValue();
-      locationRepository.setLocationImages.mockResolvedValue();
+      locationRepository.update.mockImplementation(async () =>
+        (await locationRepository.findById("loc_1"))!,
+      );
 
       await locationService.deleteLocationImage("loc_1", 2);
 
       expect(imageRepository.delete).toHaveBeenCalledWith(
         "images/3f2504e0-4f89-11d3-9a0c-0305e82c3302.jpg",
       );
-      expect(locationRepository.setLocationImages).toHaveBeenCalledWith(
+      expect(locationRepository.update).toHaveBeenCalledWith(
         "loc_1",
-        [
+        expect.objectContaining({ images: [
           {
             imageNumber: 1,
             imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3301.jpg",
@@ -466,7 +470,7 @@ describe("LocationService", () => {
             imageNumber: 2,
             imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3303.jpg",
           },
-        ],
+        ] }),
       );
     });
   });

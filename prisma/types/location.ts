@@ -5,3 +5,8 @@ export type LocationModelWithImages = Prisma.LocationGetPayload<{
     images: true;
   };
 }>;
+
+export type GetLocationRecordsResult = {
+  items: LocationModelWithImages[];
+  total: number;
+};

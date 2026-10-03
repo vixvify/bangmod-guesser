@@ -14,13 +14,17 @@ export const LocationFactory = {
       latitude: model.latitude,
       longitude: model.longitude,
       status: model.status as LocationStatus,
-      images: model.images
+      images: [...model.images]
         .sort((a, b) => a.imageNumber - b.imageNumber)
-        .map((img) => ({
-          imageNumber: img.imageNumber,
-          name: `location-${String(img.imageNumber).padStart(2, "0")}.jpg`,
-          url: img.imageUrl,
-        })),
+        .map((img) => {
+          const extension =
+            img.imageUrl.match(/\.(jpg|png|webp)(?:\?|$)/)?.[1] ?? "jpg";
+          return {
+            imageNumber: img.imageNumber,
+            name: `location-${String(img.imageNumber).padStart(2, "0")}.${extension}`,
+            url: img.imageUrl,
+          };
+        }),
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
     };
