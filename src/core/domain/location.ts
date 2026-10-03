@@ -1,25 +1,24 @@
-<<<<<<< HEAD
 export enum LocationStatus {
   ACTIVE = "ACTIVE",
   INACTIVE = "INACTIVE",
 }
 
-export interface LocationImageItem {
+export type LocationImage = {
   imageNumber: number;
-  imageUrl: string;
-}
+  url: string;
+};
 
-export interface Location {
+export type Location = {
   id: string;
   name: string;
   description: string | null;
   latitude: number;
   longitude: number;
-  status: LocationStatus;
-  images: LocationImageItem[];
-  createdAt: Date;
-  updatedAt: Date | null;
-}
+  status?: LocationStatus;
+  images: LocationImage[];
+  createdAt?: Date;
+  updatedAt?: Date | null;
+};
 
 export interface PaginatedLocations {
   items: Location[];
@@ -28,19 +27,3 @@ export interface PaginatedLocations {
   total: number;
   totalPages: number;
 }
-=======
-export type LocationImage = {
-  imageNumber: number;
-  name: string;
-  url: string;
-};
-
-export type Location = {
-  id: string;
-  name: string;
-  description: string;
-  latitude: number;
-  longitude: number;
-  images: LocationImage[];
-};
->>>>>>> origin/main

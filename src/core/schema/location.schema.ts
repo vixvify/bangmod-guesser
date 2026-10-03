@@ -1,6 +1,35 @@
 import { z } from "zod";
-<<<<<<< HEAD
+import { LOCATION_MESSAGES } from "@/core/constants/location";
 import { LocationStatus } from "../domain/location";
+
+function coordinate(label: string, min: number, max: number) {
+  return z.preprocess(
+    (val) => (typeof val === "number" ? String(val) : val),
+    z
+      .string()
+      .trim()
+      .min(1, LOCATION_MESSAGES.coordinateRequired(label))
+      .refine(
+        (value) => /^-?\d+(\.\d+)?$/.test(value),
+        LOCATION_MESSAGES.coordinateNumber(label),
+      )
+      .refine(
+        (value) => Number(value) >= min && Number(value) <= max,
+        LOCATION_MESSAGES.coordinateRange(label, min, max),
+      ),
+  );
+}
+
+export const LocationFormSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, LOCATION_MESSAGES.nameRequired)
+    .max(100, LOCATION_MESSAGES.nameMax),
+  description: z.string().trim().max(500, LOCATION_MESSAGES.descriptionMax),
+  latitude: coordinate("ละติจูด", -90, 90),
+  longitude: coordinate("ลองจิจูด", -180, 180),
+});
 
 export const SearchLocationQuerySchema = z.object({
   search: z.string().trim().optional(),
@@ -10,18 +39,7 @@ export const SearchLocationQuerySchema = z.object({
   orderBy: z.enum(["asc", "desc"]).default("desc"),
 });
 
-export const CreateLocationSchema = z.object({
-  name: z.string().trim().min(1, "Location name is required").max(255),
-  description: z.string().trim().optional().nullable(),
-  latitude: z.coerce.number().min(-90).max(90),
-  longitude: z.coerce.number().min(-180).max(180),
-});
-
-export const UpdateLocationSchema = z.object({
-  name: z.string().trim().min(1).max(255).optional(),
-  description: z.string().trim().optional().nullable(),
-  latitude: z.coerce.number().min(-90).max(90).optional(),
-  longitude: z.coerce.number().min(-180).max(180).optional(),
+export const UpdateLocationSchema = LocationFormSchema.partial().extend({
   status: z.nativeEnum(LocationStatus).optional(),
   deleteImageNumbers: z
     .array(z.coerce.number().int().min(1).max(5))
@@ -37,36 +55,8 @@ export const LocationImageParamSchema = z.object({
   imageNumber: z.coerce.number().int().min(1).max(5),
 });
 
+export type LocationFormInput = z.input<typeof LocationFormSchema>;
 export type SearchLocationQueryInput = z.infer<typeof SearchLocationQuerySchema>;
-export type CreateLocationInput = z.infer<typeof CreateLocationSchema>;
 export type UpdateLocationInput = z.infer<typeof UpdateLocationSchema>;
 export type LocationIdParamInput = z.infer<typeof LocationIdParamSchema>;
 export type LocationImageParamInput = z.infer<typeof LocationImageParamSchema>;
-=======
-import { LOCATION_MESSAGES } from "@/core/constants/location";
-
-function coordinate(label: string, min: number, max: number) {
-  return z
-    .string()
-    .trim()
-    .min(1, LOCATION_MESSAGES.coordinateRequired(label))
-    .refine((value) => /^-?\d+(\.\d+)?$/.test(value), LOCATION_MESSAGES.coordinateNumber(label))
-    .refine(
-      (value) => Number(value) >= min && Number(value) <= max,
-      LOCATION_MESSAGES.coordinateRange(label, min, max),
-    );
-}
-
-export const LocationFormSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, LOCATION_MESSAGES.nameRequired)
-    .max(100, LOCATION_MESSAGES.nameMax),
-  description: z.string().trim().max(500, LOCATION_MESSAGES.descriptionMax),
-  latitude: coordinate("ละติจูด", -90, 90),
-  longitude: coordinate("ลองจิจูด", -180, 180),
-});
-
-export type LocationFormInput = z.input<typeof LocationFormSchema>;
->>>>>>> origin/main

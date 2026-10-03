@@ -127,7 +127,17 @@ export async function PUT(request: Request, context: RouteContext) {
       }
 
       const updatePayload: UpdateLocationDto = {
-        ...validatedFields,
+        name: validatedFields.name,
+        description: validatedFields.description,
+        latitude:
+          validatedFields.latitude !== undefined
+            ? Number(validatedFields.latitude)
+            : undefined,
+        longitude:
+          validatedFields.longitude !== undefined
+            ? Number(validatedFields.longitude)
+            : undefined,
+        status: validatedFields.status,
         deleteImageNumbers:
           deleteImageNumbers.length > 0 ? deleteImageNumbers : undefined,
         replacementImages:
@@ -142,7 +152,20 @@ export async function PUT(request: Request, context: RouteContext) {
     const body = await request.json();
     const validatedData = parseSchema(UpdateLocationSchema, body);
 
-    const updated = await locationService.updateLocation(id, validatedData);
+    const updated = await locationService.updateLocation(id, {
+      name: validatedData.name,
+      description: validatedData.description,
+      latitude:
+        validatedData.latitude !== undefined
+          ? Number(validatedData.latitude)
+          : undefined,
+      longitude:
+        validatedData.longitude !== undefined
+          ? Number(validatedData.longitude)
+          : undefined,
+      status: validatedData.status,
+      deleteImageNumbers: validatedData.deleteImageNumbers,
+    });
     return successResponse(updated, 200);
   } catch (error) {
     return errorResponse(error);

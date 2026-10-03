@@ -1,7 +1,7 @@
 import { AppError } from "@/core/errors/app.error";
 import { UserRole } from "@/core/domain/user";
 import {
-  CreateLocationSchema,
+  LocationFormSchema,
   SearchLocationQuerySchema,
 } from "@/core/schema/location.schema";
 import {
@@ -113,7 +113,7 @@ export async function POST(request: Request) {
     const latitude = formData.get("latitude");
     const longitude = formData.get("longitude");
 
-    const validatedData = parseSchema(CreateLocationSchema, {
+    const validatedData = parseSchema(LocationFormSchema, {
       name,
       description: description ? String(description) : null,
       latitude,
@@ -140,8 +140,8 @@ export async function POST(request: Request) {
     const created = await locationService.createLocation({
       name: validatedData.name,
       description: validatedData.description,
-      latitude: validatedData.latitude,
-      longitude: validatedData.longitude,
+      latitude: Number(validatedData.latitude),
+      longitude: Number(validatedData.longitude),
       images: imagePayloads,
     });
 
