@@ -71,6 +71,7 @@ test("shows the complete landscape image in portrait fullscreen", async ({
 }) => {
   await page.setViewportSize({ width: 400, height: 850 });
   await page.goto("/game", { waitUntil: "domcontentloaded" });
+  await expect(page.locator(".leaflet-container")).toBeVisible();
   await page.getByRole("button", { name: "เต็มจอ" }).click();
 
   const fullscreenImage = page.getByRole("dialog").locator("img").first();
