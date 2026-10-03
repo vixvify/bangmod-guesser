@@ -22,7 +22,8 @@ type LocationFormProps = {
 };
 
 export type LocationFormValues = LocationFormInput & {
-  images: LocationImageDraft[];
+  keepImageNumbers: number[];
+  newImages: File[];
 };
 
 export function LocationForm({ location, onSave }: LocationFormProps) {
@@ -57,7 +58,20 @@ export function LocationForm({ location, onSave }: LocationFormProps) {
   }
 
   return (
-    <form noValidate onSubmit={handleSubmit((values) => onSave({ ...values, images }))}>
+    <form
+      noValidate
+      onSubmit={handleSubmit((values) =>
+        onSave({
+          ...values,
+          keepImageNumbers: images.flatMap((image) =>
+            "file" in image ? [] : [image.imageNumber],
+          ),
+          newImages: images.flatMap((image) =>
+            "file" in image ? [image.file] : [],
+          ),
+        }),
+      )}
+    >
       <div className="grid gap-8 border-t border-slate-200 py-8 lg:grid-cols-2 lg:gap-10">
         <section aria-labelledby="location-info-title">
           <h2 id="location-info-title" className="mb-5 text-lg font-bold">

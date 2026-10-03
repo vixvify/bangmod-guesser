@@ -7,15 +7,7 @@ import { AppRoutes } from "@/routes/app/routes";
 
 export default function CreateLocationPage() {
   function saveLocation(values: LocationFormValues) {
-    console.log("Mock location create:", {
-      id: undefined,
-      ...values,
-      images: values.images.map(({ id, name, file }) => ({
-        id,
-        name,
-        file: file?.name,
-      })),
-    });
+    console.log("Mock location create:", values);
   }
 
   return (

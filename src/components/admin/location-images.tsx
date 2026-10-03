@@ -11,7 +11,12 @@ import { IMAGE_CONTENT_TYPES, IMAGE_MAX_SIZE_BYTES } from "@/core/constants/imag
 import { LOCATION_MAX_IMAGES, LOCATION_MESSAGES } from "@/core/constants/location";
 import type { LocationImage } from "@/core/domain/location";
 
-export type LocationImageDraft = LocationImage & { file?: File };
+export type LocationImageDraft = LocationImage | {
+  uploadKey: number;
+  name: string;
+  url: string;
+  file: File;
+};
 
 type LocationImagesProps = {
   images: LocationImageDraft[];
@@ -53,18 +58,18 @@ export function LocationImages({ images, onChange }: LocationImagesProps) {
       const url = URL.createObjectURL(file);
       objectUrls.current.add(url);
       nextId.current += 1;
-      return { id: `upload-${nextId.current}`, name: file.name, url, file };
+      return { uploadKey: nextId.current, name: file.name, url, file };
     });
     if (added.length > 0) onChange([...images, ...added]);
     if (fileInput.current) fileInput.current.value = "";
   }
 
   function removeImage(image: LocationImageDraft) {
-    if (image.file) {
+    if ("file" in image) {
       URL.revokeObjectURL(image.url);
       objectUrls.current.delete(image.url);
     }
-    onChange(images.filter((item) => item.id !== image.id));
+    onChange(images.filter((item) => item !== image));
     setError("");
   }
 
@@ -108,7 +113,7 @@ export function LocationImages({ images, onChange }: LocationImagesProps) {
       <p className="mt-5 mb-2 text-sm font-semibold">ตัวอย่างรูปภาพ</p>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {images.map((image, index) => (
-          <div key={image.id} className="min-w-0">
+          <div key={"file" in image ? `upload-${image.uploadKey}` : `image-${image.imageNumber}`} className="min-w-0">
             <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
               <Image src={image.url} alt={`รูปสถานที่ ${index + 1}`} fill sizes="(max-width: 640px) 45vw, 14rem" className="object-cover" unoptimized />
               <IconButton

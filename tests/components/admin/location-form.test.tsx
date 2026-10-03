@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import CreateLocationPage from "@/app/admin/locations/create/page";
 import EditLocationPage from "@/app/admin/locations/[id]/edit/page";
 import { LocationForm } from "@/components/admin/location-form";
+import { mockLocations } from "@/_mock/_locations";
 
 beforeEach(() => {
   URL.createObjectURL = vi.fn(() => "blob:campus-preview");
@@ -38,8 +39,29 @@ describe("location editor", () => {
         description: "",
         latitude: "13.6516",
         longitude: "100.4952",
-        images: [expect.objectContaining({ file })],
+        keepImageNumbers: [],
+        newImages: [file],
       }),
+    );
+  });
+
+  it("sends only retained image numbers and new files when editing", async () => {
+    const onSave = vi.fn();
+    const { container } = render(<LocationForm location={mockLocations[0]} onSave={onSave} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "ลบรูป location-01.jpg" }));
+    const file = new File(["image"], "replacement.jpg", { type: "image/jpeg" });
+    fireEvent.change(container.querySelector('input[type="file"]')!, { target: { files: [file] } });
+
+    const submit = container.querySelector('button[type="submit"]')!;
+    await waitFor(() => expect(submit.hasAttribute("disabled")).toBe(false));
+    fireEvent.click(submit);
+
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+        keepImageNumbers: [2],
+        newImages: [file],
+      })),
     );
   });
 

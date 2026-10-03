@@ -1,5 +1,5 @@
 export type LocationImage = {
-  id: string;
+  imageNumber: number;
   name: string;
   url: string;
 };

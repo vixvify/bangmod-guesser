@@ -21,11 +21,6 @@ export default function EditLocationPage({
     console.log("Mock location update:", {
       id,
       ...values,
-      images: values.images.map(({ id, name, file }) => ({
-        id,
-        name,
-        file: file?.name,
-      })),
     });
   }
 
