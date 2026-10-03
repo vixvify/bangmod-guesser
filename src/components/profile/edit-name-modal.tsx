@@ -1,8 +1,8 @@
 "use client";
 
-import Dialog from "@mui/material/Dialog";
+import Modal from "@mui/material/Modal";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useId } from "react";
+import { useEffect, useId } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,19 +12,19 @@ import {
   type UpdateUsernameFormInput,
 } from "@/core/schema/profile.schema";
 
-type EditNameDialogProps = {
+type EditNameModalProps = {
   open: boolean;
   username: string;
   onClose: () => void;
   onSave: (username: string) => Promise<boolean>;
 };
 
-export function EditNameDialog({
+export function EditNameModal({
   open,
   username,
   onClose,
   onSave,
-}: EditNameDialogProps) {
+}: EditNameModalProps) {
   const titleId = useId();
   const {
     register,
@@ -38,32 +38,22 @@ export function EditNameDialog({
   });
   const canSave = isDirty && isValid && !isSubmitting;
 
+  useEffect(() => {
+    if (open) reset({ username });
+  }, [open, reset, username]);
+
   async function onSubmit({ username: nextUsername }: UpdateUsernameFormInput) {
     if (await onSave(nextUsername)) onClose();
   }
 
   return (
-    <Dialog
+    <Modal
       open={open}
       onClose={isSubmitting ? undefined : onClose}
       aria-labelledby={titleId}
-      slotProps={{
-        transition: {
-          onEnter: () => {
-            reset({ username });
-          },
-        },
-        paper: {
-          sx: {
-            width: "min(100%, 28rem)",
-            borderRadius: "1rem",
-            backgroundColor: "#fff",
-            color: "var(--color-secondary-dark)",
-          },
-        },
-      }}
+      sx={{ display: "flex", alignItems: "center", justifyContent: "center", p: 2 }}
     >
-      <form noValidate onSubmit={handleSubmit(onSubmit)} className="p-6">
+      <form role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} noValidate onSubmit={handleSubmit(onSubmit)} className="w-full max-w-md rounded-2xl bg-white p-6 text-secondary-dark shadow-2xl outline-none">
         <div>
           <h2 id={titleId} className="text-xl font-bold text-secondary-dark">
             แก้ไขชื่อผู้ใช้
@@ -108,6 +98,6 @@ export function EditNameDialog({
           </Button>
         </div>
       </form>
-    </Dialog>
+    </Modal>
   );
 }

@@ -7,7 +7,7 @@ import FullscreenRoundedIcon from "@mui/icons-material/FullscreenRounded";
 import FullscreenExitRoundedIcon from "@mui/icons-material/FullscreenExitRounded";
 import SyncAltRoundedIcon from "@mui/icons-material/SyncAltRounded";
 import IconButton from "@mui/material/IconButton";
-import Dialog from "@mui/material/Dialog";
+import Modal from "@mui/material/Modal";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import { Button } from "@/components/ui/button";
 import { MAP_CONFIG } from "@/core/constants/game";
@@ -144,19 +144,12 @@ export function GameImageViewer({
         </div>
       </div>
 
-      <Dialog
+      <Modal
         open={isFullscreen}
         onClose={() => setIsFullscreen(false)}
-        fullScreen
-        slotProps={{
-          paper: {
-            sx: {
-              backgroundColor: "var(--color-secondary-main)",
-            },
-          },
-        }}
+        sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
       >
-        <div className="relative flex h-full w-full items-center justify-center p-3">
+        <div role="dialog" aria-modal="true" aria-label="ภาพสถานที่เต็มจอ" tabIndex={-1} className="relative flex h-dvh w-full items-center justify-center bg-secondary-main p-3 outline-none">
           <div className="relative aspect-4/3 w-full max-w-[min(72rem,125svh)] overflow-hidden rounded-2xl border border-white/10">
             <Image
               src={imageSrc}
@@ -179,7 +172,7 @@ export function GameImageViewer({
             </div>
           </div>
         </div>
-      </Dialog>
+      </Modal>
     </>
   );
 }

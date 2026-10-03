@@ -1,10 +1,10 @@
 "use client";
 
-import Dialog from "@mui/material/Dialog";
+import Modal from "@mui/material/Modal";
 import { useId } from "react";
 import { Button } from "@/components/ui/button";
 
-type ConfirmDialogProps = {
+type ConfirmModalProps = {
   open: boolean;
   busy?: boolean;
   title: string;
@@ -15,7 +15,7 @@ type ConfirmDialogProps = {
   onCancel: () => void;
 };
 
-export function ConfirmDialog({
+export function ConfirmModal({
   open,
   busy = false,
   title,
@@ -24,29 +24,19 @@ export function ConfirmDialog({
   cancelLabel,
   onConfirm,
   onCancel,
-}: ConfirmDialogProps) {
+}: ConfirmModalProps) {
   const titleId = useId();
   const descriptionId = useId();
 
   return (
-    <Dialog
+    <Modal
       open={open}
       onClose={busy ? undefined : onCancel}
       aria-labelledby={titleId}
       aria-describedby={descriptionId}
-      slotProps={{
-        paper: {
-          sx: {
-            width: "min(100%, 28rem)",
-            border: "0.0625rem solid rgb(0 0 0 / 8%)",
-            borderRadius: "1rem",
-            backgroundColor: "#fff",
-            color: "var(--color-secondary-dark)",
-          },
-        },
-      }}
+      sx={{ display: "flex", alignItems: "center", justifyContent: "center", p: 2 }}
     >
-      <div className="space-y-6 p-6">
+      <div role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={descriptionId} tabIndex={-1} style={{ backgroundColor: "#fff" }} className="w-full max-w-md space-y-6 rounded-2xl border border-black/10 p-6 text-secondary-dark shadow-2xl outline-none">
         <div className="space-y-2">
           <h2 id={titleId} className="text-xl font-bold">
             {title}
@@ -64,6 +54,6 @@ export function ConfirmDialog({
           </Button>
         </div>
       </div>
-    </Dialog>
+    </Modal>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import Dialog from "@mui/material/Dialog";
+import Modal from "@mui/material/Modal";
 import IconButton from "@mui/material/IconButton";
 import Slider from "@mui/material/Slider";
 import { useId, useState } from "react";
@@ -14,7 +14,7 @@ import {
   SETTINGS_MESSAGES,
 } from "@/core/constants/settings";
 
-type SettingsDialogProps = {
+type SettingsModalProps = {
   open: boolean;
   onClose: () => void;
   initialSettings?: GameSettings;
@@ -88,13 +88,27 @@ function VolumeControl({ label, value, onChange }: VolumeControlProps) {
   );
 }
 
-export function SettingsDialog({
+export function SettingsModal({
   open,
   onClose,
   initialSettings = DEFAULT_SETTINGS,
   onSave,
-}: SettingsDialogProps) {
+}: SettingsModalProps) {
   const titleId = useId();
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      aria-labelledby={titleId}
+      sx={{ display: "flex", alignItems: "center", justifyContent: "center", p: 2 }}
+    >
+      <SettingsContent titleId={titleId} onClose={onClose} initialSettings={initialSettings} onSave={onSave} />
+    </Modal>
+  );
+}
+
+function SettingsContent({ titleId, onClose, initialSettings, onSave }: Omit<SettingsModalProps, "open"> & { titleId: string; initialSettings: GameSettings }) {
   const [settings, setSettings] = useState<GameSettings>(initialSettings);
 
   const handleConfirm = () => {
@@ -103,28 +117,7 @@ export function SettingsDialog({
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      aria-labelledby={titleId}
-      slotProps={{
-        transition: { onEnter: () => setSettings(initialSettings) },
-        paper: {
-          sx: {
-            width: "min(100%, 28rem)",
-            borderRadius: "1.25rem",
-            backgroundColor: "#ffffff",
-            color: "var(--color-secondary-dark)",
-            boxShadow:
-              "0 1.25rem 2.5rem -0.5rem rgba(0, 0, 0, 0.25), 0 0.5rem 1rem -0.25rem rgba(0, 0, 0, 0.1)",
-            padding: { xs: "1.25rem 1.5rem", sm: "1.75rem 2rem" },
-            overflow: "hidden",
-            margin: "1rem",
-          },
-        },
-      }}
-    >
-      <div>
+      <div role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} className="w-full max-w-md rounded-2xl bg-white px-6 py-5 text-secondary-dark shadow-2xl outline-none sm:px-8 sm:py-7">
         <div className="flex items-center justify-between">
           <h2
             id={titleId}
@@ -202,6 +195,5 @@ export function SettingsDialog({
           </Button>
         </div>
       </div>
-    </Dialog>
   );
 }

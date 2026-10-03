@@ -9,7 +9,7 @@ for (const viewport of [
     page,
   }) => {
     await page.setViewportSize(viewport);
-    await page.goto("/game");
+    await page.goto("/game", { waitUntil: "domcontentloaded" });
 
     const image = page.locator('img[src*="kmutt-bangmod-1.jpg"]').first();
     const submit = page.getByRole("button", { name: "ส่งคำตอบ" });
@@ -46,7 +46,7 @@ for (const viewport of [
     page,
   }) => {
     await page.setViewportSize(viewport);
-    await page.goto("/game");
+    await page.goto("/game", { waitUntil: "domcontentloaded" });
 
     const image = page.locator('img[src*="kmutt-bangmod-1.jpg"]').first();
     const submit = page.getByRole("button", { name: "ส่งคำตอบ" });
@@ -70,7 +70,8 @@ test("shows the complete landscape image in portrait fullscreen", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 400, height: 850 });
-  await page.goto("/game");
+  await page.goto("/game", { waitUntil: "domcontentloaded" });
+  await expect(page.locator(".leaflet-container")).toBeVisible();
   await page.getByRole("button", { name: "เต็มจอ" }).click();
 
   const fullscreenImage = page.getByRole("dialog").locator("img").first();
