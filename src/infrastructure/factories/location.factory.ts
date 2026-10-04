@@ -16,15 +16,10 @@ export const LocationFactory = {
       status: model.status as LocationStatus,
       images: [...model.images]
         .sort((a, b) => a.imageNumber - b.imageNumber)
-        .map((img) => {
-          const extension =
-            img.imageUrl.match(/\.(jpg|png|webp)(?:\?|$)/)?.[1] ?? "jpg";
-          return {
-            imageNumber: img.imageNumber,
-            name: `location-${String(img.imageNumber).padStart(2, "0")}.${extension}`,
-            url: img.imageUrl,
-          };
-        }),
+        .map((img) => ({
+          imageNumber: img.imageNumber,
+          url: img.imageUrl,
+        })),
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
     };

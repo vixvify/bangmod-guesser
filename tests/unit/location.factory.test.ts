@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { LocationFactory } from "@/infrastructure/factories/location.factory";
 
 describe("LocationFactory", () => {
-  it("orders images and names them with their stored extensions", () => {
+  it("orders images without adding a name that is not stored", () => {
     const location = LocationFactory.toDomain({
       id: "loc_1",
       name: "Library",
@@ -28,9 +28,9 @@ describe("LocationFactory", () => {
       ],
     });
 
-    expect(location.images.map((image) => image.name)).toEqual([
-      "location-01.png",
-      "location-02.webp",
+    expect(location.images).toEqual([
+      { imageNumber: 1, url: "https://cdn.example.com/images/first.png" },
+      { imageNumber: 2, url: "https://cdn.example.com/images/second.webp" },
     ]);
   });
 });

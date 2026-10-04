@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import { IMAGE_MAX_SIZE_BYTES } from "@/core/constants/image";
 import {
+  CreateLocationImagesSchema,
   DeleteImageSchema,
+  LocationImageRecordSchema,
+  UpdateLocationImagesSchema,
   UploadImageSchema,
 } from "@/core/schema/image.schema";
 
@@ -35,6 +38,30 @@ describe("UploadImageSchema", () => {
         "Image must not exceed 5 MB",
       );
     }
+  });
+});
+
+describe("location image schemas", () => {
+  const image = { contentType: "image/png", content: pngContent };
+
+  it("requires one to five images on creation", () => {
+    expect(CreateLocationImagesSchema.safeParse([]).success).toBe(false);
+    expect(CreateLocationImagesSchema.safeParse([image]).success).toBe(true);
+    expect(CreateLocationImagesSchema.safeParse(Array(6).fill(image)).success).toBe(false);
+  });
+
+  it("parses retained image numbers separately from location fields", () => {
+    expect(UpdateLocationImagesSchema.parse({ keepImageNumbers: ["3", "1"] })).toEqual({
+      keepImageNumbers: [3, 1],
+    });
+  });
+
+  it("validates the numbered URL saved in a location record", () => {
+    expect(LocationImageRecordSchema.parse({ imageNumber: 1, imageUrl: "https://example.com/1.jpg" })).toEqual({
+      imageNumber: 1,
+      imageUrl: "https://example.com/1.jpg",
+    });
+    expect(LocationImageRecordSchema.safeParse({ imageNumber: 1, imageUrl: "not-a-url" }).success).toBe(false);
   });
 });
 

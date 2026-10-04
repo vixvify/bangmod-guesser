@@ -2,6 +2,7 @@ import { AppError } from "@/core/errors/app.error";
 import { LOCATION_MAX_IMAGES } from "@/core/constants/location";
 import { IMAGE_MAX_SIZE_BYTES, IMAGE_MESSAGES } from "@/core/constants/image";
 import { UserRole } from "@/core/domain/user";
+import { CreateLocationImagesSchema } from "@/core/schema/image.schema";
 import {
   CreateLocationSchema,
   SearchLocationQuerySchema,
@@ -51,10 +52,10 @@ export async function POST(request: Request) {
       description: form.get("description") ?? undefined,
       latitude: form.get("latitude"),
       longitude: form.get("longitude"),
-      images,
     });
+    const validatedImages = parseSchema(CreateLocationImagesSchema, images);
 
-    return successResponse(await locationService.createLocation(input), 201);
+    return successResponse(await locationService.createLocation(input, validatedImages), 201);
   } catch (error) {
     return errorResponse(error);
   }

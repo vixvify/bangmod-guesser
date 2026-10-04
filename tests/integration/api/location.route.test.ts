@@ -122,10 +122,8 @@ describe("Locations API routes", () => {
       expect(response.status).toBe(201);
       expect(json.data.id).toBe("loc_new");
       expect(mockLocationService.createLocation).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: "Library",
-          images: expect.any(Array),
-        }),
+        expect.objectContaining({ name: "Library" }),
+        expect.arrayContaining([expect.objectContaining({ contentType: "image/jpeg" })]),
       );
     });
 
@@ -176,6 +174,16 @@ describe("Locations API routes", () => {
       expect(response.status).toBe(200);
       expect(json.data.id).toBe("loc_1");
     });
+
+    it("rejects an empty location id before calling the service", async () => {
+      const response = await getLocationById(
+        new Request("http://localhost/api/locations/"),
+        { params: Promise.resolve({ id: "" }) },
+      );
+
+      expect(response.status).toBe(400);
+      expect(mockLocationService.getLocationById).not.toHaveBeenCalled();
+    });
   });
 
   describe("PUT /api/locations/[id]", () => {
@@ -210,10 +218,8 @@ describe("Locations API routes", () => {
       expect(json.data.name).toBe("CB2 Updated");
       expect(mockLocationService.updateLocation).toHaveBeenCalledWith(
         "loc_1",
-        expect.objectContaining({
-          name: "CB2 Updated",
-          keepImageNumbers: [1, 3],
-        }),
+        expect.objectContaining({ name: "CB2 Updated" }),
+        { keepImageNumbers: [1, 3] },
       );
     });
 
@@ -238,6 +244,7 @@ describe("Locations API routes", () => {
       expect(response.status).toBe(200);
       expect(mockLocationService.updateLocation).toHaveBeenCalledWith(
         "loc_1",
+        expect.any(Object),
         expect.objectContaining({
           keepImageNumbers: [2, 3],
           newImages: [
@@ -300,6 +307,26 @@ describe("Locations API routes", () => {
         "loc_1",
         2,
       );
+    });
+
+    it("rejects an invalid image number before calling the service", async () => {
+      const response = await deleteLocationImage(
+        new Request("http://localhost/api/locations/loc_1/images/0", { method: "DELETE" }),
+        { params: Promise.resolve({ id: "loc_1", imageNumber: "0" }) },
+      );
+
+      expect(response.status).toBe(400);
+      expect(mockLocationService.deleteLocationImage).not.toHaveBeenCalled();
+    });
+
+    it("rejects an empty location id before deleting an image", async () => {
+      const response = await deleteLocationImage(
+        new Request("http://localhost/api/locations//images/1", { method: "DELETE" }),
+        { params: Promise.resolve({ id: " ", imageNumber: "1" }) },
+      );
+
+      expect(response.status).toBe(400);
+      expect(mockLocationService.deleteLocationImage).not.toHaveBeenCalled();
     });
   });
 

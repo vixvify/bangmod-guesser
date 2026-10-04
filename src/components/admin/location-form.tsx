@@ -3,42 +3,45 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import {
-  LocationImages,
-  type LocationImageDraft,
-} from "@/components/admin/location-images";
+import { LocationImages } from "@/components/admin/location-images";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Location } from "@/core/domain/location";
+import type {
+  CreateLocationFormImagesInput,
+  UpdateLocationFormImagesInput,
+} from "@/core/schema/image.schema";
 import {
-  LocationFormSchema,
-  type LocationFormInput,
+  CreateLocationSchema,
+  type CreateLocationInput,
+  type UpdateLocationFormInput,
 } from "@/core/schema/location.schema";
 import { AppRoutes } from "@/routes/app/routes";
 
-type LocationFormProps = {
-  location?: Location;
-  onSave: (values: LocationFormValues) => void;
-};
+type LocationFormProps =
+  | {
+      location?: undefined;
+      onSave: (values: CreateLocationInput, images: CreateLocationFormImagesInput) => void;
+    }
+  | {
+      location: Location;
+      onSave: (values: UpdateLocationFormInput, images: UpdateLocationFormImagesInput) => void;
+    };
 
-export type LocationFormValues = LocationFormInput & {
-  keepImageNumbers: number[];
-  newImages: File[];
-};
-
-export function LocationForm({ location, onSave }: LocationFormProps) {
+export function LocationForm(props: LocationFormProps) {
+  const { location } = props;
   const isEdit = Boolean(location);
-  const [images, setImages] = useState<LocationImageDraft[]>(
-    location?.images ?? [],
-  );
+  const [existingImages, setExistingImages] = useState(location?.images ?? []);
+  const [newImages, setNewImages] =
+    useState<CreateLocationFormImagesInput["images"]>([]);
   const [imagesDirty, setImagesDirty] = useState(false);
   const {
     register,
     handleSubmit,
     trigger,
     formState: { errors, isDirty, isValid },
-  } = useForm<LocationFormInput>({
-    resolver: zodResolver(LocationFormSchema),
+  } = useForm({
+    resolver: zodResolver(CreateLocationSchema),
     mode: "onChange",
     defaultValues: {
       name: location?.name ?? "",
@@ -52,25 +55,31 @@ export function LocationForm({ location, onSave }: LocationFormProps) {
     if (isEdit) void trigger();
   }, [isEdit, trigger]);
 
-  function onImagesChange(nextImages: LocationImageDraft[]) {
-    setImages(nextImages);
+  function onImagesChange(
+    nextExistingImages: Location["images"],
+    nextNewImages: CreateLocationFormImagesInput["images"],
+  ) {
+    setExistingImages(nextExistingImages);
+    setNewImages(nextNewImages);
     setImagesDirty(true);
+  }
+
+  function saveLocation(values: CreateLocationInput) {
+    if (props.location) {
+      props.onSave(values, {
+        keepImageNumbers: existingImages.map((image) => image.imageNumber),
+        newImages,
+      });
+      return;
+    }
+
+    props.onSave(values, { images: newImages });
   }
 
   return (
     <form
       noValidate
-      onSubmit={handleSubmit((values) =>
-        onSave({
-          ...values,
-          keepImageNumbers: images.flatMap((image) =>
-            "file" in image ? [] : [image.imageNumber],
-          ),
-          newImages: images.flatMap((image) =>
-            "file" in image ? [image.file] : [],
-          ),
-        }),
-      )}
+      onSubmit={handleSubmit(saveLocation)}
     >
       <div className="grid gap-8 border-t border-slate-200 py-8 lg:grid-cols-2 lg:gap-10">
         <section aria-labelledby="location-info-title">
@@ -123,7 +132,11 @@ export function LocationForm({ location, onSave }: LocationFormProps) {
             </p>
           </div>
         </section>
-        <LocationImages images={images} onChange={onImagesChange} />
+        <LocationImages
+          existingImages={existingImages}
+          newImages={newImages}
+          onChange={onImagesChange}
+        />
       </div>
       <div className="flex flex-wrap justify-end gap-3 border-t border-slate-200 pt-5">
         <Button href={AppRoutes.adminLocations} variant="surface" size="small">

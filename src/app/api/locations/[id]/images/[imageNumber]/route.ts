@@ -1,5 +1,6 @@
 import { UserRole } from "@/core/domain/user";
-import { LocationImageParamSchema } from "@/core/schema/location.schema";
+import { ImageNumberSchema } from "@/core/schema/image.schema";
+import { LocationIdSchema } from "@/core/schema/location.schema";
 import { locationService } from "@/infrastructure/container";
 import { errorResponse, successResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth-check";
@@ -18,11 +19,12 @@ export async function DELETE(_request: Request, context: RouteContext) {
     roleCheck(await requireAuth(), [UserRole.ADMIN]);
 
     const params = await context.params;
-    const validated = parseSchema(LocationImageParamSchema, params);
+    const id = parseSchema(LocationIdSchema, params.id);
+    const imageNumber = parseSchema(ImageNumberSchema, params.imageNumber);
 
     const updated = await locationService.deleteLocationImage(
-      validated.id,
-      validated.imageNumber,
+      id,
+      imageNumber,
     );
 
     return successResponse(updated, 200);

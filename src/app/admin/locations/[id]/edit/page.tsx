@@ -5,7 +5,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { use } from "react";
 import { mockLocations } from "@/_mock/_locations";
-import { LocationForm, type LocationFormValues } from "@/components/admin/location-form";
+import { LocationForm } from "@/components/admin/location-form";
+import type { UpdateLocationFormImagesInput } from "@/core/schema/image.schema";
+import type { UpdateLocationFormInput } from "@/core/schema/location.schema";
 import { AppRoutes } from "@/routes/app/routes";
 
 export default function EditLocationPage({
@@ -17,10 +19,11 @@ export default function EditLocationPage({
   const location = mockLocations.find((item) => item.id === id);
   if (!location) notFound();
 
-  function saveLocation(values: LocationFormValues) {
+  function saveLocation(values: UpdateLocationFormInput, images: UpdateLocationFormImagesInput) {
     console.log("Mock location update:", {
       id,
       ...values,
+      ...images,
     });
   }
 

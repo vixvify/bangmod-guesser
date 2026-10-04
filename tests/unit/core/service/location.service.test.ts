@@ -62,8 +62,8 @@ describe("LocationService", () => {
       expect(locationRepository.findMany).toHaveBeenCalledWith({
         search: "CB2",
         searchBy: "name",
-        skip: 0,
-        take: 10,
+        page: 1,
+        pageSize: 10,
         orderBy: "asc",
       });
     });
@@ -108,8 +108,7 @@ describe("LocationService", () => {
           name: "Building",
           latitude: 13.65,
           longitude: 100.49,
-          images: [],
-        }),
+        }, []),
       ).rejects.toThrowError(new AppError("Location requires 1 to 5 images", 400));
     });
 
@@ -125,8 +124,7 @@ describe("LocationService", () => {
           name: "Building",
           latitude: 13.65,
           longitude: 100.49,
-          images: sixImages,
-        }),
+        }, sixImages),
       ).rejects.toThrowError(new AppError("Location requires 1 to 5 images", 400));
     });
 
@@ -166,19 +164,17 @@ describe("LocationService", () => {
         description: "School of IT",
         latitude: 13.652,
         longitude: 100.494,
-        images: threeImages,
-      });
+      }, threeImages);
 
       expect(result.id).toBe("loc_new");
       expect(imageRepository.upload).toHaveBeenCalledTimes(3);
       expect(locationRepository.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: "SIT Building",
-          images: expect.arrayContaining([
+        expect.objectContaining({ name: "SIT Building" }),
+        LocationStatus.ACTIVE,
+        expect.arrayContaining([
             expect.objectContaining({ imageNumber: 1 }),
             expect.objectContaining({ imageNumber: 3 }),
-          ]),
-        }),
+        ]),
       );
     });
 
@@ -199,10 +195,9 @@ describe("LocationService", () => {
           name: "Faulty Location",
           latitude: 13.65,
           longitude: 100.49,
-          images: [
+        }, [
             { contentType: "image/jpeg", content: sampleImageBuffer },
-          ],
-        }),
+        ]),
       ).rejects.toThrow("Database error");
 
       expect(imageRepository.delete).toHaveBeenCalledTimes(1);
@@ -259,16 +254,15 @@ describe("LocationService", () => {
         (await locationRepository.findById("loc_1"))!,
       );
 
-      await locationService.updateLocation("loc_1", {
-        keepImageNumbers: [1, 3],
-      });
+      await locationService.updateLocation("loc_1", {}, { keepImageNumbers: [1, 3] });
 
       expect(imageRepository.delete).toHaveBeenCalledWith(
         "images/3f2504e0-4f89-11d3-9a0c-0305e82c3302.jpg",
       );
       expect(locationRepository.update).toHaveBeenCalledWith(
         "loc_1",
-        expect.objectContaining({ images: [
+        {},
+        [
           {
             imageNumber: 1,
             imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3301.jpg",
@@ -277,7 +271,7 @@ describe("LocationService", () => {
             imageNumber: 2,
             imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3303.jpg",
           },
-        ] }),
+        ],
       );
     });
 
@@ -304,9 +298,7 @@ describe("LocationService", () => {
       });
 
       await expect(
-        locationService.updateLocation("loc_1", {
-          keepImageNumbers: [],
-        }),
+        locationService.updateLocation("loc_1", {}, { keepImageNumbers: [] }),
       ).rejects.toThrowError(new AppError("Location requires 1 to 5 images", 400));
     });
 
@@ -344,7 +336,7 @@ describe("LocationService", () => {
       );
 
       await expect(
-        locationService.updateLocation("loc_1", {
+        locationService.updateLocation("loc_1", {}, {
           newImages: [
             { contentType: "image/jpeg", content: sampleImageBuffer },
           ],
@@ -461,7 +453,8 @@ describe("LocationService", () => {
       );
       expect(locationRepository.update).toHaveBeenCalledWith(
         "loc_1",
-        expect.objectContaining({ images: [
+        {},
+        [
           {
             imageNumber: 1,
             imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3301.jpg",
@@ -470,7 +463,7 @@ describe("LocationService", () => {
             imageNumber: 2,
             imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3303.jpg",
           },
-        ] }),
+        ],
       );
     });
   });

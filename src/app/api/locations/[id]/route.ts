@@ -1,11 +1,9 @@
 import { UserRole } from "@/core/domain/user";
+import { UpdateLocationImagesSchema } from "@/core/schema/image.schema";
 import { LOCATION_MAX_IMAGES } from "@/core/constants/location";
 import { IMAGE_MAX_SIZE_BYTES, IMAGE_MESSAGES } from "@/core/constants/image";
 import { AppError } from "@/core/errors/app.error";
-import {
-  LocationIdParamSchema,
-  UpdateLocationSchema,
-} from "@/core/schema/location.schema";
+import { LocationIdSchema, UpdateLocationSchema } from "@/core/schema/location.schema";
 import { locationService } from "@/infrastructure/container";
 import { errorResponse, successResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth-check";
@@ -18,7 +16,7 @@ interface RouteContext {
 
 export async function GET(_request: Request, context: RouteContext) {
   try {
-    const { id } = parseSchema(LocationIdParamSchema, await context.params);
+    const id = parseSchema(LocationIdSchema, (await context.params).id);
     return successResponse(await locationService.getLocationById(id));
   } catch (error) {
     return errorResponse(error);
@@ -28,11 +26,13 @@ export async function GET(_request: Request, context: RouteContext) {
 export async function PUT(request: Request, context: RouteContext) {
   try {
     roleCheck(await requireAuth(), [UserRole.ADMIN]);
-    const { id } = parseSchema(LocationIdParamSchema, await context.params);
+    const id = parseSchema(LocationIdSchema, (await context.params).id);
 
     if (!request.headers.get("content-type")?.includes("multipart/form-data")) {
-      const input = parseSchema(UpdateLocationSchema, await request.json());
-      return successResponse(await locationService.updateLocation(id, input));
+      const body = await request.json();
+      const input = parseSchema(UpdateLocationSchema, body);
+      const images = parseSchema(UpdateLocationImagesSchema, body);
+      return successResponse(await locationService.updateLocation(id, input, images));
     }
 
     const form = await request.formData();
@@ -50,7 +50,7 @@ export async function PUT(request: Request, context: RouteContext) {
           : value,
       ),
     );
-    const input = parseSchema(UpdateLocationSchema, {
+    const body = {
       name: form.get("name") ?? undefined,
       description: form.get("description") ?? undefined,
       latitude: form.get("latitude") ?? undefined,
@@ -60,9 +60,11 @@ export async function PUT(request: Request, context: RouteContext) {
         ? form.getAll("keepImageNumbers").filter((value) => value !== "")
         : undefined,
       newImages,
-    });
+    };
+    const input = parseSchema(UpdateLocationSchema, body);
+    const images = parseSchema(UpdateLocationImagesSchema, body);
 
-    return successResponse(await locationService.updateLocation(id, input));
+    return successResponse(await locationService.updateLocation(id, input, images));
   } catch (error) {
     return errorResponse(error);
   }
@@ -71,7 +73,7 @@ export async function PUT(request: Request, context: RouteContext) {
 export async function DELETE(_request: Request, context: RouteContext) {
   try {
     roleCheck(await requireAuth(), [UserRole.ADMIN]);
-    const { id } = parseSchema(LocationIdParamSchema, await context.params);
+    const id = parseSchema(LocationIdSchema, (await context.params).id);
     await locationService.deleteLocation(id);
     return successResponse(null);
   } catch (error) {

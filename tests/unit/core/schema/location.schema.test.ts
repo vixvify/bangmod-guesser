@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   CreateLocationSchema,
-  LocationFormSchema,
-  LocationIdParamSchema,
+  LocationIdSchema,
   SearchLocationQuerySchema,
   UpdateLocationSchema,
 } from "@/core/schema/location.schema";
@@ -15,59 +14,55 @@ const validLocation = {
   longitude: "100.4952",
 };
 
-describe("LocationFormSchema", () => {
+describe("CreateLocationSchema validation", () => {
   it("accepts a location with decimal coordinates", () => {
-    expect(LocationFormSchema.safeParse(validLocation).success).toBe(true);
+    expect(CreateLocationSchema.safeParse(validLocation).success).toBe(true);
   });
 
   it("requires a name and both coordinates", () => {
     expect(
-      LocationFormSchema.safeParse({ ...validLocation, name: " " }).success,
+      CreateLocationSchema.safeParse({ ...validLocation, name: " " }).success,
     ).toBe(false);
     expect(
-      LocationFormSchema.safeParse({ ...validLocation, latitude: "" }).success,
+      CreateLocationSchema.safeParse({ ...validLocation, latitude: "" }).success,
     ).toBe(false);
     expect(
-      LocationFormSchema.safeParse({ ...validLocation, longitude: "" }).success,
+      CreateLocationSchema.safeParse({ ...validLocation, longitude: "" }).success,
     ).toBe(false);
   });
 
   it("rejects non-numeric or out-of-range coordinates", () => {
     expect(
-      LocationFormSchema.safeParse({ ...validLocation, latitude: "abc" })
+      CreateLocationSchema.safeParse({ ...validLocation, latitude: "abc" })
         .success,
     ).toBe(false);
     expect(
-      LocationFormSchema.safeParse({ ...validLocation, latitude: "91" })
+      CreateLocationSchema.safeParse({ ...validLocation, latitude: "91" })
         .success,
     ).toBe(false);
     expect(
-      LocationFormSchema.safeParse({ ...validLocation, longitude: "-181" })
+      CreateLocationSchema.safeParse({ ...validLocation, longitude: "-181" })
         .success,
     ).toBe(false);
   });
 });
 
 describe("Location schemas", () => {
+  describe("LocationIdSchema", () => {
+    it("trims a valid id and rejects an empty id", () => {
+      expect(LocationIdSchema.parse(" loc_123 ")).toBe("loc_123");
+      expect(LocationIdSchema.safeParse(" ").success).toBe(false);
+    });
+  });
+
   describe("CreateLocationSchema", () => {
-    it("converts coordinates and validates uploaded images", () => {
+    it("converts coordinates", () => {
       const result = CreateLocationSchema.parse({
         ...validLocation,
-        images: [
-          {
-            contentType: "image/jpeg",
-            content: new Uint8Array([0xff, 0xd8, 0xff]),
-          },
-        ],
       });
 
       expect(result.latitude).toBe(13.6516);
       expect(result.longitude).toBe(100.4952);
-      expect(result.images).toHaveLength(1);
-    });
-
-    it("rejects a location without images", () => {
-      expect(CreateLocationSchema.safeParse({ ...validLocation, images: [] }).success).toBe(false);
     });
   });
 
@@ -107,32 +102,12 @@ describe("Location schemas", () => {
       expect(result.status).toBe(LocationStatus.INACTIVE);
     });
 
-    it("parses image ordering and new uploads", () => {
+    it("converts updated coordinates", () => {
       const result = UpdateLocationSchema.parse({
-        keepImageNumbers: ["3", "1"],
         latitude: "13.7",
-        newImages: [
-          {
-            contentType: "image/jpeg",
-            content: new Uint8Array([0xff, 0xd8, 0xff]),
-          },
-        ],
       });
 
-      expect(result.keepImageNumbers).toEqual([3, 1]);
       expect(result.latitude).toBe(13.7);
-      expect(result.newImages).toHaveLength(1);
-    });
-  });
-
-  describe("LocationIdParamSchema", () => {
-    it("validates non-empty id", () => {
-      const result = LocationIdParamSchema.parse({ id: "loc_123" });
-      expect(result.id).toBe("loc_123");
-    });
-
-    it("rejects empty id", () => {
-      expect(() => LocationIdParamSchema.parse({ id: "" })).toThrow();
     });
   });
 });

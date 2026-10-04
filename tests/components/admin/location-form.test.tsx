@@ -34,14 +34,15 @@ describe("location editor", () => {
     fireEvent.click(submit);
 
     await waitFor(() =>
-      expect(onSave).toHaveBeenCalledWith({
-        name: "Campus",
-        description: "",
-        latitude: "13.6516",
-        longitude: "100.4952",
-        keepImageNumbers: [],
-        newImages: [file],
-      }),
+      expect(onSave).toHaveBeenCalledWith(
+        {
+          name: "Campus",
+          description: "",
+          latitude: 13.6516,
+          longitude: 100.4952,
+        },
+        { images: [file] },
+      ),
     );
   });
 
@@ -49,7 +50,7 @@ describe("location editor", () => {
     const onSave = vi.fn();
     const { container } = render(<LocationForm location={mockLocations[0]} onSave={onSave} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "ลบรูป location-01.jpg" }));
+    fireEvent.click(screen.getByRole("button", { name: "ลบรูปที่ 1" }));
     const file = new File(["image"], "replacement.jpg", { type: "image/jpeg" });
     fireEvent.change(container.querySelector('input[type="file"]')!, { target: { files: [file] } });
 
@@ -58,10 +59,10 @@ describe("location editor", () => {
     fireEvent.click(submit);
 
     await waitFor(() =>
-      expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      expect(onSave).toHaveBeenCalledWith(expect.any(Object), {
         keepImageNumbers: [2],
         newImages: [file],
-      })),
+      }),
     );
   });
 
