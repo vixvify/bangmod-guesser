@@ -1,11 +1,16 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { LocationImages } from "@/components/admin/location-images";
 import { Button } from "@/components/ui/button";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Input } from "@/components/ui/input";
+import { LOCATION_MESSAGES } from "@/core/constants/location";
 import type { Location } from "@/core/domain/location";
 import type {
   CreateLocationFormImagesInput,
@@ -16,30 +21,40 @@ import {
   type CreateLocationInput,
   type UpdateLocationFormInput,
 } from "@/core/schema/location.schema";
+import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
 import { AppRoutes } from "@/routes/app/routes";
 
-type LocationFormProps =
+type LocationFormProps = { header?: ReactNode } & (
   | {
       location?: undefined;
-      onSave: (values: CreateLocationInput, images: CreateLocationFormImagesInput) => void;
+      onSave: (
+        values: CreateLocationInput,
+        images: CreateLocationFormImagesInput,
+      ) => void | Promise<void>;
     }
   | {
       location: Location;
-      onSave: (values: UpdateLocationFormInput, images: UpdateLocationFormImagesInput) => void;
-    };
+      onSave: (
+        values: UpdateLocationFormInput,
+        images: UpdateLocationFormImagesInput,
+      ) => void | Promise<void>;
+    });
 
 export function LocationForm(props: LocationFormProps) {
+  const router = useRouter();
   const { location } = props;
   const isEdit = Boolean(location);
   const [existingImages, setExistingImages] = useState(location?.images ?? []);
-  const [newImages, setNewImages] =
-    useState<CreateLocationFormImagesInput["images"]>([]);
-  const [imagesDirty, setImagesDirty] = useState(false);
+  const [newImages, setNewImages] = useState<
+    CreateLocationFormImagesInput["images"]
+  >([]);
+  const [confirmationOpen, setConfirmationOpen] = useState(false);
+  const [discardConfirmationOpen, setDiscardConfirmationOpen] = useState(false);
   const {
     register,
     handleSubmit,
     trigger,
-    formState: { errors, isDirty, isValid },
+    formState: { errors, isDirty, isValid, isSubmitting },
   } = useForm({
     resolver: zodResolver(CreateLocationSchema),
     mode: "onChange",
@@ -55,32 +70,79 @@ export function LocationForm(props: LocationFormProps) {
     if (isEdit) void trigger();
   }, [isEdit, trigger]);
 
+  const hasImages = existingImages.length + newImages.length > 0;
+  const imagesDirty =
+    newImages.length > 0 ||
+    existingImages.length !== (location?.images.length ?? 0);
+  const hasUnsavedChanges = isDirty || imagesDirty;
+  const { cancelBrowserBack, confirmBrowserBack } = useUnsavedChangesGuard(
+    hasUnsavedChanges,
+    () => setDiscardConfirmationOpen(true),
+  );
+  const canSubmit =
+    isValid && hasImages && !isSubmitting && (!isEdit || hasUnsavedChanges);
+  const confirmation = isEdit
+    ? LOCATION_MESSAGES.updateConfirm
+    : LOCATION_MESSAGES.createConfirm;
+
   function onImagesChange(
     nextExistingImages: Location["images"],
     nextNewImages: CreateLocationFormImagesInput["images"],
   ) {
     setExistingImages(nextExistingImages);
     setNewImages(nextNewImages);
-    setImagesDirty(true);
   }
 
-  function saveLocation(values: CreateLocationInput) {
-    if (props.location) {
-      props.onSave(values, {
-        keepImageNumbers: existingImages.map((image) => image.imageNumber),
-        newImages,
-      });
-      return;
+  async function saveLocation(values: CreateLocationInput) {
+    try {
+      if (props.location) {
+        await props.onSave(values, {
+          keepImageNumbers: existingImages.map((image) => image.imageNumber),
+          newImages,
+        });
+      } else {
+        await props.onSave(values, { images: newImages });
+      }
+    } finally {
+      setConfirmationOpen(false);
     }
+  }
 
-    props.onSave(values, { images: newImages });
+  function leaveLocationForm() {
+    if (hasUnsavedChanges) {
+      setDiscardConfirmationOpen(true);
+    } else {
+      router.push(AppRoutes.adminLocations);
+    }
+  }
+
+  function confirmDiscard() {
+    setDiscardConfirmationOpen(false);
+    if (!confirmBrowserBack(() => router.push(AppRoutes.adminLocations))) {
+      router.push(AppRoutes.adminLocations);
+    }
   }
 
   return (
-    <form
-      noValidate
-      onSubmit={handleSubmit(saveLocation)}
-    >
+    <>
+      {props.header && (
+        <>
+          <Link
+            href={AppRoutes.adminLocations}
+            className="inline-flex items-center gap-1 text-sm text-slate-500 transition-colors hover:text-primary-main"
+            onClick={(event) => {
+              if (!hasUnsavedChanges) return;
+              event.preventDefault();
+              setDiscardConfirmationOpen(true);
+            }}
+          >
+            <ArrowBackRoundedIcon fontSize="small" />
+            กลับไปจัดการสถานที่
+          </Link>
+          {props.header}
+        </>
+      )}
+      <form noValidate onSubmit={handleSubmit(() => setConfirmationOpen(true))}>
       <div className="grid gap-8 border-t border-slate-200 py-8 lg:grid-cols-2 lg:gap-10">
         <section aria-labelledby="location-info-title">
           <h2 id="location-info-title" className="mb-5 text-lg font-bold">
@@ -139,18 +201,50 @@ export function LocationForm(props: LocationFormProps) {
         />
       </div>
       <div className="flex flex-wrap justify-end gap-3 border-t border-slate-200 pt-5">
-        <Button href={AppRoutes.adminLocations} variant="surface" size="small">
+        <Button
+          type="button"
+          variant="surface"
+          size="small"
+          onClick={leaveLocationForm}
+        >
           ยกเลิก
         </Button>
         <Button
           type="submit"
           variant="primary"
           size="small"
-          disabled={!isValid || (isEdit && !isDirty && !imagesDirty)}
+          disabled={!canSubmit}
         >
-          {isEdit ? "แก้ไขสถานที่" : "สร้างสถานที่"}
+          {isSubmitting
+            ? "กำลังบันทึก..."
+            : isEdit
+              ? "แก้ไขสถานที่"
+              : "สร้างสถานที่"}
         </Button>
       </div>
-    </form>
+      <ConfirmModal
+        open={confirmationOpen}
+        busy={isSubmitting}
+        title={confirmation.title}
+        description={confirmation.description}
+        confirmLabel={confirmation.confirm}
+        cancelLabel={confirmation.cancel}
+        onConfirm={() => void handleSubmit(saveLocation)()}
+        onCancel={() => setConfirmationOpen(false)}
+      />
+      <ConfirmModal
+        open={discardConfirmationOpen}
+        title={LOCATION_MESSAGES.discardConfirm.title}
+        description={LOCATION_MESSAGES.discardConfirm.description}
+        confirmLabel={LOCATION_MESSAGES.discardConfirm.confirm}
+        cancelLabel={LOCATION_MESSAGES.discardConfirm.cancel}
+        onConfirm={confirmDiscard}
+        onCancel={() => {
+          cancelBrowserBack();
+          setDiscardConfirmationOpen(false);
+        }}
+      />
+      </form>
+    </>
   );
 }

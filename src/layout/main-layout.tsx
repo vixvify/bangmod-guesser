@@ -20,7 +20,7 @@ export function MainLayout({
   variant = "fullBleed",
 }: MainLayoutProps) {
   return (
-    <main className={className}>
+    <main className={`${className} flex flex-col`}>
       <Navbar user={user} brandColor={brandColor} />
       {variant === "contained" ? (
         <ContentContainer
