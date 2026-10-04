@@ -2,12 +2,14 @@
 
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import Link from "next/link";
-import { LocationForm, type LocationFormValues } from "@/components/admin/location-form";
+import { LocationForm } from "@/components/admin/location-form";
+import type { CreateLocationFormImagesInput } from "@/core/schema/image.schema";
+import type { CreateLocationInput } from "@/core/schema/location.schema";
 import { AppRoutes } from "@/routes/app/routes";
 
 export default function CreateLocationPage() {
-  function saveLocation(values: LocationFormValues) {
-    console.log("Mock location create:", values);
+  function saveLocation(values: CreateLocationInput, images: CreateLocationFormImagesInput) {
+    console.log("Mock location create:", { ...values, ...images });
   }
 
   return (

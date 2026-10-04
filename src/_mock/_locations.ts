@@ -28,7 +28,6 @@ export const mockLocations: Location[] = rows.map(([name, imageCount], index) =>
   longitude: 100.4952,
   images: imageUrls.slice(0, imageCount).map((url, imageIndex) => ({
     imageNumber: imageIndex + 1,
-    name: `location-${String(imageIndex + 1).padStart(2, "0")}.jpg`,
     url,
   })),
 }));
