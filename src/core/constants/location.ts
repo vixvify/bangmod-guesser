@@ -3,6 +3,7 @@ export const LOCATION_MESSAGES = {
   emptyDescription: "ยังไม่มีสถานที่ในระบบ เริ่มต้นด้วยการสร้างสถานที่ใหม่",
   emptySearchDescription: "ลองใช้คำค้นหาอื่น หรือล้างการค้นหาเพื่อดูสถานที่ทั้งหมด",
   clearSearch: "ล้างการค้นหา",
+  searchFailed: "ค้นหาสถานที่ไม่สำเร็จ กรุณาลองอีกครั้ง",
   createSuccess: "สร้างสถานที่สำเร็จ",
   createFailed: "สร้างสถานที่ไม่สำเร็จ กรุณาลองอีกครั้ง",
   updateSuccess: "แก้ไขสถานที่สำเร็จ",

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { LocationImages } from "@/components/admin/location-images";
+import { useNavigationGuard } from "@/hooks/use-navigation-guard";
 import { Button } from "@/components/ui/button";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Input } from "@/components/ui/input";
@@ -38,10 +39,12 @@ type LocationFormProps = { header?: ReactNode } & (
         values: UpdateLocationFormInput,
         images: UpdateLocationFormImagesInput,
       ) => void | Promise<void>;
-    });
+    }
+);
 
 export function LocationForm(props: LocationFormProps) {
   const router = useRouter();
+  const navigationGuard = useNavigationGuard();
   const { location } = props;
   const isEdit = Boolean(location);
   const [existingImages, setExistingImages] = useState(location?.images ?? []);
@@ -50,6 +53,9 @@ export function LocationForm(props: LocationFormProps) {
   >([]);
   const [confirmationOpen, setConfirmationOpen] = useState(false);
   const [discardConfirmationOpen, setDiscardConfirmationOpen] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<
+    (() => void) | null
+  >(null);
   const {
     register,
     handleSubmit,
@@ -75,6 +81,15 @@ export function LocationForm(props: LocationFormProps) {
     newImages.length > 0 ||
     existingImages.length !== (location?.images.length ?? 0);
   const hasUnsavedChanges = isDirty || imagesDirty;
+
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+    return navigationGuard?.register((continueNavigation) => {
+      setPendingNavigation(() => continueNavigation);
+      setDiscardConfirmationOpen(true);
+    });
+  }, [hasUnsavedChanges, navigationGuard]);
+
   const { cancelBrowserBack, confirmBrowserBack } = useUnsavedChangesGuard(
     hasUnsavedChanges,
     () => setDiscardConfirmationOpen(true),
@@ -119,8 +134,13 @@ export function LocationForm(props: LocationFormProps) {
   function confirmDiscard() {
     setDiscardConfirmationOpen(false);
     if (!confirmBrowserBack(() => router.push(AppRoutes.adminLocations))) {
-      router.push(AppRoutes.adminLocations);
+      if (pendingNavigation) {
+        pendingNavigation();
+      } else {
+        router.push(AppRoutes.adminLocations);
+      }
     }
+    setPendingNavigation(null);
   }
 
   return (
@@ -143,107 +163,108 @@ export function LocationForm(props: LocationFormProps) {
         </>
       )}
       <form noValidate onSubmit={handleSubmit(() => setConfirmationOpen(true))}>
-      <div className="grid gap-8 border-t border-slate-200 py-8 lg:grid-cols-2 lg:gap-10">
-        <section aria-labelledby="location-info-title">
-          <h2 id="location-info-title" className="mb-5 text-lg font-bold">
-            ข้อมูลสถานที่
-          </h2>
-          <div className="flex flex-col gap-4">
-            <Input
-              id="location-name"
-              label="ชื่อสถานที่ *"
-              placeholder="เช่น อาคารเรียนรวม 2 (CB2)"
-              size="small"
-              {...register("name")}
-              error={errors.name?.message}
-              inputProps={{ maxLength: 100 }}
-            />
-            <Input
-              id="location-description"
-              label="คำอธิบาย"
-              placeholder="อธิบายรายละเอียดหรือจุดสังเกตของสถานที่"
-              size="small"
-              multiline
-              minRows={4}
-              {...register("description")}
-              error={errors.description?.message}
-              inputProps={{ maxLength: 500 }}
-            />
-            <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-8 border-t border-slate-200 py-8 lg:grid-cols-2 lg:gap-10">
+          <section aria-labelledby="location-info-title">
+            <h2 id="location-info-title" className="mb-5 text-lg font-bold">
+              ข้อมูลสถานที่
+            </h2>
+            <div className="flex flex-col gap-4">
               <Input
-                id="location-latitude"
-                label="ละติจูด *"
-                placeholder="เช่น 13.6516"
+                id="location-name"
+                label="ชื่อสถานที่ *"
+                placeholder="เช่น อาคารเรียนรวม 2 (CB2)"
                 size="small"
-                inputMode="decimal"
-                {...register("latitude")}
-                error={errors.latitude?.message}
+                {...register("name")}
+                error={errors.name?.message}
+                inputProps={{ maxLength: 100 }}
               />
               <Input
-                id="location-longitude"
-                label="ลองจิจูด *"
-                placeholder="เช่น 100.4952"
+                id="location-description"
+                label="คำอธิบาย"
+                placeholder="อธิบายรายละเอียดหรือจุดสังเกตของสถานที่"
                 size="small"
-                inputMode="decimal"
-                {...register("longitude")}
-                error={errors.longitude?.message}
+                multiline
+                minRows={4}
+                {...register("description")}
+                error={errors.description?.message}
+                inputProps={{ maxLength: 500 }}
               />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Input
+                  id="location-latitude"
+                  label="ละติจูด *"
+                  placeholder="เช่น 13.6516"
+                  size="small"
+                  inputMode="decimal"
+                  {...register("latitude")}
+                  error={errors.latitude?.message}
+                />
+                <Input
+                  id="location-longitude"
+                  label="ลองจิจูด *"
+                  placeholder="เช่น 100.4952"
+                  size="small"
+                  inputMode="decimal"
+                  {...register("longitude")}
+                  error={errors.longitude?.message}
+                />
+              </div>
+              <p className="text-xs text-slate-500">
+                ระบุพิกัดของสถานที่ในรูปแบบเลขทศนิยม
+              </p>
             </div>
-            <p className="text-xs text-slate-500">
-              ระบุพิกัดของสถานที่ในรูปแบบเลขทศนิยม
-            </p>
-          </div>
-        </section>
-        <LocationImages
-          existingImages={existingImages}
-          newImages={newImages}
-          onChange={onImagesChange}
+          </section>
+          <LocationImages
+            existingImages={existingImages}
+            newImages={newImages}
+            onChange={onImagesChange}
+          />
+        </div>
+        <div className="flex flex-wrap justify-end gap-3 border-t border-slate-200 pt-5">
+          <Button
+            type="button"
+            variant="surface"
+            size="small"
+            onClick={leaveLocationForm}
+          >
+            ยกเลิก
+          </Button>
+          <Button
+            type="submit"
+            variant="primary"
+            size="small"
+            disabled={!canSubmit}
+          >
+            {isSubmitting
+              ? "กำลังบันทึก..."
+              : isEdit
+                ? "แก้ไขสถานที่"
+                : "สร้างสถานที่"}
+          </Button>
+        </div>
+        <ConfirmModal
+          open={confirmationOpen}
+          busy={isSubmitting}
+          title={confirmation.title}
+          description={confirmation.description}
+          confirmLabel={confirmation.confirm}
+          cancelLabel={confirmation.cancel}
+          onConfirm={() => void handleSubmit(saveLocation)()}
+          onCancel={() => setConfirmationOpen(false)}
         />
-      </div>
-      <div className="flex flex-wrap justify-end gap-3 border-t border-slate-200 pt-5">
-        <Button
-          type="button"
-          variant="surface"
-          size="small"
-          onClick={leaveLocationForm}
-        >
-          ยกเลิก
-        </Button>
-        <Button
-          type="submit"
-          variant="primary"
-          size="small"
-          disabled={!canSubmit}
-        >
-          {isSubmitting
-            ? "กำลังบันทึก..."
-            : isEdit
-              ? "แก้ไขสถานที่"
-              : "สร้างสถานที่"}
-        </Button>
-      </div>
-      <ConfirmModal
-        open={confirmationOpen}
-        busy={isSubmitting}
-        title={confirmation.title}
-        description={confirmation.description}
-        confirmLabel={confirmation.confirm}
-        cancelLabel={confirmation.cancel}
-        onConfirm={() => void handleSubmit(saveLocation)()}
-        onCancel={() => setConfirmationOpen(false)}
-      />
-      <ConfirmModal
-        open={discardConfirmationOpen}
-        title={LOCATION_MESSAGES.discardConfirm.title}
-        description={LOCATION_MESSAGES.discardConfirm.description}
-        confirmLabel={LOCATION_MESSAGES.discardConfirm.confirm}
-        cancelLabel={LOCATION_MESSAGES.discardConfirm.cancel}
-        onConfirm={confirmDiscard}
-        onCancel={() => {
-          cancelBrowserBack();
-          setDiscardConfirmationOpen(false);
-        }}
-      />
+        <ConfirmModal
+          open={discardConfirmationOpen}
+          title={LOCATION_MESSAGES.discardConfirm.title}
+          description={LOCATION_MESSAGES.discardConfirm.description}
+          confirmLabel={LOCATION_MESSAGES.discardConfirm.confirm}
+          cancelLabel={LOCATION_MESSAGES.discardConfirm.cancel}
+          onConfirm={confirmDiscard}
+          onCancel={() => {
+            cancelBrowserBack();
+            setPendingNavigation(null);
+            setDiscardConfirmationOpen(false);
+          }}
+        />
       </form>
     </>
   );

@@ -5,8 +5,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import CreateLocationPage from "@/app/admin/locations/create/page";
 import EditLocationPage from "@/app/admin/locations/[id]/edit/page";
 import { LocationForm } from "@/components/admin/location-form";
+import { Navbar } from "@/components/layout/navbar";
+import { NavigationGuardProvider } from "@/hooks/use-navigation-guard";
 import { mockLocations } from "@/_mock/_locations";
 import { AppError } from "@/core/errors/app.error";
+import { UserRole } from "@/core/domain/user";
 
 const { getLocationById, post, put, push, refresh, success, error } = vi.hoisted(() => ({
   getLocationById: vi.fn(),
@@ -21,6 +24,7 @@ const { getLocationById, post, put, push, refresh, success, error } = vi.hoisted
 vi.mock("@/infrastructure/container", () => ({ locationService: { getLocationById } }));
 vi.mock("@/lib/http", () => ({ default: { post, put } }));
 vi.mock("sonner", () => ({ toast: { success, error } }));
+vi.mock("@/lib/auth-client", () => ({ authClient: { signOut: vi.fn() } }));
 vi.mock("next/navigation", async (importOriginal) => ({
   ...await importOriginal<typeof import("next/navigation")>(),
   useRouter: () => ({ push, refresh }),
@@ -50,6 +54,48 @@ afterEach(() => {
 });
 
 describe("location editor", () => {
+  it("confirms discarding changes before navigating from the navbar", async () => {
+    render(
+      <NavigationGuardProvider>
+        <Navbar user={{ id: "admin-1", name: "Admin", email: "admin@example.com", role: UserRole.ADMIN }} />
+        <LocationForm onSave={vi.fn()} />
+      </NavigationGuardProvider>,
+    );
+    fireEvent.change(screen.getByRole("textbox", { name: "ชื่อสถานที่ *" }), {
+      target: { value: "ลานกิจกรรม" },
+    });
+    await act(async () => { await Promise.resolve(); });
+
+    fireEvent.click(screen.getByRole("link", { name: "Bangmod Guesser" }));
+    const discard = screen.getByRole("dialog", { name: "ยกเลิกการแก้ไข?" });
+    expect(push).not.toHaveBeenCalled();
+    fireEvent.click(within(discard).getByRole("button", { name: "กลับไปแก้ไข" }));
+    expect(push).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("link", { name: "โปรไฟล์ของ Admin" }));
+    fireEvent.click(within(screen.getByRole("dialog", { name: "ยกเลิกการแก้ไข?" }))
+      .getByRole("button", { name: "ออกโดยไม่บันทึก" }));
+    expect(push).toHaveBeenCalledWith("/profile");
+  });
+
+  it("confirms discarding changes before opening the navbar logout confirmation", async () => {
+    render(
+      <NavigationGuardProvider>
+        <Navbar user={{ id: "admin-1", name: "Admin", email: "admin@example.com", role: UserRole.ADMIN }} />
+        <LocationForm onSave={vi.fn()} />
+      </NavigationGuardProvider>,
+    );
+    fireEvent.change(screen.getByRole("textbox", { name: "ชื่อสถานที่ *" }), {
+      target: { value: "ลานกิจกรรม" },
+    });
+    await act(async () => { await Promise.resolve(); });
+    fireEvent.click(screen.getByRole("button", { name: "ออกจากระบบ" }));
+    expect(screen.getByRole("dialog", { name: "ยกเลิกการแก้ไข?" })).toBeTruthy();
+    fireEvent.click(within(screen.getByRole("dialog", { name: "ยกเลิกการแก้ไข?" }))
+      .getByRole("button", { name: "ออกโดยไม่บันทึก" }));
+    expect(screen.getByRole("dialog", { name: "ยืนยันการออกจากระบบ" })).toBeTruthy();
+  });
+
   it("warns on browser Back and keeps the form when the warning is cancelled", async () => {
     render(<CreateLocationPage />);
     const name = screen.getByRole("textbox", { name: "ชื่อสถานที่ *" }) as HTMLInputElement;
