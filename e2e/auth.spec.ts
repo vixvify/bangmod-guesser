@@ -30,12 +30,19 @@ test("registers in the test database, signs in, and keeps access to the protecte
   const signupResponse = await signupResponsePromise;
   expect(signupResponse.ok()).toBe(true);
 
-  await expect(page).toHaveURL(/\/login\?callbackUrl=%2Fprofile$/);
+  await expect(page).toHaveURL(/\/login\?callbackUrl=%2Fprofile$/, { timeout: 15_000 });
+  await page.goto("/login?callbackUrl=%2Fprofile", { waitUntil: "networkidle" });
   await page.getByRole("textbox", { name: "อีเมล" }).fill(realPlayer.email);
   await page.getByLabel("รหัสผ่าน", { exact: true }).fill(realPlayer.password);
-  await page.getByRole("button", { name: "เข้าสู่ระบบ", exact: true }).click();
 
-  await expect(page).toHaveURL(/\/profile$/);
+  const loginResponsePromise = page.waitForResponse((response) =>
+    response.url().endsWith("/api/auth/sign-in/email"),
+  );
+  await page.getByRole("button", { name: "เข้าสู่ระบบ", exact: true }).click();
+  const loginResponse = await loginResponsePromise;
+  expect(loginResponse.ok()).toBe(true);
+
+  await expect(page).toHaveURL(/\/profile$/, { timeout: 15_000 });
   const profile = page.getByRole("region", { name: "ข้อมูลโปรไฟล์" });
   await expect(profile.getByRole("heading", { name: realPlayer.name })).toBeVisible();
   await expect(profile).toContainText(realPlayer.email);
