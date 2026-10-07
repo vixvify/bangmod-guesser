@@ -6,13 +6,38 @@ const player = {
   email: "player@example.com",
   password: "Password1",
 };
+const realPlayer = { ...player, email: "real-player@example.test" };
 
-async function fillRegistration(page: Page) {
-  await page.getByRole("textbox", { name: "ชื่อผู้ใช้" }).fill(`  ${player.name}  `);
-  await page.getByRole("textbox", { name: "อีเมล" }).fill("  PLAYER@EXAMPLE.COM  ");
-  await page.getByLabel("รหัสผ่าน", { exact: true }).fill(player.password);
-  await page.getByLabel("ยืนยันรหัสผ่าน").fill(player.password);
+async function fillRegistration(page: Page, account = player) {
+  await page.getByRole("textbox", { name: "ชื่อผู้ใช้" }).fill(`  ${account.name}  `);
+  await page.getByRole("textbox", { name: "อีเมล" }).fill(`  ${account.email.toUpperCase()}  `);
+  await page.getByLabel("รหัสผ่าน", { exact: true }).fill(account.password);
+  await page.getByLabel("ยืนยันรหัสผ่าน").fill(account.password);
 }
+
+test("registers in the test database, signs in, and keeps access to the protected profile", async ({ page }) => {
+  await page.goto("/profile", { waitUntil: "networkidle" });
+  await expect(page).toHaveURL(/\/login\?callbackUrl=%2Fprofile$/);
+
+  await page.getByRole("link", { name: "สมัครสมาชิก" }).click();
+  await expect(page).toHaveURL(/\/register\?callbackUrl=%2Fprofile$/);
+  await fillRegistration(page, realPlayer);
+  await page.getByRole("button", { name: "สมัครสมาชิก" }).click();
+
+  await expect(page).toHaveURL(/\/login\?callbackUrl=%2Fprofile$/);
+  await page.getByRole("textbox", { name: "อีเมล" }).fill(realPlayer.email);
+  await page.getByLabel("รหัสผ่าน", { exact: true }).fill(realPlayer.password);
+  await page.getByRole("button", { name: "เข้าสู่ระบบ", exact: true }).click();
+
+  await expect(page).toHaveURL(/\/profile$/);
+  const profile = page.getByRole("region", { name: "ข้อมูลโปรไฟล์" });
+  await expect(profile.getByRole("heading", { name: realPlayer.name })).toBeVisible();
+  await expect(profile).toContainText(realPlayer.email);
+
+  await page.reload();
+  await expect(page).toHaveURL(/\/profile$/);
+  await expect(page.getByRole("region", { name: "ข้อมูลโปรไฟล์" })).toContainText(realPlayer.email);
+});
 
 test("signs up, then signs in and returns to the requested page", async ({ page }) => {
   let registrationBody: unknown;
