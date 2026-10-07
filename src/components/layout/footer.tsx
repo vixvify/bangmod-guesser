@@ -25,7 +25,7 @@ export function Footer() {
   return (
     <footer
       aria-label="Site footer"
-      className="border-t border-secondary-light/10 bg-secondary-dark py-14 text-secondary-light/75 lg:py-16"
+      className="mt-auto border-t border-secondary-light/10 bg-secondary-dark py-14 text-secondary-light/75 lg:py-16"
     >
       <ContentContainer>
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">

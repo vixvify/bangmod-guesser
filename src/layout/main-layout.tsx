@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { ContentContainer } from "@/components/layout/content-container";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
+import { NavigationGuardProvider } from "@/hooks/use-navigation-guard";
 import type { User } from "@/core/domain/user";
 
 type MainLayoutProps = {
@@ -20,19 +21,21 @@ export function MainLayout({
   variant = "fullBleed",
 }: MainLayoutProps) {
   return (
-    <main className={className}>
-      <Navbar user={user} brandColor={brandColor} />
-      {variant === "contained" ? (
-        <ContentContainer
-          contentWidth="wide"
-          className="pb-16 pt-24 sm:pt-28"
-          data-layout-content="contained"
-        >
-          {children}
-        </ContentContainer>
-      ) : (
-        children
-      )}
+    <main className={`${className} flex flex-col`}>
+      <NavigationGuardProvider>
+        <Navbar user={user} brandColor={brandColor} />
+        {variant === "contained" ? (
+          <ContentContainer
+            contentWidth="wide"
+            className="pb-16 pt-24 sm:pt-28"
+            data-layout-content="contained"
+          >
+            {children}
+          </ContentContainer>
+        ) : (
+          children
+        )}
+      </NavigationGuardProvider>
       <Footer />
     </main>
   );

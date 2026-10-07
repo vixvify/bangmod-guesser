@@ -1,0 +1,16 @@
+name: bangmod-guesser-e2e
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: e2e
+      POSTGRES_PASSWORD: e2e
+      POSTGRES_DB: kmutt_guesser_e2e
+    ports:
+      - "127.0.0.1:5439:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U e2e -d kmutt_guesser_e2e"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
