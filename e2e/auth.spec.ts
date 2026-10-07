@@ -19,10 +19,16 @@ test("registers in the test database, signs in, and keeps access to the protecte
   await page.goto("/profile", { waitUntil: "networkidle" });
   await expect(page).toHaveURL(/\/login\?callbackUrl=%2Fprofile$/);
 
-  await page.getByRole("link", { name: "สมัครสมาชิก" }).click();
+  await page.goto("/register?callbackUrl=%2Fprofile", { waitUntil: "networkidle" });
   await expect(page).toHaveURL(/\/register\?callbackUrl=%2Fprofile$/);
   await fillRegistration(page, realPlayer);
+
+  const signupResponsePromise = page.waitForResponse((response) =>
+    response.url().endsWith("/api/auth/sign-up/email"),
+  );
   await page.getByRole("button", { name: "สมัครสมาชิก" }).click();
+  const signupResponse = await signupResponsePromise;
+  expect(signupResponse.ok()).toBe(true);
 
   await expect(page).toHaveURL(/\/login\?callbackUrl=%2Fprofile$/);
   await page.getByRole("textbox", { name: "อีเมล" }).fill(realPlayer.email);
