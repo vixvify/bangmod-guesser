@@ -62,7 +62,7 @@ const users: (Omit<UserAccount, "suspension" | "reason"> & Partial<Pick<UserAcco
     email: "mind.mint@kmutt.ac.th",
     image: null,
     role: UserRole.USER,
-    status: "TEMPORARY",
+    status: "SUSPENDED",
     gameCount: 49,
     suspension: { startDate: "2026-09-02", endDate: "2026-09-04" },
     reason: "ละเมิดกติกา",

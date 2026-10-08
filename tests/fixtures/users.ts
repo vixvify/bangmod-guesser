@@ -25,7 +25,6 @@ export function createUserModel(overrides: Partial<UserModel> = {}): UserModel {
     banReason: null,
     banExpires: null,
     status: UserStatus.ACTIVE,
-    suspendedUntil: null,
     createdAt: new Date("2026-01-01T00:00:00.000Z"),
     updatedAt: new Date("2026-01-01T00:00:00.000Z"),
     ...overrides,

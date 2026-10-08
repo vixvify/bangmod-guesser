@@ -179,14 +179,14 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
 
           {selectedStatus !== "ACTIVE" && (
             <div className="grid gap-4 border-t border-slate-200 pt-5 sm:grid-cols-2">
-              {selectedStatus === "TEMPORARY" && (
+              {selectedStatus === "SUSPENDED" && (
                 <Controller
                   name="suspension"
                   control={control}
                   render={({ field }) => (
                     <div>
                       <DateRangePicker
-                        label="ระยะเวลาการระงับ"
+                        label="ระยะเวลาการระงับ (ไม่บังคับ)"
                         defaultValue={field.value}
                         onChange={field.onChange}
                       />
@@ -201,7 +201,7 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
               )}
               <div
                 className={
-                  selectedStatus === "TEMPORARY" ? "" : "sm:col-span-2"
+                  selectedStatus === "SUSPENDED" ? "" : "sm:col-span-2"
                 }
               >
                 <Input
