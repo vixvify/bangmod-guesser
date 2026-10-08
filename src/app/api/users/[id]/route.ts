@@ -1,13 +1,13 @@
-import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 
+import { UserRole } from "@/core/domain/user";
+import { UserFormSchema, UserIdSchema } from "@/core/schema/user.schema";
 import { UserAdapter } from "@/infrastructure/adapters/user.adapter";
 import { UserService } from "@/core/service/user.service";
 import { requireAuth } from "@/lib/auth-check";
 import { roleCheck } from "@/lib/role-check";
-import { UserRole } from "@/core/domain/user";
-import { UserFormSchema } from "@/core/schema/user.schema";
-import { AppError } from "@/core/errors/app.error";
+import { errorResponse, successResponse } from "@/lib/api-response";
+import { parseSchema } from "@/lib/validation";
 
 const userService = new UserService(
     new UserAdapter(),
@@ -24,7 +24,8 @@ export async function PATCH(
     context: RouteContext,
 ) {
     try {
-        const currentUser = await requireAuth();
+        const currentUser =
+            await requireAuth();
 
         roleCheck(
             currentUser,
@@ -33,36 +34,17 @@ export async function PATCH(
 
         const { id } = await context.params;
 
-        if (!id) {
-            return NextResponse.json(
-                {
-                    message:
-                        "User ID is required",
-                },
-                {
-                    status: 400,
-                },
-            );
-        }
+        const userId = parseSchema(
+            UserIdSchema,
+            id,
+        );
 
         const body = await request.json();
 
-        const result =
-            UserFormSchema.safeParse(body);
-
-        if (!result.success) {
-            return NextResponse.json(
-                {
-                    message:
-                        "Invalid user data",
-                    errors:
-                        result.error.flatten(),
-                },
-                {
-                    status: 400,
-                },
-            );
-        }
+        const data = parseSchema(
+            UserFormSchema,
+            body,
+        );
 
         const requestHeaders =
             await headers();
@@ -70,39 +52,15 @@ export async function PATCH(
         const updatedUser =
             await userService.updateUser(
                 requestHeaders,
-                id,
-                result.data,
+                userId,
+                data,
             );
 
-        return NextResponse.json(
+        return successResponse(
             updatedUser,
         );
     } catch (error) {
-        console.error(
-            "PATCH /api/users/[id] error:",
-            error,
-        );
-
-        if (error instanceof AppError) {
-            return NextResponse.json(
-                {
-                    message: error.message,
-                },
-                {
-                    status: error.status,
-                },
-            );
-        }
-
-        return NextResponse.json(
-            {
-                message:
-                    "Failed to update user",
-            },
-            {
-                status: 500,
-            },
-        );
+        return errorResponse(error);
     }
 }
 
@@ -121,55 +79,24 @@ export async function DELETE(
 
         const { id } = await context.params;
 
-        if (!id) {
-            return NextResponse.json(
-                {
-                    message:
-                        "User ID is required",
-                },
-                {
-                    status: 400,
-                },
-            );
-        }
+        const userId = parseSchema(
+            UserIdSchema,
+            id,
+        );
 
         const requestHeaders =
             await headers();
 
         await userService.deleteUser(
             requestHeaders,
-            id,
+            userId,
         );
 
-        return NextResponse.json({
+        return successResponse({
             success: true,
-            userId: id,
+            userId,
         });
     } catch (error) {
-        console.error(
-            "DELETE /api/users/[id] error:",
-            error,
-        );
-
-        if (error instanceof AppError) {
-            return NextResponse.json(
-                {
-                    message: error.message,
-                },
-                {
-                    status: error.status,
-                },
-            );
-        }
-
-        return NextResponse.json(
-            {
-                message:
-                    "Failed to delete user",
-            },
-            {
-                status: 500,
-            },
-        );
+        return errorResponse(error);
     }
 }
