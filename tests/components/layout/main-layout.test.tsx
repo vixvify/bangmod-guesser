@@ -12,6 +12,20 @@ vi.mock("@/lib/auth-client", () => ({
 import { MainLayout } from "@/layout/main-layout";
 
 describe("MainLayout", () => {
+  it.each(["fullBleed", "contained"] as const)(
+    "keeps the footer at the viewport bottom when %s content is short",
+    (variant) => {
+      const markup = renderToStaticMarkup(
+        <MainLayout user={null} variant={variant}>
+          <p>Short content</p>
+        </MainLayout>,
+      );
+
+      expect(markup).toMatch(/<main class="[^"]*min-h-svh[^"]*flex flex-col[^"]*">/);
+      expect(markup).toMatch(/<footer[^>]*class="[^"]*mt-auto[^"]*"/);
+    },
+  );
+
   it("keeps full-bleed sections outside a constrained content wrapper", () => {
     const markup = renderToStaticMarkup(
       <MainLayout user={null} variant="fullBleed">

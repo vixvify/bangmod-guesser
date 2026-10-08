@@ -2,8 +2,9 @@
 
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import { ContentContainer } from "@/components/layout/content-container";
+import { useNavigationGuard } from "@/hooks/use-navigation-guard";
 import LeaderboardOutlinedIcon from "@mui/icons-material/LeaderboardOutlined";
 import LoginOutlinedIcon from "@mui/icons-material/LoginOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
@@ -28,6 +29,7 @@ export function Navbar({
   brandColor = "var(--color-secondary-light)",
 }: NavbarProps) {
   const router = useRouter();
+  const navigationGuard = useNavigationGuard();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -60,6 +62,11 @@ export function Navbar({
       >
         <NextLink
           href={AppRoutes.home}
+          onClick={(event) => {
+            if (navigationGuard?.request(() => router.push(AppRoutes.home))) {
+              event.preventDefault();
+            }
+          }}
           style={
             {
               "--brand-color": brandColor,
@@ -96,6 +103,11 @@ export function Navbar({
             <>
               <Button
                 href={AppRoutes.profile}
+                onClick={(event: MouseEvent<HTMLAnchorElement>) => {
+                  if (navigationGuard?.request(() => router.push(AppRoutes.profile))) {
+                    event.preventDefault();
+                  }
+                }}
                 variant="surface"
                 size="icon"
                 aria-label={`โปรไฟล์ของ ${user.name}`}
@@ -106,7 +118,11 @@ export function Navbar({
               <Button
                 variant="surface"
                 size="small"
-                onClick={() => setIsLogoutModalOpen(true)}
+                onClick={() => {
+                  if (!navigationGuard?.request(() => setIsLogoutModalOpen(true))) {
+                    setIsLogoutModalOpen(true);
+                  }
+                }}
                 disabled={isLoggingOut}
               >
                 <LogoutOutlinedIcon fontSize="small" />
