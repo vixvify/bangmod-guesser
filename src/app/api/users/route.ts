@@ -1,103 +1,26 @@
-import { NextResponse } from "next/server";
-import { headers } from "next/headers";
-
+import { UserRole } from "@/core/domain/user";
+import { SearchUserQuerySchema } from "@/core/schema/user.schema";
 import { UserAdapter } from "@/infrastructure/adapters/user.adapter";
 import { UserService } from "@/core/service/user.service";
+import { errorResponse, successResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth-check";
 import { roleCheck } from "@/lib/role-check";
-import { AppError } from "@/core/errors/app.error";
-import {
-    UserRole,
-    type UserStatus,
-} from "@/core/domain/user";
+import { parseSchema } from "@/lib/validation";
+import { headers } from "next/headers";
 
 export async function GET(request: Request) {
     try {
-        const currentUser = await requireAuth();
-
         roleCheck(
-            currentUser,
+            await requireAuth(),
             [UserRole.ADMIN],
         );
 
+        const query = parseSchema(
+            SearchUserQuerySchema,
+            Object.fromEntries(new URL(request.url).searchParams),
+        );
+
         const requestHeaders = await headers();
-
-        const { searchParams } =
-            new URL(request.url);
-
-        const page = Number(
-            searchParams.get("page") ?? "1",
-        );
-
-        const limit = Number(
-            searchParams.get("limit") ?? "9",
-        );
-
-        const roleParam =
-            searchParams.get("role");
-
-        let role: UserRole | undefined;
-
-        if (roleParam) {
-            if (
-                roleParam !== UserRole.USER &&
-                roleParam !== UserRole.ADMIN
-            ) {
-                return NextResponse.json(
-                    {
-                        message:
-                            "Invalid role",
-                    },
-                    {
-                        status: 400,
-                    },
-                );
-            }
-
-            role = roleParam;
-        }
-
-        const statusParam =
-            searchParams.get("status");
-
-        let status: UserStatus | undefined;
-
-        if (statusParam) {
-            if (
-                statusParam !== "ACTIVE" &&
-                statusParam !== "SUSPENDED" &&
-                statusParam !== "INACTIVE"
-            ) {
-                return NextResponse.json(
-                    {
-                        message:
-                            "Invalid status",
-                    },
-                    {
-                        status: 400,
-                    },
-                );
-            }
-
-            status = statusParam;
-        }
-
-        if (
-            !Number.isInteger(page) ||
-            page < 1 ||
-            !Number.isInteger(limit) ||
-            limit < 1
-        ) {
-            return NextResponse.json(
-                {
-                    message:
-                        "Invalid pagination parameters",
-                },
-                {
-                    status: 400,
-                },
-            );
-        }
 
         const userService =
             new UserService(
@@ -107,38 +30,14 @@ export async function GET(request: Request) {
         const result =
             await userService.getUsers(
                 requestHeaders,
-                page,
-                limit,
-                role,
-                status,
+                query.page,
+                query.limit,
+                query.role,
+                query.status,
             );
 
-        return NextResponse.json(result);
+        return successResponse(result);
     } catch (error) {
-        console.error(
-            "GET /api/users error:",
-            error,
-        );
-
-        if (error instanceof AppError) {
-            return NextResponse.json(
-                {
-                    message: error.message,
-                },
-                {
-                    status: error.status,
-                },
-            );
-        }
-
-        return NextResponse.json(
-            {
-                message:
-                    "Failed to get users",
-            },
-            {
-                status: 500,
-            },
-        );
+        return errorResponse(error);
     }
 }
