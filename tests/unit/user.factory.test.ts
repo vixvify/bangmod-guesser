@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { UserRole } from "@/core/domain/user";
 import { UserFactory } from "@/infrastructure/factories/user.factory";
 
 describe("UserFactory.toAccount", () => {
@@ -74,5 +75,22 @@ describe("UserFactory.toAccount", () => {
         },
     );
     expect(result.suspension.endDate,).toBeNull();
+    });
+
+    it("should use USER role when role is undefined", () => {
+        const result = UserFactory.toAccount(
+            {
+                id: "user-1",
+                name: "John Doe",
+                email: "john@example.com",
+                role: undefined,
+            },
+            {
+                status: "ACTIVE",
+                gameCount: 0,
+            },
+        );
+
+        expect(result.role).toBe(UserRole.USER);
     });
 });

@@ -9,7 +9,43 @@ export class UserAdapter {
     async listUsers(
         headers: Headers,
         role?: UserRole,
+        offset: number = 0,
+        limit: number = 9,
+        status?: UserStatus,
     ) {
+        if (status) {
+            const where = {
+                status,
+                ...(role
+                    ? {
+                        role,
+                    }
+                    : {}),
+            };
+
+            const [users, total] =
+                await Promise.all([
+                    prisma.user.findMany({
+                        where,
+                        skip: offset,
+                        take: limit,
+                        orderBy: {
+                            createdAt: "desc",
+                        },
+                    }),
+                    prisma.user.count({
+                        where,
+                    }),
+                ]);
+
+            return {
+                users,
+                total,
+                limit,
+                offset,
+            };
+        }
+
         return auth.api.listUsers({
             query: {
                 ...(role
@@ -19,6 +55,8 @@ export class UserAdapter {
                         filterValue: role,
                     }
                     : {}),
+                offset,
+                limit,
             },
             headers,
         });

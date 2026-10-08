@@ -2,8 +2,9 @@ import {
     UserRole,
     type UserStatus,
 } from "@/core/domain/user";
-import { UserAdapter } from "@/infrastructure/adapters/user.adapter";
 import { AppError } from "@/core/errors/app.error";
+import { UserAdapter } from "@/infrastructure/adapters/user.adapter";
+import { UserFactory } from "@/infrastructure/factories/user.factory";
 
 export class UserService {
     constructor(
@@ -17,10 +18,15 @@ export class UserService {
         role?: UserRole,
         status?: UserStatus,
     ) {
+        const offset = (page - 1) * limit;
+
         const result =
             await this.userAdapter.listUsers(
                 headers,
                 role,
+                offset,
+                limit,
+                status,
             );
 
         const userIds =
@@ -48,64 +54,23 @@ export class UserService {
                 const userMetadata =
                     metadataMap.get(user.id);
 
-                const userStatus: UserStatus =
-                    userMetadata?.status ??
-                    "ACTIVE";
-
-                return {
-                    id: user.id,
-                    name: user.name,
-                    email: user.email,
-                    image:
-                        user.image ?? null,
-                    role:
-                        user.role as UserRole,
-                    status: userStatus,
-                    gameCount:
-                        userMetadata?.gameCount ??
-                        0,
-                    suspension: {
-                        startDate: null,
-                        endDate:
-                            userStatus ===
-                                "SUSPENDED" &&
-                            user.banExpires
-                                ? new Date(
-                                    user.banExpires,
-                                ).toISOString()
-                                : null,
+                return UserFactory.toAccount(
+                    user,
+                    {
+                        gameCount:
+                            userMetadata?.gameCount ??
+                            0,
+                        status:
+                            userMetadata?.status ??
+                            "ACTIVE",
                     },
-                    reason:
-                        user.banReason ?? "",
-                };
+                );
             },
         );
 
-        const filteredUsers =
-            status
-                ? users.filter(
-                    (user) =>
-                        user.status ===
-                        status,
-                )
-                : users;
-
-                
-        const total =
-            filteredUsers.length;
-
-        const offset =
-            (page - 1) * limit;
-
-        const paginatedUsers =
-            filteredUsers.slice(
-                offset,
-                offset + limit,
-            );
-
         return {
-            users: paginatedUsers,
-            total,
+            users,
+            total: result.total,
             page,
             limit,
         };
@@ -205,7 +170,6 @@ export class UserService {
         reason?: string,
         endDate?: Date,
     ) {
-        
         if (status === "SUSPENDED") {
             if (endDate) {
                 const now = new Date();

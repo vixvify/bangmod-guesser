@@ -4,7 +4,7 @@ import {
   type User,
   type UserAccount,
 } from "@/core/domain/user";
-import type { UserModel } from "../../prisma/types/user";
+import type { UserModel } from "../../../prisma/types/user";
 
 const roleMap: Record<PrismaRole, UserRole> = {
   [PrismaRole.USER]: UserRole.USER,
@@ -16,7 +16,7 @@ interface UserAccountSource {
   name: string;
   email: string;
   image?: string | null;
-  role: string;
+  role?: string;
   banReason?: string | null;
   banExpires?: Date | null;
 }
