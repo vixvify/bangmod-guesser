@@ -191,14 +191,19 @@ test.describe("manage locations", () => {
 
   test("asks before leaving an edited location through the navbar", async ({ page }) => {
     await page.goto(`/admin/locations/${firstLocation.id}/edit`, { waitUntil: "networkidle" });
-    await page.getByRole("textbox", { name: "ชื่อสถานที่ *" }).fill("ชื่อที่ยังไม่บันทึก");
+    const nameInput = page.getByRole("textbox", { name: "ชื่อสถานที่ *" });
+    await expect(nameInput).toHaveValue(firstLocation.name);
+    await expect(async () => {
+      await nameInput.fill("ชื่อที่ยังไม่บันทึก");
+      await expect(nameInput).toHaveValue("ชื่อที่ยังไม่บันทึก");
+    }).toPass({ timeout: 5_000 });
     await page.getByRole("link", { name: "Bangmod Guesser" }).click();
 
     const confirmation = page.getByRole("dialog", { name: LOCATION_MESSAGES.discardConfirm.title });
     await expect(confirmation).toBeVisible();
     await confirmation.getByRole("button", { name: LOCATION_MESSAGES.discardConfirm.cancel }).click();
     await expect(page).toHaveURL(new RegExp(`/admin/locations/${firstLocation.id}/edit$`));
-    await expect(page.getByRole("textbox", { name: "ชื่อสถานที่ *" })).toHaveValue("ชื่อที่ยังไม่บันทึก");
+    await expect(nameInput).toHaveValue("ชื่อที่ยังไม่บันทึก");
 
     await page.getByRole("link", { name: "Bangmod Guesser" }).click();
     await confirmation.getByRole("button", { name: LOCATION_MESSAGES.discardConfirm.confirm }).click();
