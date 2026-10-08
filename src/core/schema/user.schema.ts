@@ -10,32 +10,14 @@ export const UserFormSchema = z
     role: z.enum(UserRole),
     status: z.enum([
       "ACTIVE",
-      "TEMPORARY",
       "SUSPENDED",
-      "DEACTIVATED",
+      "INACTIVE",
     ] satisfies UserStatus[]),
     suspension: z.object({
       startDate: z.iso.date().nullable(),
       endDate: z.iso.date().nullable(),
     }),
     reason: z.string().trim().max(200, USER_MESSAGES.reasonMax),
-  })
-  .superRefine((value, context) => {
-    if (value.status !== "TEMPORARY") return;
-
-    if (!value.suspension.startDate || !value.suspension.endDate) {
-      context.addIssue({
-        code: "custom",
-        path: ["suspension"],
-        message: USER_MESSAGES.suspensionRequired,
-      });
-    } else if (value.suspension.endDate < value.suspension.startDate) {
-      context.addIssue({
-        code: "custom",
-        path: ["suspension"],
-        message: USER_MESSAGES.suspensionOrder,
-      });
-    }
   });
 
 export type UserFormInput = z.input<typeof UserFormSchema>;

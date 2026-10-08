@@ -15,6 +15,7 @@ enum Role {
 enum UserStatus {
   ACTIVE
   SUSPENDED
+  INACTIVE
 }
 
 enum LocationStatus {
@@ -44,7 +45,6 @@ model User {
   banReason      String?
   banExpires     DateTime?
   status         UserStatus @default(ACTIVE)
-  suspendedUntil DateTime?
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 
