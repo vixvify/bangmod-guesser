@@ -20,9 +20,8 @@ type UsersTableProps = {
 
 const statusLabels: Record<UserStatus, string> = {
   ACTIVE: "ปกติ",
-  TEMPORARY: "ระงับชั่วคราว",
   SUSPENDED: "ระงับถาวร",
-  DEACTIVATED: "ปิดใช้งาน",
+  INACTIVE: "ปิดใช้งาน",
 };
 
 const badgeClass =
@@ -33,10 +32,23 @@ const roleClasses = {
 };
 const statusClasses: Record<UserStatus, string> = {
   ACTIVE: "border-emerald-200 bg-emerald-50 text-emerald-800",
-  TEMPORARY: "border-amber-200 bg-amber-50 text-amber-800",
   SUSPENDED: "border-rose-200 bg-rose-50 text-rose-800",
-  DEACTIVATED: "border-slate-300 bg-slate-200 text-slate-700",
+  INACTIVE: "border-slate-300 bg-slate-200 text-slate-700",
 };
+
+function getStatusDisplay(user: UserAccount) {
+  if (user.status === "SUSPENDED" && user.suspension.endDate) {
+    return {
+      label: "ระงับชั่วคราว",
+      className: "border-amber-200 bg-amber-50 text-amber-800",
+    };
+  }
+
+  return {
+    label: statusLabels[user.status],
+    className: statusClasses[user.status],
+  };
+}
 
 export function UsersTable({ users, onEdit, onDelete }: UsersTableProps) {
   return (
@@ -78,11 +90,14 @@ export function UsersTable({ users, onEdit, onDelete }: UsersTableProps) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {users.map((user, index) => (
-            <TableRow
-              key={user.id}
-              hover
-              sx={{ "&:hover": { backgroundColor: "#fff7ed" } }}
+          {users.map((user, index) => {
+            const statusDisplay = getStatusDisplay(user);
+
+            return (
+              <TableRow
+                key={user.id}
+                hover
+                sx={{ "&:hover": { backgroundColor: "#fff7ed" } }}
             >
               <TableCell sx={{ color: "#64748b" }}>
                 {String(index + 1).padStart(2, "0")}
@@ -98,9 +113,9 @@ export function UsersTable({ users, onEdit, onDelete }: UsersTableProps) {
                     {user.role === UserRole.ADMIN ? "ผู้ดูแล" : "ผู้เล่น"}
                   </span>
                   <span
-                    className={`${badgeClass} ${statusClasses[user.status]}`}
+                    className={`${badgeClass} ${statusDisplay.className}`}
                   >
-                    {statusLabels[user.status]}
+                    {statusDisplay.label}
                   </span>
                 </div>
               </TableCell>
@@ -133,8 +148,9 @@ export function UsersTable({ users, onEdit, onDelete }: UsersTableProps) {
                   </IconButton>
                 </div>
               </TableCell>
-            </TableRow>
-          ))}
+              </TableRow>
+            );
+          })}
           {users.length === 0 && (
             <TableRow>
               <TableCell

@@ -17,17 +17,12 @@ const options: {
 }[] = [
   { value: "ACTIVE", label: "ปกติ", description: "ใช้งานได้ตามปกติ" },
   {
-    value: "TEMPORARY",
-    label: "ระงับชั่วคราว",
-    description: "มีกำหนดเวลา ปลดล็อกอัตโนมัติ",
-  },
-  {
     value: "SUSPENDED",
-    label: "ระงับถาวร",
-    description: "ปลดล็อกการใช้งานโดยผู้ดูแลเท่านั้น",
+    label: "ระงับการใช้งาน",
+    description: "เลือกวันสิ้นสุดเพื่อระงับชั่วคราว หรือเว้นว่างเพื่อระงับถาวร",
   },
   {
-    value: "DEACTIVATED",
+    value: "INACTIVE",
     label: "ปิดใช้งาน",
     description: "ไม่ถือเป็นการลงโทษ",
   },

@@ -11,7 +11,7 @@ export interface User {
   role: UserRole;
 }
 
-export type UserStatus = "ACTIVE" | "TEMPORARY" | "SUSPENDED" | "DEACTIVATED";
+export type UserStatus = "ACTIVE" | "SUSPENDED" | "INACTIVE";
 
 export type UserAccount = User & {
   image: string | null;

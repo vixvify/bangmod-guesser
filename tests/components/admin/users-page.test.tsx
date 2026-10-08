@@ -3,6 +3,8 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import UsersPage from "@/app/admin/users/page";
+import { UsersTable } from "@/components/admin/users-table";
+import { mockUsers } from "@/_mock/_users";
 
 afterEach(() => {
   cleanup();
@@ -47,6 +49,18 @@ describe("UsersPage", () => {
     expect(within(suspended).getByText("ระงับถาวร").className).toContain("bg-rose-50");
   });
 
+  it("shows an inactive account with the disabled-state badge", () => {
+    render(
+      <UsersTable
+        users={[{ ...mockUsers[0], status: "INACTIVE" }]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("ปิดใช้งาน").className).toContain("bg-slate-200");
+  });
+
   it("keeps all mock rows visible when the UI-only filters are selected", async () => {
     render(<UsersPage />);
     fireEvent.mouseDown(screen.getByRole("combobox", { name: "กรองตามบทบาท" }));
@@ -58,8 +72,8 @@ describe("UsersPage", () => {
     expect(within(table).getByText("ponddd")).toBeTruthy();
 
     fireEvent.mouseDown(screen.getByRole("combobox", { name: "กรองตามสถานะ" }));
-    fireEvent.click(await screen.findByRole("option", { name: "ระงับชั่วคราว" }));
-    expect(screen.getByRole("combobox", { name: "กรองตามสถานะ" }).textContent).toContain("ระงับชั่วคราว");
+    fireEvent.click(await screen.findByRole("option", { name: "ระงับการใช้งาน" }));
+    expect(screen.getByRole("combobox", { name: "กรองตามสถานะ" }).textContent).toContain("ระงับการใช้งาน");
     expect(within(table).getAllByRole("row")).toHaveLength(10);
     expect(within(table).getByText("vixvify_v")).toBeTruthy();
   });
@@ -86,15 +100,25 @@ describe("UsersPage", () => {
     );
   });
 
-  it("reveals date and reason fields for temporary suspension and requires dates", async () => {
+  it("shows optional suspension dates and allows a permanent suspension", async () => {
     render(<UsersPage />);
     fireEvent.click(screen.getByRole("button", { name: "แก้ไข ponddd" }));
     const modal = screen.getByRole("dialog", { name: "แก้ไขผู้ใช้" });
-    fireEvent.click(within(modal).getByRole("radio", { name: /ระงับชั่วคราว/ }));
+    fireEvent.click(within(modal).getByRole("radio", { name: /ระงับการใช้งาน/ }));
 
-    expect(within(modal).getByRole("textbox", { name: "ระยะเวลาการระงับ" })).toBeTruthy();
+    expect(within(modal).getByRole("textbox", { name: "ระยะเวลาการระงับ (ไม่บังคับ)" })).toBeTruthy();
     expect(within(modal).getByRole("textbox", { name: "เหตุผล (ไม่บังคับ)" })).toBeTruthy();
-    await waitFor(() => expect(within(modal).getByRole("button", { name: "บันทึก" }).hasAttribute("disabled")).toBe(true));
+    await waitFor(() => expect(within(modal).getByRole("button", { name: "บันทึก" }).hasAttribute("disabled")).toBe(false));
+  });
+
+  it("shows the inactive option without a suspension date field", () => {
+    render(<UsersPage />);
+    fireEvent.click(screen.getByRole("button", { name: "แก้ไข ponddd" }));
+    const modal = screen.getByRole("dialog", { name: "แก้ไขผู้ใช้" });
+    fireEvent.click(within(modal).getByRole("radio", { name: /ปิดใช้งาน/ }));
+
+    expect(within(modal).queryByRole("textbox", { name: "ระยะเวลาการระงับ (ไม่บังคับ)" })).toBeNull();
+    expect(within(modal).getByRole("textbox", { name: "เหตุผล (ไม่บังคับ)" })).toBeTruthy();
   });
 
   it("asks for confirmation before logging a mock delete", () => {

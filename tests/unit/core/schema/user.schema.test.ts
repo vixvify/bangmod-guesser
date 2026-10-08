@@ -1,44 +1,143 @@
 import { describe, expect, it } from "vitest";
-import { UserRole } from "@/core/domain/user";
-import { UserFormSchema } from "@/core/schema/user.schema";
-
-const validInput = {
-  name: "Bangmod Player",
-  role: UserRole.USER,
-  status: "ACTIVE" as const,
-  suspension: { startDate: null, endDate: null },
-  reason: "",
-};
+import {
+    SearchUserQuerySchema,
+    UserFormSchema,
+    UserIdSchema,
+} from "@/core/schema/user.schema";
 
 describe("UserFormSchema", () => {
-  it("accepts an active user without a suspension range", () => {
-    expect(UserFormSchema.safeParse(validInput).success).toBe(true);
-  });
-
-  it("requires a complete date range for temporary suspension", () => {
-    const result = UserFormSchema.safeParse({ ...validInput, status: "TEMPORARY" });
-    expect(result.success).toBe(false);
-    if (!result.success) expect(result.error.issues[0]?.path).toEqual(["suspension"]);
-  });
-
-  it("rejects a temporary suspension ending before it begins", () => {
+  it("should accept ACTIVE user", () => {
     const result = UserFormSchema.safeParse({
-      ...validInput,
+      name: "John Doe",
+      role: "USER",
+      status: "ACTIVE",
+      suspension: {
+        startDate: null,
+        endDate: null,
+      },
+      reason: "",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("should accept SUSPENDED user without end date", () => {
+    const result = UserFormSchema.safeParse({
+      name: "John Doe",
+      role: "USER",
+      status: "SUSPENDED",
+      suspension: {
+        startDate: null,
+        endDate: null,
+      },
+      reason: "Violation",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("should accept SUSPENDED user with end date", () => {
+    const result = UserFormSchema.safeParse({
+      name: "John Doe",
+      role: "USER",
+      status: "SUSPENDED",
+      suspension: {
+        startDate: null,
+        endDate: "2099-12-31",
+      },
+      reason: "Violation",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("should accept INACTIVE user", () => {
+    const result = UserFormSchema.safeParse({
+      name: "John Doe",
+      role: "USER",
+      status: "INACTIVE",
+      suspension: {
+        startDate: null,
+        endDate: null,
+      },
+      reason: "",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("should reject TEMPORARY status", () => {
+    const result = UserFormSchema.safeParse({
+      name: "John Doe",
+      role: "USER",
       status: "TEMPORARY",
-      suspension: { startDate: "2026-10-05", endDate: "2026-10-04" },
+      suspension: {
+        startDate: null,
+        endDate: null,
+      },
+      reason: "",
     });
     expect(result.success).toBe(false);
   });
 
-  it("accepts a valid temporary suspension", () => {
-    expect(UserFormSchema.safeParse({
-      ...validInput,
-      status: "TEMPORARY",
-      suspension: { startDate: "2026-10-05", endDate: "2026-10-08" },
-    }).success).toBe(true);
+  it("should reject invalid username", () => {
+    const result = UserFormSchema.safeParse({
+      name: "",
+      role: "USER",
+      status: "ACTIVE",
+      suspension: {
+        startDate: null,
+        endDate: null,
+      },
+      reason: "",
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("SearchUserQuerySchema", () => {
+  it("should use default page and limit", () => {
+    const result = SearchUserQuerySchema.parse({});
+    expect(result).toEqual({ page: 1, limit: 9 });
+    });
+
+  it("should parse page and limit from query string", () => {
+    const result = SearchUserQuerySchema.parse({ page: "2", limit: "20" });
+    expect(result).toEqual({ page: 2, limit: 20 });
   });
 
-  it("rejects an invalid username", () => {
-    expect(UserFormSchema.safeParse({ ...validInput, name: " " }).success).toBe(false);
+  it("should accept role and status filters", () => {
+    const result =SearchUserQuerySchema.parse({ page: "1", limit: "10", role: "ADMIN", status: "SUSPENDED" });
+    expect(result).toEqual({ page: 1, limit: 10, role: "ADMIN", status: "SUSPENDED" });
+  });
+
+  it("should reject invalid role", () => {
+    const result = SearchUserQuerySchema.safeParse({ role: "INVALID" });
+    expect(result.success).toBe(false);
+  });
+
+  it("should reject invalid status", () => {
+    const result = SearchUserQuerySchema.safeParse({ status: "TEMPORARY" });
+    expect(result.success).toBe(false);
+  });
+
+  it("should reject invalid page", () => {
+    const result = SearchUserQuerySchema.safeParse({ page: "0" });
+    expect(result.success).toBe(false);
+  });
+
+  it("should reject limit over 100", () => {
+    const result = SearchUserQuerySchema.safeParse({ limit: "101" });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("UserIdSchema", () => {
+  it("should accept a valid user id", () => {
+    expect(UserIdSchema.safeParse("user-123").success).toBe(true);
+  });
+
+  it("should reject an empty user id", () => {
+    expect(UserIdSchema.safeParse("").success).toBe(false);
+  });
+
+  it("should reject a whitespace-only user id", () => {
+    expect(UserIdSchema.safeParse("   ").success).toBe(false);
   });
 });

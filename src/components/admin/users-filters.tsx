@@ -33,9 +33,8 @@ export function UsersFilters() {
           options={[
             { value: "ALL", label: "ทั้งหมด" },
             { value: "ACTIVE", label: "ปกติ" },
-            { value: "TEMPORARY", label: "ระงับชั่วคราว" },
-            { value: "SUSPENDED", label: "ระงับถาวร" },
-            { value: "DEACTIVATED", label: "ปิดใช้งาน" },
+            { value: "SUSPENDED", label: "ระงับการใช้งาน" },
+            { value: "INACTIVE", label: "ปิดใช้งาน" },
           ]}
           onChange={setStatus}
           aria-label="กรองตามสถานะ"
