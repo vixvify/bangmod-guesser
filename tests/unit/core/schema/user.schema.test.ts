@@ -15,30 +15,56 @@ describe("UserFormSchema", () => {
     expect(UserFormSchema.safeParse(validInput).success).toBe(true);
   });
 
-  it("requires a complete date range for temporary suspension", () => {
-    const result = UserFormSchema.safeParse({ ...validInput, status: "TEMPORARY" });
-    expect(result.success).toBe(false);
-    if (!result.success) expect(result.error.issues[0]?.path).toEqual(["suspension"]);
+  it("accepts a suspended user without an end date", () => {
+    const result = UserFormSchema.safeParse({
+      ...validInput,
+      status: "SUSPENDED",
+      suspension: {
+        startDate: null,
+        endDate: null,
+      },
+    });
+
+    expect(result.success).toBe(true);
   });
 
-  it("rejects a temporary suspension ending before it begins", () => {
+  it("accepts a suspended user with an end date", () => {
+    const result = UserFormSchema.safeParse({
+      ...validInput,
+      status: "SUSPENDED",
+      suspension: {
+        startDate: "2026-10-05",
+        endDate: "2026-10-08",
+      },
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts an inactive user", () => {
+    const result = UserFormSchema.safeParse({
+      ...validInput,
+      status: "INACTIVE",
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects an invalid status", () => {
     const result = UserFormSchema.safeParse({
       ...validInput,
       status: "TEMPORARY",
-      suspension: { startDate: "2026-10-05", endDate: "2026-10-04" },
     });
+
     expect(result.success).toBe(false);
   });
 
-  it("accepts a valid temporary suspension", () => {
-    expect(UserFormSchema.safeParse({
-      ...validInput,
-      status: "TEMPORARY",
-      suspension: { startDate: "2026-10-05", endDate: "2026-10-08" },
-    }).success).toBe(true);
-  });
-
   it("rejects an invalid username", () => {
-    expect(UserFormSchema.safeParse({ ...validInput, name: " " }).success).toBe(false);
+    expect(
+      UserFormSchema.safeParse({
+        ...validInput,
+        name: " ",
+      }).success,
+    ).toBe(false);
   });
 });
