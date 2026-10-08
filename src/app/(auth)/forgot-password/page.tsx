@@ -2,6 +2,7 @@
 
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import {
   RequestPasswordResetSchema,
   type RequestPasswordResetInput,
 } from "@/core/schema/auth.schema";
+import { AppRoutes } from "@/routes/app/routes";
 
 export default function ForgotPasswordPage() {
   const {
@@ -59,7 +61,14 @@ export default function ForgotPasswordPage() {
           </Button>
         </div>
       </form>
-
+      <p className="mt-8 text-center text-sm">
+        <Link
+          href={AppRoutes.login}
+          className="font-bold text-primary-main transition-colors hover:text-secondary-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-main"
+        >
+          กลับไปหน้าเข้าสู่ระบบ
+        </Link>
+      </p>
     </>
   );
 }

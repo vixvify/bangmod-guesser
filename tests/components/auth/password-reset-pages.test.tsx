@@ -14,12 +14,12 @@ beforeEach(() => toastInfo.mockReset());
 afterEach(cleanup);
 
 describe("ForgotPasswordPage", () => {
-  it("shows the email form without a login link beneath it", () => {
+  it("shows the email form and a link back to login", () => {
     render(<ForgotPasswordPage />);
 
     expect(screen.getByRole("heading", { name: "ลืมรหัสผ่าน" })).toBeTruthy();
     expect(screen.getByRole("textbox", { name: "อีเมล" })).toBeTruthy();
-    expect(screen.queryByRole("link", { name: "เข้าสู่ระบบ" })).toBeNull();
+    expect(screen.getByRole("link", { name: "กลับไปหน้าเข้าสู่ระบบ" }).getAttribute("href")).toBe("/login");
     expect((screen.getByRole("button", { name: "ขอลิงก์เปลี่ยนรหัสผ่าน" }) as HTMLButtonElement).disabled).toBe(true);
   });
 
