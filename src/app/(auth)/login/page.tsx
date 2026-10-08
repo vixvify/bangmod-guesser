@@ -131,8 +131,13 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
           error={errors.password?.message}
           required
         />
-        <p className="mt-2 text-right text-xs text-secondary-dark/45">
-          ลืมรหัสผ่าน? (ยังไม่เปิดใช้งาน)
+        <p className="mt-2 text-right text-xs">
+          <Link
+            href={AppRoutes.forgotPassword}
+            className="text-secondary-dark/65 transition-colors hover:text-primary-main focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-main"
+          >
+            ลืมรหัสผ่าน?
+          </Link>
         </p>
         <div className="pt-6">
           <Button

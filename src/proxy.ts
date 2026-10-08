@@ -4,7 +4,12 @@ import { AppRoutes } from "@/routes/app/routes";
 
 const PUBLIC_ROUTES: string[] = [AppRoutes.home, AppRoutes.game];
 
-const AUTH_ROUTES: string[] = [AppRoutes.login, AppRoutes.register];
+const AUTH_ROUTES: string[] = [
+  AppRoutes.login,
+  AppRoutes.register,
+  AppRoutes.forgotPassword,
+  AppRoutes.resetPassword,
+];
 
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;

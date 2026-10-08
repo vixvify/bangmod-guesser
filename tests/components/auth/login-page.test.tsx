@@ -65,6 +65,12 @@ describe("LoginPage", () => {
     expect(logo?.getAttribute("alt")).toBe("");
   });
 
+  it("links to the password reset request page", async () => {
+    await renderPage();
+
+    expect(screen.getByRole("link", { name: "ลืมรหัสผ่าน?" }).getAttribute("href")).toBe("/forgot-password");
+  });
+
   it("starts Google OAuth without requiring email fields and preserves the requested page", async () => {
     signInSocial.mockResolvedValue({ error: null });
     await renderPage("/game?mode=solo");
