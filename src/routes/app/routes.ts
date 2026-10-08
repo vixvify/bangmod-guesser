@@ -3,6 +3,8 @@ export const AppRoutes = {
   game: "/game",
   login: "/login",
   register: "/register",
+  forgotPassword: "/forgot-password",
+  resetPassword: "/reset-password",
   dashboard: "/dashboard",
   profile: "/profile",
   admin: "/admin",

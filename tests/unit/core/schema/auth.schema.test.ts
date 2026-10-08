@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { AUTH_MESSAGES } from "@/core/constants/auth";
-import { LoginSchema, RegisterSchema } from "@/core/schema/auth.schema";
+import {
+  LoginSchema,
+  RegisterSchema,
+  RequestPasswordResetSchema,
+  ResetPasswordSchema,
+} from "@/core/schema/auth.schema";
 import { validLogin, validRegistration } from "../../../fixtures/users";
 
 describe("RegisterSchema", () => {
@@ -38,5 +43,39 @@ describe("LoginSchema", () => {
     });
 
     expect(result.email).toBe("student@example.com");
+  });
+});
+
+describe("RequestPasswordResetSchema", () => {
+  it("normalizes a valid email and rejects an invalid email", () => {
+    expect(RequestPasswordResetSchema.parse({ email: "  STUDENT@EXAMPLE.COM  " })).toEqual({
+      email: "student@example.com",
+    });
+    expect(RequestPasswordResetSchema.safeParse({ email: "not-an-email" }).success).toBe(false);
+  });
+});
+
+describe("ResetPasswordSchema", () => {
+  it("accepts a strong password when confirmation matches", () => {
+    expect(ResetPasswordSchema.safeParse({
+      password: "Password1",
+      confirmPassword: "Password1",
+    }).success).toBe(true);
+  });
+
+  it("rejects weak or mismatched passwords", () => {
+    expect(ResetPasswordSchema.safeParse({
+      password: "short",
+      confirmPassword: "short",
+    }).success).toBe(false);
+
+    const result = ResetPasswordSchema.safeParse({
+      password: "Password1",
+      confirmPassword: "Different1",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.message).toBe(AUTH_MESSAGES.confirmPassword.mismatch);
+    }
   });
 });

@@ -96,4 +96,14 @@ describe("App proxy middleware", () => {
     const response = await proxy(request);
     expect(response.headers.get("location")).toBeNull();
   });
+
+  it.each([AppRoutes.forgotPassword, AppRoutes.resetPassword])(
+    "allows guests to open %s",
+    async (pathname) => {
+      const response = await proxy(createRequest(pathname));
+
+      expect(response.headers.get("location")).toBeNull();
+      expect(getSession).not.toHaveBeenCalled();
+    },
+  );
 });

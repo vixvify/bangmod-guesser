@@ -25,6 +25,7 @@ export const AUTH_MESSAGES = {
   },
 
   submit: {
+    passwordResetUnavailable: "ฟีเจอร์เปลี่ยนรหัสผ่านยังไม่เปิดใช้งาน ข้อมูลของคุณยังไม่ถูกส่ง",
     googleLoginFailed: "เข้าสู่ระบบด้วย Google ไม่สำเร็จ กรุณาลองอีกครั้ง",
     loginSuccess: "เข้าสู่ระบบสำเร็จ",
     loginFailed: "เข้าสู่ระบบไม่สำเร็จ กรุณาตรวจสอบอีเมลและรหัสผ่าน",
