@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import type { UserRepository } from "@/core/ports/user.repository";
-import type { SearchUserQueryInput } from "@/core/schema/user.schema";
+import type { SearchUserQuery } from "@/core/schema/user.schema";
 import type { UserStatus } from "@/core/domain/user";
 import type {
   GetUserRecordsResult,
@@ -11,7 +11,7 @@ import { prisma } from "@/lib/prisma";
 const withGameCount = { _count: { select: { games: true } } } as const;
 
 export class UserRepositoryImpl implements UserRepository {
-  async findMany(query: SearchUserQueryInput): Promise<GetUserRecordsResult> {
+  async findMany(query: SearchUserQuery): Promise<GetUserRecordsResult> {
     const where: Prisma.UserWhereInput = {
       ...(query.role ? { role: query.role } : {}),
       ...(query.status ? { status: query.status } : {}),

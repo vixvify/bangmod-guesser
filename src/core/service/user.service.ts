@@ -3,7 +3,7 @@ import { AppError } from "@/core/errors/app.error";
 import type { UserAdminPort } from "@/core/ports/user-admin.port";
 import type { UserRepository } from "@/core/ports/user.repository";
 import type {
-  SearchUserQueryInput,
+  SearchUserQuery,
   UserFormInput,
 } from "@/core/schema/user.schema";
 import { UserFactory } from "@/infrastructure/factories/user.factory";
@@ -14,7 +14,7 @@ export class UserService {
     private readonly userAdmin: UserAdminPort,
   ) {}
 
-  async getUsers(query: SearchUserQueryInput): Promise<PaginatedUsers> {
+  async getUsers(query: SearchUserQuery): Promise<PaginatedUsers> {
     const { items, total } = await this.userRepository.findMany(query);
     return {
       users: items.map(UserFactory.toAccount),
