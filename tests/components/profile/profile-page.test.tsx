@@ -13,7 +13,7 @@ vi.mock("@/lib/auth-client", () => ({
 }));
 
 describe("ProfilePage", () => {
-  it("renders the authenticated user profile and mock history inside the light main layout", async () => {
+  it("renders the authenticated user profile and mock history in the game theme", async () => {
     vi.mocked(requireAuth).mockResolvedValue({
       id: "user_1",
       name: "KMUTT Student",
@@ -34,10 +34,11 @@ describe("ProfilePage", () => {
     expect(markup).toContain("2 กันยายน 2026 - 4 กันยายน 2026");
     expect(markup).not.toContain("ตั้งแต่วันที่");
     expect(markup).toContain("#GAME-0001");
-    expect(markup).toContain("bg-slate-50 text-secondary-dark");
+    expect(markup).toContain("bg-secondary-main text-surface-text");
+    expect(markup).not.toContain("data-game-backdrop");
     expect(markup).toContain('data-layout-content="contained"');
-    expect(markup).toContain("border-slate-200 bg-white");
-    expect(markup).toContain("color:var(--color-secondary-dark)");
+    expect(markup).toContain("border-surface-border bg-surface-overlay");
+    expect(markup).toContain("color:var(--color-surface-text)");
     expect(markup).toContain("ออกจากระบบ");
     expect(markup).toContain("โปรไฟล์ของ KMUTT Student");
     expect(markup).not.toContain("จัดการระบบ");

@@ -23,13 +23,16 @@ type DateRangePickerProps = {
   label: string;
   defaultValue?: DateRange;
   onChange?: (value: DateRange) => void;
+  theme?: "light" | "dark";
 };
 
 export function DateRangePicker({
   label,
   defaultValue,
   onChange,
+  theme = "light",
 }: DateRangePickerProps) {
+  const isDark = theme === "dark";
   const [range, setRange] = useState<DateRange>(
     defaultValue ?? { startDate: null, endDate: null },
   );
@@ -68,11 +71,17 @@ export function DateRangePicker({
           htmlFor={inputId}
           sx={{
             mb: "0.5rem",
-            color: "var(--color-secondary-dark)",
+            color: isDark
+              ? "var(--color-surface-text)"
+              : "var(--color-secondary-dark)",
             fontFamily: "var(--font-prompt), sans-serif",
             fontSize: "0.875rem",
             fontWeight: 700,
-            "&.Mui-focused": { color: "var(--color-secondary-dark)" },
+            "&.Mui-focused": {
+              color: isDark
+                ? "var(--color-primary-light)"
+                : "var(--color-secondary-dark)",
+            },
           }}
         >
           {label}
@@ -100,15 +109,26 @@ export function DateRangePicker({
           }
           sx={{
             borderRadius: "0.5rem",
-            backgroundColor: "#f1f5f9",
+            backgroundColor: isDark ? "var(--color-surface-control)" : "#f1f5f9",
+            color: isDark
+              ? "var(--color-surface-text)"
+              : "var(--color-secondary-dark)",
             fontFamily: "var(--font-prompt), sans-serif",
             cursor: "pointer",
+            "& .MuiOutlinedInput-notchedOutline": isDark
+              ? { borderColor: "var(--color-surface-control-border)" }
+              : undefined,
+            "& .MuiInputAdornment-root": isDark
+              ? { color: "var(--color-primary-light)" }
+              : undefined,
             "& input": {
               cursor: "pointer",
               fontSize: "0.75rem",
               textOverflow: "ellipsis",
             },
-            "&:hover": { backgroundColor: "#fff" },
+            "&:hover": {
+              backgroundColor: isDark ? "var(--color-surface-control-hover)" : "#fff",
+            },
           }}
         />
       </FormControl>
@@ -118,11 +138,23 @@ export function DateRangePicker({
         onClose={() => setAnchor(null)}
         anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
         transformOrigin={{ vertical: "top", horizontal: "left" }}
-        slotProps={{ paper: { sx: { borderRadius: "1rem", mt: 1 } } }}
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: "1rem",
+              mt: 1,
+              ...(isDark && {
+                backgroundColor: "var(--color-secondary-main)",
+                color: "var(--color-surface-text)",
+                border: "1px solid var(--color-surface-border)",
+              }),
+            },
+          },
+        }}
       >
-        <div className="grid grid-cols-2 gap-3 border-b border-slate-100 px-5 py-4 text-sm text-secondary-dark">
+        <div className={`grid grid-cols-2 gap-3 border-b px-5 py-4 text-sm ${isDark ? "border-surface-border text-surface-text" : "border-slate-100 text-secondary-dark"}`}>
           <div>
-            <p className="text-xs text-neutral-500">วันเริ่มต้น</p>
+            <p className={`text-xs ${isDark ? "text-surface-muted" : "text-neutral-500"}`}>วันเริ่มต้น</p>
             <p>
               {range.startDate
                 ? dayjs(range.startDate).locale("th").format("D MMM YYYY")
@@ -130,7 +162,7 @@ export function DateRangePicker({
             </p>
           </div>
           <div>
-            <p className="text-xs text-neutral-500">วันสิ้นสุด</p>
+            <p className={`text-xs ${isDark ? "text-surface-muted" : "text-neutral-500"}`}>วันสิ้นสุด</p>
             <p>
               {range.endDate
                 ? dayjs(range.endDate).locale("th").format("D MMM YYYY")
@@ -167,7 +199,7 @@ export function DateRangePicker({
                       hasContinuation
                         ? `, linear-gradient(${isStart ? "to right" : "to left"}, transparent 50%, var(--color-primary-soft) 50%)`
                         : ""
-                    }, linear-gradient(#fff, #fff)`
+                    }, linear-gradient(${isDark ? "var(--color-secondary-main)" : "#fff"}, ${isDark ? "var(--color-secondary-main)" : "#fff"})`
                   : undefined;
                 const radius =
                   isBetween && day.day() === 0
@@ -192,7 +224,7 @@ export function DateRangePicker({
                         ? "var(--color-primary-soft)"
                         : undefined,
                     backgroundImage: endpointBackground,
-                    color: isEndpoint ? "#fff" : undefined,
+                    color: isEndpoint ? "#fff" : isDark ? "var(--color-surface-text)" : undefined,
                     borderRadius: radius,
                     "&.MuiPickerDay-selected": {
                       backgroundColor: isEndpoint ? "transparent" : undefined,
@@ -215,6 +247,12 @@ export function DateRangePicker({
             }}
             sx={{
               fontFamily: "var(--font-prompt), sans-serif",
+              ...(isDark && {
+                "& .MuiPickersCalendarHeader-switchViewButton, & .MuiPickersArrowSwitcher-button, & .MuiPickersYear-yearButton": {
+                  color: "var(--color-surface-text)",
+                },
+                "& .MuiDayCalendar-weekDayLabel": { color: "var(--color-surface-muted)" },
+              }),
               "& .MuiPickersCalendarHeader-label, & .MuiDayCalendar-weekDayLabel, & .MuiPickersDay-root, & .MuiPickersYear-yearButton": {
                 fontFamily: "var(--font-prompt), sans-serif",
               },

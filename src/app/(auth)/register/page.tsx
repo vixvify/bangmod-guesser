@@ -68,7 +68,7 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
         <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
           สมัครสมาชิก
         </h1>
-        <p className="mt-3 text-sm leading-6 text-secondary-dark/65">
+        <p className="mt-3 text-sm leading-6 text-surface-muted">
           สร้างบัญชีของคุณเพื่อร่วมสนุกกับเรา
         </p>
       </header>
@@ -81,6 +81,7 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
         <Input
           {...register("name")}
           id="register-name"
+          theme="dark"
           label="ชื่อผู้ใช้"
           autoComplete="name"
           placeholder="กรอกชื่อผู้ใช้"
@@ -91,6 +92,7 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
         <Input
           {...register("email")}
           id="register-email"
+          theme="dark"
           label="อีเมล"
           type="email"
           autoComplete="email"
@@ -102,6 +104,7 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
         <Input
           {...register("password")}
           id="register-password"
+          theme="dark"
           label="รหัสผ่าน"
           type="password"
           autoComplete="new-password"
@@ -113,6 +116,7 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
         <Input
           {...register("confirmPassword")}
           id="register-confirm-password"
+          theme="dark"
           label="ยืนยันรหัสผ่าน"
           type="password"
           autoComplete="new-password"
@@ -133,11 +137,11 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
         </div>
       </form>
 
-      <p className="mt-8 text-center text-sm text-secondary-dark/65">
+      <p className="mt-8 text-center text-sm text-surface-muted">
         มีบัญชีอยู่แล้ว?{" "}
         <Link
           href={loginHref}
-          className="font-bold text-primary-main transition-colors hover:text-secondary-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-main"
+          className="font-bold text-primary-light transition-colors hover:text-primary-main focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-main"
         >
           เข้าสู่ระบบ
         </Link>

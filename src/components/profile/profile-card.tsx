@@ -46,7 +46,7 @@ export function ProfileCard({ profile, canManageSystem = false }: ProfileCardPro
   return (
     <section
       aria-label="ข้อมูลโปรไฟล์"
-      className="flex flex-wrap items-center gap-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:gap-6 sm:p-8"
+      className="flex flex-wrap items-center gap-5 rounded-3xl border border-surface-border bg-surface-overlay p-5 shadow-2xl shadow-black/20 sm:gap-6 sm:p-8"
     >
       <Avatar
         src={getProfileImageUrl(profile.image)}
@@ -57,8 +57,8 @@ export function ProfileCard({ profile, canManageSystem = false }: ProfileCardPro
           flexShrink: 0,
           border: "0.1875rem solid #fff",
           backgroundColor: "var(--color-primary-soft)",
-          color: "var(--color-secondary-dark)",
-          boxShadow: "0 0.25rem 1rem rgb(0 0 0 / 12%)",
+          color: "var(--color-secondary-main)",
+          boxShadow: "0 0.25rem 1rem rgb(0 0 0 / 20%)",
           fontFamily: "var(--font-prompt), sans-serif",
           fontSize: "2rem",
           fontWeight: 700,
@@ -69,7 +69,7 @@ export function ProfileCard({ profile, canManageSystem = false }: ProfileCardPro
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <h1 className="truncate text-xl font-bold text-secondary-dark sm:text-2xl">
+          <h1 className="truncate text-xl font-bold text-surface-text sm:text-2xl">
             {username}
           </h1>
           <IconButton
@@ -77,12 +77,12 @@ export function ProfileCard({ profile, canManageSystem = false }: ProfileCardPro
             aria-label="แก้ไขชื่อผู้ใช้"
             title="แก้ไขชื่อผู้ใช้"
             onClick={() => setIsEditOpen(true)}
-            sx={{ color: "var(--color-secondary-dark)" }}
+            sx={{ color: "var(--color-primary-light)", "&:hover": { backgroundColor: "color-mix(in srgb, var(--color-primary-main) 12%, transparent)" } }}
           >
             <EditOutlinedIcon fontSize="small" />
           </IconButton>
         </div>
-        <p className="mt-1 truncate text-sm text-neutral-500 sm:text-base">
+        <p className="mt-1 truncate text-sm text-surface-muted sm:text-base">
           {profile.email}
         </p>
       </div>

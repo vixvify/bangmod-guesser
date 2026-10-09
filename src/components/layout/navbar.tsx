@@ -1,7 +1,7 @@
 "use client";
 
 import NextLink from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, type MouseEvent } from "react";
 import { ContentContainer } from "@/components/layout/content-container";
 import { useNavigationGuard } from "@/hooks/use-navigation-guard";
@@ -18,6 +18,7 @@ import type { User } from "@/core/domain/user";
 import { AppRoutes } from "@/routes/app/routes";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
+import styles from "./navbar.module.css";
 
 type NavbarProps = {
   user: User | null;
@@ -29,6 +30,7 @@ export function Navbar({
   brandColor = "var(--color-secondary-light)",
 }: NavbarProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const navigationGuard = useNavigationGuard();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
@@ -83,6 +85,8 @@ export function Navbar({
             variant="surface"
             size="icon"
             onClick={() => setIsSettingsOpen(true)}
+            aria-pressed={isSettingsOpen}
+            className={styles.navButton}
             aria-label="ตั้งค่าเกม"
             title="ตั้งค่าเกม"
           >
@@ -103,6 +107,8 @@ export function Navbar({
             <>
               <Button
                 href={AppRoutes.profile}
+                aria-current={pathname === AppRoutes.profile ? "page" : undefined}
+                className={styles.navButton}
                 onClick={(event: MouseEvent<HTMLAnchorElement>) => {
                   if (navigationGuard?.request(() => router.push(AppRoutes.profile))) {
                     event.preventDefault();
@@ -139,6 +145,7 @@ export function Navbar({
       </ContentContainer>
       <ConfirmModal
         open={isLogoutModalOpen}
+        theme="dark"
         busy={isLoggingOut}
         title={AUTH_MESSAGES.logout.title}
         description={AUTH_MESSAGES.logout.description}

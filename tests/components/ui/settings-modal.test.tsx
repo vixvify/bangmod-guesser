@@ -12,6 +12,7 @@ describe("SettingsModal", () => {
     render(<SettingsModal open={true} onClose={vi.fn()} />);
 
     expect(screen.getByRole("dialog")).toBeTruthy();
+    expect(screen.getByRole("dialog").className).toContain("bg-secondary-main");
     expect(screen.getByRole("heading", { name: SETTINGS_MESSAGES.title })).toBeTruthy();
     expect(screen.getByLabelText(SETTINGS_MESSAGES.sfxVolume)).toBeTruthy();
     expect(screen.getByLabelText(SETTINGS_MESSAGES.musicVolume)).toBeTruthy();

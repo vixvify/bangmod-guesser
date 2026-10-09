@@ -69,6 +69,7 @@ export function GameLayout({ children, headerCenter }: GameLayoutProps) {
       />
       <ConfirmModal
         open={isExitModalOpen}
+        theme="dark"
         title={GAME_MESSAGES.exitGame.title}
         description={GAME_MESSAGES.exitGame.description}
         confirmLabel={GAME_MESSAGES.exitGame.confirm}

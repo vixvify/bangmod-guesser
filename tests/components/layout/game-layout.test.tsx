@@ -98,6 +98,7 @@ describe("GameLayout", () => {
       screen.getByRole("heading", { name: GAME_MESSAGES.exitGame.title }),
     ).toBeTruthy();
     expect(screen.getByText(GAME_MESSAGES.exitGame.description)).toBeTruthy();
+    expect(screen.getByRole("dialog").className).toContain("bg-secondary-main");
   });
 
   it("closes the exit dialog when cancel is clicked", async () => {

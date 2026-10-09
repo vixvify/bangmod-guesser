@@ -44,6 +44,14 @@ describe("Input", () => {
     expect(css).toContain("0 0 0 100rem #fff inset");
   });
 
+  it("uses the light surface color for a dark input's leading icon", () => {
+    render(<Input id="email" label="Email" theme="dark" icon={<span>icon</span>} />);
+
+    const adornment = screen.getByText("icon").closest(".MuiInputAdornment-root");
+    expect(adornment).toBeTruthy();
+    expect(window.getComputedStyle(adornment!).color).toBe("var(--color-surface-text)");
+  });
+
   it("shows and hides a password without submitting the form", () => {
     const onSubmit = vi.fn((event: React.FormEvent) => event.preventDefault());
     render(

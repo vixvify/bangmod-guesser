@@ -34,7 +34,7 @@ export default function ResetPasswordPage() {
         <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
           เปลี่ยนรหัสผ่าน
         </h1>
-        <p className="mt-3 text-sm leading-6 text-secondary-dark/65">
+        <p className="mt-3 text-sm leading-6 text-surface-muted">
           ตั้งรหัสผ่านใหม่สำหรับบัญชีของคุณ
         </p>
       </header>
@@ -43,6 +43,7 @@ export default function ResetPasswordPage() {
         <Input
           {...register("password")}
           id="reset-password"
+          theme="dark"
           label="รหัสผ่านใหม่"
           type="password"
           autoComplete="new-password"
@@ -54,6 +55,7 @@ export default function ResetPasswordPage() {
         <Input
           {...register("confirmPassword")}
           id="reset-confirm-password"
+          theme="dark"
           label="ยืนยันรหัสผ่านใหม่"
           type="password"
           autoComplete="new-password"

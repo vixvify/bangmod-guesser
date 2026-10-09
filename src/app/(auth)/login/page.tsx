@@ -99,7 +99,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
         <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
           เข้าสู่ระบบ
         </h1>
-        <p className="mt-3 text-sm leading-6 text-secondary-dark/65">
+        <p className="mt-3 text-sm leading-6 text-surface-muted">
           ยินดีต้อนรับกลับมา เริ่มทายสถานที่กันต่อ
         </p>
       </header>
@@ -112,6 +112,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
         <Input
           {...register("email")}
           id="login-email"
+          theme="dark"
           label="อีเมล"
           type="email"
           autoComplete="email"
@@ -123,6 +124,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
         <Input
           {...register("password")}
           id="login-password"
+          theme="dark"
           label="รหัสผ่าน"
           type="password"
           autoComplete="current-password"
@@ -134,7 +136,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
         <p className="mt-2 text-right text-xs">
           <Link
             href={AppRoutes.forgotPassword}
-            className="text-secondary-dark/65 transition-colors hover:text-primary-main focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-main"
+            className="text-surface-muted transition-colors hover:text-primary-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-main"
           >
             ลืมรหัสผ่าน?
           </Link>
@@ -152,15 +154,15 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
       </form>
 
       <div className="mt-6 flex items-center gap-3" aria-hidden="true">
-        <span className="h-px flex-1 bg-secondary-dark/15" />
-        <span className="text-xs text-secondary-dark/50">หรือ</span>
-        <span className="h-px flex-1 bg-secondary-dark/15" />
+        <span className="h-px flex-1 bg-surface-border" />
+        <span className="text-xs text-surface-muted">หรือ</span>
+        <span className="h-px flex-1 bg-surface-border" />
       </div>
 
       <div className="mt-7">
         <Button
           type="button"
-          variant="surface"
+          variant="outline"
           size="small"
           disabled={isGoogleSubmitting || isSubmitting}
           onClick={onGoogleSignIn}
@@ -173,11 +175,11 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
         </Button>
       </div>
 
-      <p className="mt-8 text-center text-sm text-secondary-dark/65">
+      <p className="mt-8 text-center text-sm text-surface-muted">
         ยังไม่มีบัญชี?{" "}
         <Link
           href={registerHref}
-          className="font-bold text-primary-main transition-colors hover:text-secondary-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-main"
+          className="font-bold text-primary-light transition-colors hover:text-primary-main focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-main"
         >
           สมัครสมาชิก
         </Link>

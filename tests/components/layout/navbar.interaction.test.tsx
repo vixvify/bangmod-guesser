@@ -50,7 +50,7 @@ describe("Navbar logout", () => {
 
     fireEvent.click(getByRole("button", { name: /ออกจากระบบ/ }));
 
-    expect(getByRole("dialog")).toBeTruthy();
+    expect(getByRole("dialog").className).toContain("bg-secondary-main");
     expect(signOut).not.toHaveBeenCalled();
 
     fireEvent.click(getByRole("button", { name: "ยกเลิก" }));
@@ -109,14 +109,18 @@ describe("Navbar logout", () => {
 
   it("opens settings modal when settings button is clicked and closes on cancel", async () => {
     const { getByRole, queryByRole } = render(<Navbar user={user} />);
+    const settingsButton = getByRole("button", { name: "ตั้งค่าเกม" });
 
-    fireEvent.click(getByRole("button", { name: "ตั้งค่าเกม" }));
+    expect(settingsButton.getAttribute("aria-pressed")).toBe("false");
+    fireEvent.click(settingsButton);
 
     expect(getByRole("dialog")).toBeTruthy();
+    expect(settingsButton.getAttribute("aria-pressed")).toBe("true");
     expect(getByRole("heading", { name: "ตั้งค่าเกม" })).toBeTruthy();
 
     fireEvent.click(getByRole("button", { name: "ยกเลิก" }));
 
     await waitFor(() => expect(queryByRole("dialog")).toBeNull());
+    expect(settingsButton.getAttribute("aria-pressed")).toBe("false");
   });
 });

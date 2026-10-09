@@ -6,40 +6,40 @@ const numberFormatter = new Intl.NumberFormat("en-US");
 
 export function HistoryRow({ game }: { game: GameHistoryItem }) {
   return (
-    <li className="flex flex-col gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+    <li className="flex flex-col gap-4 rounded-2xl border border-surface-border bg-surface-overlay p-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
       <div className="min-w-0 space-y-2">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-md bg-white px-2 py-1 font-mono text-xs font-bold text-secondary-dark">
+          <span className="rounded-md border border-surface-border bg-surface-overlay px-2 py-1 font-mono text-xs font-bold text-primary-light">
             #{game.id}
           </span>
-          <span className="rounded-md bg-primary-main/10 px-2 py-1 text-xs font-semibold text-primary-main">
+          <span className="rounded-md bg-emerald-400/10 px-2 py-1 text-xs font-semibold text-emerald-300">
             เล่นจบแล้ว
           </span>
         </div>
-        <p className="flex items-center gap-1.5 text-xs text-neutral-500 sm:text-sm">
+        <p className="flex items-center gap-1.5 text-xs text-surface-muted sm:text-sm">
           <AccessTimeOutlinedIcon sx={{ fontSize: "1rem" }} aria-hidden="true" />
           <time dateTime={game.playedAt}>{formatThaiDateTime(game.playedAt)}</time>
         </p>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 border-t border-neutral-100 pt-3 text-right sm:min-w-80 sm:border-0 sm:pt-0">
+      <div className="grid grid-cols-3 gap-3 border-t border-surface-border pt-3 text-right sm:min-w-80 sm:border-0 sm:pt-0">
         <div>
-          <p className="text-xs text-neutral-500">คะแนนรวม</p>
-          <p className="text-lg font-bold text-secondary-dark">
+          <p className="text-xs text-surface-muted">คะแนนรวม</p>
+          <p className="text-lg font-bold text-primary-light">
             {numberFormatter.format(game.totalScore)}
           </p>
         </div>
         <div>
-          <p className="text-xs text-neutral-500">รอบดีที่สุด</p>
-          <p className="text-sm font-semibold text-secondary-dark">
+          <p className="text-xs text-surface-muted">รอบดีที่สุด</p>
+          <p className="text-sm font-semibold text-surface-text">
             {game.bestRoundScore === undefined
               ? "—"
               : numberFormatter.format(game.bestRoundScore)}
           </p>
         </div>
         <div>
-          <p className="text-xs text-neutral-500">ทายใกล้ที่สุด</p>
-          <p className="text-sm font-semibold text-secondary-dark">
+          <p className="text-xs text-surface-muted">ทายใกล้ที่สุด</p>
+          <p className="text-sm font-semibold text-surface-text">
             {game.bestDistanceMeters === undefined
               ? "—"
               : `${game.bestDistanceMeters.toFixed(1)} ม.`}

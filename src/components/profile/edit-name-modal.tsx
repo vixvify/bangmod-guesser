@@ -53,19 +53,20 @@ export function EditNameModal({
       aria-labelledby={titleId}
       sx={{ display: "flex", alignItems: "center", justifyContent: "center", p: 2 }}
     >
-      <form role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} noValidate onSubmit={handleSubmit(onSubmit)} className="w-full max-w-md rounded-2xl bg-white p-6 text-secondary-dark shadow-2xl outline-none">
+      <form role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} noValidate onSubmit={handleSubmit(onSubmit)} className="w-full max-w-md rounded-2xl border border-surface-border bg-secondary-main p-6 text-surface-text shadow-2xl outline-none">
         <div>
-          <h2 id={titleId} className="text-xl font-bold text-secondary-dark">
+          <h2 id={titleId} className="text-2xl font-bold text-surface-text">
             แก้ไขชื่อผู้ใช้
           </h2>
-          <p className="mt-1 text-sm text-neutral-500">
+          <p className="mt-1 text-sm text-surface-muted">
             ชื่อที่แสดงบนหน้าโปรไฟล์ของคุณ
           </p>
         </div>
-        <hr className="mb-6 mt-4 border-t border-neutral-200" />
+        <hr className="mb-6 mt-4 border-t border-surface-border" />
         <Input
           {...register("username", { setValueAs: (value: string) => value.trim() })}
           id="profile-username"
+          theme="dark"
           label="ชื่อผู้ใช้"
           autoFocus
           size="small"
@@ -81,7 +82,7 @@ export function EditNameModal({
         <div className="mt-8 flex justify-end gap-3 pt-2">
           <Button
             type="button"
-            variant="surface"
+            variant="outline"
             size="small"
             onClick={onClose}
             disabled={isSubmitting}

@@ -10,8 +10,8 @@ type AuthLayoutProps = {
 
 export function AuthLayout({ children }: AuthLayoutProps) {
   return (
-    <main className="grid min-h-svh bg-secondary-light md:grid-cols-[3fr_2fr]">
-      <div className="relative min-h-56 overflow-hidden bg-secondary-dark md:min-h-svh">
+    <main className="grid min-h-svh bg-secondary-main md:grid-cols-[3fr_2fr]">
+      <div className="relative min-h-56 overflow-hidden bg-secondary-main md:min-h-svh">
         <Image
           src="/images/kmutt-bangmod-1.jpg"
           alt="บรรยากาศภายในมหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี วิทยาเขตบางมด"
@@ -20,8 +20,8 @@ export function AuthLayout({ children }: AuthLayoutProps) {
           sizes="(min-width: 48rem) 60vw, 100vw"
           className="object-cover object-center"
         />
-        <div className="absolute inset-0 bg-linear-to-t from-secondary-main/85 via-secondary-main/20 to-secondary-main/10" />
-        <div className="absolute inset-x-0 bottom-0 p-6 text-secondary-light sm:p-10">
+        <div className="absolute inset-0 bg-linear-to-t from-secondary-main/90 via-secondary-main/45 to-secondary-main/30" />
+        <div className="absolute inset-x-0 bottom-0 p-6 text-surface-text sm:p-10">
           <p className="text-xs font-bold tracking-[0.3em] text-primary-light">
             KMUTT · BANGMOD
           </p>
@@ -33,10 +33,10 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         </div>
       </div>
 
-      <div className="flex min-w-0 flex-col px-6 py-6 text-secondary-dark sm:px-8 sm:py-8 lg:px-10 xl:px-12">
+      <div className="flex min-w-0 flex-col border-t border-surface-border bg-secondary-main px-6 py-6 text-surface-text sm:px-8 sm:py-8 md:border-l md:border-t-0 lg:px-10 xl:px-12">
         <Link
           href={AppRoutes.home}
-          className="inline-flex w-fit items-center gap-2 rounded-sm text-sm font-medium text-secondary-dark/65 transition-colors hover:text-primary-main focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary-main"
+          className="inline-flex w-fit items-center gap-2 rounded-sm text-sm font-medium text-surface-muted transition-colors hover:text-primary-light focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary-main"
         >
           <ArrowBackRoundedIcon fontSize="small" aria-hidden="true" />
           ย้อนกลับ
