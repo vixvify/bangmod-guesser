@@ -52,7 +52,13 @@ test("registers in the test database, signs in, and keeps access to the protecte
   await expect(page.getByRole("region", { name: "ข้อมูลโปรไฟล์" })).toContainText(realPlayer.email);
 
   await page.getByRole("button", { name: "ออกจากระบบ" }).click();
+  const logoutResponsePromise = page.waitForResponse((response) =>
+    response.url().endsWith("/api/session/logout"),
+  );
   await page.getByRole("dialog").getByRole("button", { name: AUTH_MESSAGES.logout.confirm }).click();
+  const logoutResponse = await logoutResponsePromise;
+  expect(logoutResponse.ok()).toBe(true);
+  await expect(page.getByText(AUTH_MESSAGES.logout.success)).toBeVisible();
   await page.goto("/profile", { waitUntil: "networkidle" });
   await expect(page).toHaveURL(/\/login\?callbackUrl=%2Fprofile$/);
 });

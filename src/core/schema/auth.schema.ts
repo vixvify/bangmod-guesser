@@ -20,19 +20,19 @@ const passwordSchema = z
 
 const confirmPasswordSchema = z.string().min(1, AUTH_MESSAGES.confirmPassword.required);
 
-export const RegisterSchema = z
-  .object({
-    name: z
-      .string()
-      .trim()
-      .min(1, AUTH_MESSAGES.name.required)
-      .min(2, AUTH_MESSAGES.name.min)
-      .max(50, AUTH_MESSAGES.name.max),
+export const CreateUserSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, AUTH_MESSAGES.name.required)
+    .min(2, AUTH_MESSAGES.name.min)
+    .max(50, AUTH_MESSAGES.name.max),
+  email: emailSchema,
+  password: passwordSchema,
+});
 
-    email: emailSchema,
-    password: passwordSchema,
-    confirmPassword: confirmPasswordSchema,
-  })
+export const RegisterSchema = CreateUserSchema
+  .extend({ confirmPassword: confirmPasswordSchema })
   .refine((data) => data.password === data.confirmPassword, {
     message: AUTH_MESSAGES.confirmPassword.mismatch,
     path: ["confirmPassword"],
@@ -60,12 +60,6 @@ export const ResetPasswordSchema = z
     message: AUTH_MESSAGES.confirmPassword.mismatch,
     path: ["confirmPassword"],
   });
-
-export const CreateUserSchema = z.object({
-  name: z.string(),
-  email: z.string().email(),
-  password: z.string().min(1),
-});
 
 export type RegisterInput = z.infer<typeof RegisterSchema>;
 export type LoginInput = z.infer<typeof LoginSchema>;

@@ -49,11 +49,11 @@ describe("session API routes", () => {
     expect(signIn).not.toHaveBeenCalled();
   });
 
-  it("registers without forwarding confirmation or password in the response", async () => {
+  it("registers with the fields sent by the signup page, without a confirmation field", async () => {
     signUp.mockResolvedValue(undefined);
     const response = await register(post("/api/session/register", {
       name: " Player ", email: " PLAYER@EXAMPLE.COM ",
-      password: "Password1", confirmPassword: "Password1",
+      password: "Password1",
     }));
 
     expect(response.status).toBe(201);
@@ -61,6 +61,15 @@ describe("session API routes", () => {
       name: "Player", email: "player@example.com", password: "Password1",
     });
     expect((await response.json()).data).toBeNull();
+  });
+
+  it("rejects a weak signup password before calling the service", async () => {
+    const response = await register(post("/api/session/register", {
+      name: "Player", email: "player@example.com", password: "weak",
+    }));
+
+    expect(response.status).toBe(400);
+    expect(signUp).not.toHaveBeenCalled();
   });
 
   it("forwards the OAuth state cookie with the Google redirect URL", async () => {
