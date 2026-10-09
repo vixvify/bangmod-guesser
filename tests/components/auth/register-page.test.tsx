@@ -16,13 +16,25 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace, refresh }),
 }));
 
-vi.mock("@/lib/auth-client", () => ({
-  authClient: { signUp: { email: signUpEmail } },
+vi.mock("@/routes/api/session.routes", () => ({
+  SessionRoutes: { register: "/session/register" },
+}));
+
+vi.mock("@/lib/http", () => ({
+  HttpError: class HttpError extends Error {
+    status?: number;
+    constructor(message: string, status?: number) {
+      super(message);
+      this.status = status;
+    }
+  },
+  default: { post: vi.fn((_url: string, body: unknown) => signUpEmail(body)) },
 }));
 
 vi.mock("sonner", () => ({ toast: { success: toastSuccess, error: toastError } }));
 
 import RegisterPage from "@/app/(auth)/register/page";
+import { HttpError } from "@/lib/http";
 
 async function renderPage(callbackUrl?: string) {
   await act(async () => {
@@ -90,7 +102,7 @@ describe("RegisterPage", () => {
   });
 
   it("registers with schema-normalized fields without sending confirmation", async () => {
-    signUpEmail.mockResolvedValue({ error: null });
+    signUpEmail.mockResolvedValue({ data: null });
     await renderPage("/game");
     await fillForm();
     await submitValidRegistration();
@@ -108,7 +120,7 @@ describe("RegisterPage", () => {
   });
 
   it("shows a registration error without navigating", async () => {
-    signUpEmail.mockResolvedValue({ error: { code: "VALIDATION_ERROR" } });
+    signUpEmail.mockRejectedValue(new HttpError("VALIDATION_ERROR", 400));
     await renderPage();
     await fillForm();
     await submitValidRegistration();
@@ -122,7 +134,7 @@ describe("RegisterPage", () => {
   });
 
   it("shows a network toast when sign-up fails unexpectedly", async () => {
-    signUpEmail.mockRejectedValue(new Error("Network unavailable"));
+    signUpEmail.mockRejectedValue(new HttpError("Network unavailable"));
     await renderPage();
     await fillForm();
     await submitValidRegistration();

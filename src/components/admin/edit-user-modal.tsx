@@ -5,12 +5,14 @@ import Avatar from "@mui/material/Avatar";
 import IconButton from "@mui/material/IconButton";
 import Modal from "@mui/material/Modal";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useId } from "react";
+import { useId, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Input } from "@/components/ui/input";
 import { UserStatusPicker } from "@/components/admin/user-status-picker";
+import { USER_MESSAGES } from "@/core/constants/user";
 import type { UserAccount } from "@/core/domain/user";
 import { UserRole } from "@/core/domain/user";
 import {
@@ -22,17 +24,19 @@ import { getProfileImageUrl } from "@/lib/profile-image";
 type EditUserModalProps = {
   user: UserAccount;
   onClose: () => void;
-  onSave: (values: UserFormInput) => void;
+  onSave: (values: UserFormInput) => Promise<void>;
 };
 
 export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
   const titleId = useId();
+  const [saveConfirmationOpen, setSaveConfirmationOpen] = useState(false);
+  const [discardConfirmationOpen, setDiscardConfirmationOpen] = useState(false);
   const {
     register,
     handleSubmit,
     control,
     setValue,
-    formState: { errors, isDirty, isValid },
+    formState: { errors, isDirty, isValid, isSubmitting },
   } = useForm<UserFormInput>({
     resolver: zodResolver(UserFormSchema),
     mode: "onChange",
@@ -47,10 +51,28 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
   const selectedRole = useWatch({ control, name: "role" });
   const selectedStatus = useWatch({ control, name: "status" });
 
+  function requestClose() {
+    if (isSubmitting) return;
+    if (isDirty) {
+      setDiscardConfirmationOpen(true);
+    } else {
+      onClose();
+    }
+  }
+
+  async function confirmSave(values: UserFormInput) {
+    try {
+      await onSave(values);
+    } finally {
+      setSaveConfirmationOpen(false);
+    }
+  }
+
   return (
+    <>
     <Modal
       open
-      onClose={onClose}
+      onClose={requestClose}
       aria-labelledby={titleId}
       sx={{
         display: "flex",
@@ -75,13 +97,13 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
               แก้ไขข้อมูล บทบาท และสถานะบัญชี
             </p>
           </div>
-          <IconButton aria-label="ปิดหน้าต่าง" onClick={onClose} size="small">
+          <IconButton aria-label="ปิดหน้าต่าง" onClick={requestClose} size="small" disabled={isSubmitting}>
             <CloseRoundedIcon />
           </IconButton>
         </div>
         <hr className="my-5 border-slate-200" />
 
-        <form noValidate onSubmit={handleSubmit(onSave)} className="space-y-6">
+        <form noValidate onSubmit={handleSubmit(() => setSaveConfirmationOpen(true))} className="space-y-6">
           <section
             className="rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5"
             aria-labelledby="managed-user-info"
@@ -222,7 +244,8 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
               type="button"
               variant="surface"
               size="small"
-              onClick={onClose}
+              onClick={requestClose}
+              disabled={isSubmitting}
             >
               ยกเลิก
             </Button>
@@ -230,7 +253,7 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
               type="submit"
               variant="primary"
               size="small"
-              disabled={!isDirty || !isValid}
+              disabled={!isDirty || !isValid || isSubmitting}
             >
               บันทึก
             </Button>
@@ -238,5 +261,25 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
         </form>
       </div>
     </Modal>
+    <ConfirmModal
+      open={saveConfirmationOpen}
+      busy={isSubmitting}
+      title={USER_MESSAGES.updateConfirm.title}
+      description={USER_MESSAGES.updateConfirm.description}
+      confirmLabel={USER_MESSAGES.updateConfirm.confirm}
+      cancelLabel={USER_MESSAGES.updateConfirm.cancel}
+      onConfirm={() => void handleSubmit(confirmSave)()}
+      onCancel={() => setSaveConfirmationOpen(false)}
+    />
+    <ConfirmModal
+      open={discardConfirmationOpen}
+      title={USER_MESSAGES.discardConfirm.title}
+      description={USER_MESSAGES.discardConfirm.description}
+      confirmLabel={USER_MESSAGES.discardConfirm.confirm}
+      cancelLabel={USER_MESSAGES.discardConfirm.cancel}
+      onConfirm={onClose}
+      onCancel={() => setDiscardConfirmationOpen(false)}
+    />
+    </>
   );
 }

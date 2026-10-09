@@ -24,7 +24,7 @@ test("registers in the test database, signs in, and keeps access to the protecte
   await fillRegistration(page, realPlayer);
 
   const signupResponsePromise = page.waitForResponse((response) =>
-    response.url().endsWith("/api/auth/sign-up/email"),
+    response.url().endsWith("/api/session/register"),
   );
   await page.getByRole("button", { name: "สมัครสมาชิก" }).click();
   const signupResponse = await signupResponsePromise;
@@ -36,7 +36,7 @@ test("registers in the test database, signs in, and keeps access to the protecte
   await page.getByLabel("รหัสผ่าน", { exact: true }).fill(realPlayer.password);
 
   const loginResponsePromise = page.waitForResponse((response) =>
-    response.url().endsWith("/api/auth/sign-in/email"),
+    response.url().endsWith("/api/session/login"),
   );
   await page.getByRole("button", { name: "เข้าสู่ระบบ", exact: true }).click();
   const loginResponse = await loginResponsePromise;
@@ -50,32 +50,37 @@ test("registers in the test database, signs in, and keeps access to the protecte
   await page.reload();
   await expect(page).toHaveURL(/\/profile$/);
   await expect(page.getByRole("region", { name: "ข้อมูลโปรไฟล์" })).toContainText(realPlayer.email);
+
+  await page.getByRole("button", { name: "ออกจากระบบ" }).click();
+  const logoutResponsePromise = page.waitForResponse((response) =>
+    response.url().endsWith("/api/session/logout"),
+  );
+  await page.getByRole("dialog").getByRole("button", { name: AUTH_MESSAGES.logout.confirm }).click();
+  const logoutResponse = await logoutResponsePromise;
+  expect(logoutResponse.ok()).toBe(true);
+  await expect(page.getByText(AUTH_MESSAGES.logout.success)).toBeVisible();
+  await page.goto("/profile", { waitUntil: "networkidle" });
+  await expect(page).toHaveURL(/\/login\?callbackUrl=%2Fprofile$/);
 });
 
 test("signs up, then signs in and returns to the requested page", async ({ page }) => {
   let registrationBody: unknown;
   let loginBody: unknown;
 
-  await page.route("**/api/auth/sign-up/email", async (route) => {
+  await page.route("**/api/session/register", async (route) => {
     registrationBody = route.request().postDataJSON();
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({
-        user: { id: "test-player", name: player.name, email: player.email },
-        token: null,
-      }),
+      body: JSON.stringify({ data: null, status: 201, statusCode: "CREATED" }),
     });
   });
-  await page.route("**/api/auth/sign-in/email", async (route) => {
+  await page.route("**/api/session/login", async (route) => {
     loginBody = route.request().postDataJSON();
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({
-        user: { id: "test-player", name: player.name, email: player.email },
-        token: "mock-token",
-      }),
+      body: JSON.stringify({ data: null, status: 200, statusCode: "SUCCESS" }),
     });
   });
 
@@ -101,7 +106,7 @@ test("signs up, then signs in and returns to the requested page", async ({ page 
 
 test("does not submit registration when passwords differ", async ({ page }) => {
   let requests = 0;
-  await page.route("**/api/auth/sign-up/email", async (route) => {
+  await page.route("**/api/session/register", async (route) => {
     requests += 1;
     await route.abort();
   });
@@ -117,7 +122,7 @@ test("does not submit registration when passwords differ", async ({ page }) => {
 });
 
 test("shows registration failure and stays on sign-up", async ({ page }) => {
-  await page.route("**/api/auth/sign-up/email", (route) =>
+  await page.route("**/api/session/register", (route) =>
     route.fulfill({
       status: 422,
       contentType: "application/json",
@@ -134,7 +139,7 @@ test("shows registration failure and stays on sign-up", async ({ page }) => {
 });
 
 test("shows invalid credentials and stays on login", async ({ page }) => {
-  await page.route("**/api/auth/sign-in/email", (route) =>
+  await page.route("**/api/session/login", (route) =>
     route.fulfill({
       status: 401,
       contentType: "application/json",
@@ -157,7 +162,7 @@ test("shows invalid credentials and stays on login", async ({ page }) => {
 test("starts Google sign-in from login and keeps the requested destination", async ({ page }) => {
   let socialBody: unknown;
 
-  await page.route("**/api/auth/sign-in/social", async (route) => {
+  await page.route("**/api/session/google", async (route) => {
     socialBody = route.request().postDataJSON();
     await route.fulfill({
       status: 400,
@@ -190,7 +195,6 @@ test("starts Google sign-in from login and keeps the requested destination", asy
 
   await expect(page.getByText(AUTH_MESSAGES.submit.googleLoginFailed)).toBeVisible();
   expect(socialBody).toMatchObject({
-    provider: "google",
     callbackURL: "/game",
     errorCallbackURL: "/login?callbackUrl=%2Fgame",
   });

@@ -20,3 +20,10 @@ export type UserAccount = User & {
   suspension: { startDate: string | null; endDate: string | null };
   reason: string;
 };
+
+export type PaginatedUsers = {
+  users: UserAccount[];
+  total: number;
+  page: number;
+  limit: number;
+};

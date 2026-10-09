@@ -2,16 +2,11 @@ import { headers } from "next/headers";
 
 import { UserRole } from "@/core/domain/user";
 import { UserFormSchema, UserIdSchema } from "@/core/schema/user.schema";
-import { UserAdapter } from "@/infrastructure/adapters/user.adapter";
-import { UserService } from "@/core/service/user.service";
+import { userService } from "@/infrastructure/container";
 import { requireAuth } from "@/lib/auth-check";
 import { roleCheck } from "@/lib/role-check";
 import { errorResponse, successResponse } from "@/lib/api-response";
 import { parseSchema } from "@/lib/validation";
-
-const userService = new UserService(
-    new UserAdapter(),
-);
 
 type RouteContext = {
     params: Promise<{
