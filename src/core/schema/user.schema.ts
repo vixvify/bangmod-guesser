@@ -36,7 +36,7 @@ export const SearchUserQuerySchema = z.object({
     .optional(),
 });
 
-export type SearchUserQuery = z.infer<typeof SearchUserQuerySchema>;
+export type SearchUserQueryInput = z.infer<typeof SearchUserQuerySchema>;
 
 export const UserFormSchema = z
   .object({

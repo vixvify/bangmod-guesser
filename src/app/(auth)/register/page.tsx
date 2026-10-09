@@ -14,8 +14,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AUTH_MESSAGES } from "@/core/constants/auth";
 import { RegisterSchema, type RegisterInput } from "@/core/schema/auth.schema";
-import { authClient } from "@/lib/auth-client";
+import httpClient, { HttpError } from "@/lib/http";
 import { getAuthRedirect } from "@/lib/auth-redirect";
+import { SessionRoutes } from "@/routes/api/session.routes";
 import { AppRoutes } from "@/routes/app/routes";
 
 type RegisterPageProps = {
@@ -37,20 +38,18 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
 
   async function onSubmit({ name, email, password }: RegisterInput) {
     try {
-      const { error } = await authClient.signUp.email({
+      await httpClient.post<null>(SessionRoutes.register, {
         name,
         email,
         password,
       });
-      if (error) {
-        toast.error(AUTH_MESSAGES.submit.registerFailed);
-        return;
-      }
 
       toast.success(AUTH_MESSAGES.submit.registerSuccess);
       router.replace(loginHref);
-    } catch {
-      toast.error(AUTH_MESSAGES.submit.networkError);
+    } catch (error) {
+      toast.error(error instanceof HttpError && error.status === undefined
+        ? AUTH_MESSAGES.submit.networkError
+        : AUTH_MESSAGES.submit.registerFailed);
     }
   }
 

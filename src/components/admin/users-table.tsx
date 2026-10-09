@@ -14,6 +14,7 @@ import { UserRole, type UserAccount, type UserStatus } from "@/core/domain/user"
 
 type UsersTableProps = {
   users: UserAccount[];
+  startIndex?: number;
   onEdit: (user: UserAccount) => void;
   onDelete: (user: UserAccount) => void;
 };
@@ -50,7 +51,7 @@ function getStatusDisplay(user: UserAccount) {
   };
 }
 
-export function UsersTable({ users, onEdit, onDelete }: UsersTableProps) {
+export function UsersTable({ users, startIndex = 0, onEdit, onDelete }: UsersTableProps) {
   return (
     <TableContainer
       component={Paper}
@@ -100,7 +101,7 @@ export function UsersTable({ users, onEdit, onDelete }: UsersTableProps) {
                 sx={{ "&:hover": { backgroundColor: "#fff7ed" } }}
             >
               <TableCell sx={{ color: "#64748b" }}>
-                {String(index + 1).padStart(2, "0")}
+                {String(startIndex + index + 1).padStart(2, "0")}
               </TableCell>
               <TableCell
                 sx={{ fontWeight: 600, color: "var(--color-secondary-dark)" }}

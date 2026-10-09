@@ -16,8 +16,12 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/",
 }));
 
-vi.mock("@/lib/auth-client", () => ({
-  authClient: { signOut },
+vi.mock("@/lib/http", () => ({
+  default: { post: vi.fn(() => signOut()) },
+}));
+
+vi.mock("@/routes/api/session.routes", () => ({
+  SessionRoutes: { logout: "/session/logout" },
 }));
 
 vi.mock("sonner", () => ({ toast: { error: toastError, success: toastSuccess } }));
@@ -95,7 +99,7 @@ describe("Navbar logout", () => {
   });
 
   it("does not refresh when sign out returns an error response", async () => {
-    signOut.mockResolvedValue({ error: { message: "Sign out failed" } });
+    signOut.mockRejectedValue(new Error("Sign out failed"));
     const { getByRole } = render(<Navbar user={user} />);
 
     fireEvent.click(getByRole("button", { name: /ออกจากระบบ/ }));

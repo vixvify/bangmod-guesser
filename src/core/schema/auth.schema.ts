@@ -44,6 +44,11 @@ export const LoginSchema = z.object({
   password: z.string().min(1, AUTH_MESSAGES.password.required),
 });
 
+export const GoogleSignInSchema = z.object({
+  callbackURL: z.string(),
+  errorCallbackURL: z.string(),
+});
+
 export const RequestPasswordResetSchema = z.object({ email: emailSchema });
 
 export const ResetPasswordSchema = z
@@ -64,6 +69,7 @@ export const CreateUserSchema = z.object({
 
 export type RegisterInput = z.infer<typeof RegisterSchema>;
 export type LoginInput = z.infer<typeof LoginSchema>;
+export type GoogleSignInInput = z.infer<typeof GoogleSignInSchema>;
 export type RequestPasswordResetInput = z.infer<typeof RequestPasswordResetSchema>;
 export type ResetPasswordInput = z.infer<typeof ResetPasswordSchema>;
 export type CreateUserInput = z.infer<typeof CreateUserSchema>;

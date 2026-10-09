@@ -13,8 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AUTH_MESSAGES } from "@/core/constants/auth";
 import { LoginSchema, type LoginInput } from "@/core/schema/auth.schema";
-import { authClient } from "@/lib/auth-client";
+import httpClient, { HttpError } from "@/lib/http";
 import { getAuthRedirect } from "@/lib/auth-redirect";
+import { SessionRoutes } from "@/routes/api/session.routes";
 import { AppRoutes } from "@/routes/app/routes";
 
 type LoginPageProps = {
@@ -40,17 +41,15 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
 
   async function onSubmit({ email, password }: LoginInput) {
     try {
-      const { error } = await authClient.signIn.email({ email, password });
-      if (error) {
-        toast.error(AUTH_MESSAGES.submit.loginFailed);
-        return;
-      }
+      await httpClient.post<null>(SessionRoutes.login, { email, password });
 
       toast.success(AUTH_MESSAGES.submit.loginSuccess);
       router.replace(redirectTo);
       router.refresh();
-    } catch {
-      toast.error(AUTH_MESSAGES.submit.networkError);
+    } catch (error) {
+      toast.error(error instanceof HttpError && error.status === undefined
+        ? AUTH_MESSAGES.submit.networkError
+        : AUTH_MESSAGES.submit.loginFailed);
     }
   }
 
@@ -74,17 +73,15 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
     setIsGoogleSubmitting(true);
 
     try {
-      const { error } = await authClient.signIn.social({
-        provider: "google",
+      const { data } = await httpClient.post<{ url: string }>(SessionRoutes.googleLogin, {
         callbackURL: redirectTo,
         errorCallbackURL: loginHref,
       });
-
-      if (error) {
-        toast.error(AUTH_MESSAGES.submit.googleLoginFailed);
-      }
-    } catch {
-      toast.error(AUTH_MESSAGES.submit.networkError);
+      window.location.assign(data.url);
+    } catch (error) {
+      toast.error(error instanceof HttpError && error.status === undefined
+        ? AUTH_MESSAGES.submit.networkError
+        : AUTH_MESSAGES.submit.googleLoginFailed);
     } finally {
       setIsGoogleSubmitting(false);
     }

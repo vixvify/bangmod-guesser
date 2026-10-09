@@ -17,13 +17,27 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace, refresh }),
 }));
 
-vi.mock("@/lib/auth-client", () => ({
-  authClient: { signIn: { email: signInEmail, social: signInSocial } },
+vi.mock("@/routes/api/session.routes", () => ({
+  SessionRoutes: { login: "/session/login", googleLogin: "/session/google" },
+}));
+
+vi.mock("@/lib/http", () => ({
+  HttpError: class HttpError extends Error {
+    status?: number;
+    constructor(message: string, status?: number) {
+      super(message);
+      this.status = status;
+    }
+  },
+  default: { post: vi.fn((url: string, body: unknown) =>
+    url.endsWith("/google") ? signInSocial(body) : signInEmail(body)),
+  },
 }));
 
 vi.mock("sonner", () => ({ toast: { success: toastSuccess, error: toastError } }));
 
 import LoginPage from "@/app/(auth)/login/page";
+import { HttpError } from "@/lib/http";
 
 async function renderPage(callbackUrl?: string, error?: string) {
   await act(async () => {
@@ -72,14 +86,13 @@ describe("LoginPage", () => {
   });
 
   it("starts Google OAuth without requiring email fields and preserves the requested page", async () => {
-    signInSocial.mockResolvedValue({ error: null });
+    signInSocial.mockResolvedValue({ data: { url: "https://accounts.google.com/" } });
     await renderPage("/game?mode=solo");
 
     fireEvent.click(screen.getByRole("button", { name: "เข้าสู่ระบบด้วย Google" }));
 
     await waitFor(() => {
       expect(signInSocial).toHaveBeenCalledWith({
-        provider: "google",
         callbackURL: "/game?mode=solo",
         errorCallbackURL: "/login?callbackUrl=%2Fgame%3Fmode%3Dsolo",
       });
@@ -88,7 +101,7 @@ describe("LoginPage", () => {
   });
 
   it("shows a safe error when Google OAuth cannot start", async () => {
-    signInSocial.mockResolvedValue({ error: { code: "OAUTH_PROVIDER_NOT_FOUND" } });
+    signInSocial.mockRejectedValue(new HttpError("OAUTH_PROVIDER_NOT_FOUND", 400));
     await renderPage();
 
     fireEvent.click(screen.getByRole("button", { name: "เข้าสู่ระบบด้วย Google" }));
@@ -131,7 +144,7 @@ describe("LoginPage", () => {
   });
 
   it("submits normalized credentials and returns to the requested local page", async () => {
-    signInEmail.mockResolvedValue({ error: null });
+    signInEmail.mockResolvedValue({ data: null });
     await renderPage("/game");
 
     fireEvent.change(await screen.findByRole("textbox", { name: "อีเมล" }), {
@@ -154,7 +167,7 @@ describe("LoginPage", () => {
   });
 
   it("shows an authentication error without navigating", async () => {
-    signInEmail.mockResolvedValue({ error: { code: "INVALID_EMAIL_OR_PASSWORD" } });
+    signInEmail.mockRejectedValue(new HttpError("INVALID_EMAIL_OR_PASSWORD", 401));
     await renderPage();
 
     fireEvent.change(await screen.findByRole("textbox", { name: "อีเมล" }), {
@@ -174,7 +187,7 @@ describe("LoginPage", () => {
   });
 
   it("shows a network toast when sign-in fails unexpectedly", async () => {
-    signInEmail.mockRejectedValue(new Error("Network unavailable"));
+    signInEmail.mockRejectedValue(new HttpError("Network unavailable"));
     await renderPage();
 
     fireEvent.change(screen.getByRole("textbox", { name: "อีเมล" }), {

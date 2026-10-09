@@ -1,173 +1,109 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { UserRole } from "@/core/domain/user";
+import { AppError } from "@/core/errors/app.error";
+import type { UserAdminPort } from "@/core/ports/user-admin.port";
+import type { UserRepository } from "@/core/ports/user.repository";
 import { UserService } from "@/core/service/user.service";
-import { UserAdapter } from "@/infrastructure/adapters/user.adapter";
+import type { UserFormInput } from "@/core/schema/user.schema";
+import { createUserModel } from "../../../fixtures/users";
 
-describe("UserService.getUsers", () => {
-    it("should pass offset and limit to user adapter", async () => {
-        const listUsers = vi.spyOn(
-            UserAdapter.prototype,
-            "listUsers",
-        ).mockResolvedValue({
-            users: [],
-            total: 20,
-            limit: 9,
-            offset: 9,
-        } as never);
+const record = { ...createUserModel(), _count: { games: 5 } };
+const query = { page: 2, limit: 9, role: UserRole.ADMIN, status: "ACTIVE" as const };
+const form: UserFormInput = {
+  name: record.name,
+  role: UserRole.USER,
+  status: "ACTIVE",
+  suspension: { startDate: null, endDate: null },
+  reason: "",
+};
 
-        vi.spyOn(
-            UserAdapter.prototype,
-            "getUserMetadata",
-        ).mockResolvedValue([]);
+const repository = {
+  findMany: vi.fn(),
+  findById: vi.fn(),
+  updateStatus: vi.fn(),
+} satisfies UserRepository;
+const admin = {
+  updateName: vi.fn(),
+  setRole: vi.fn(),
+  banUser: vi.fn(),
+  unbanUser: vi.fn(),
+  removeUser: vi.fn(),
+} satisfies UserAdminPort;
 
-        const service = new UserService(new UserAdapter());
+describe("UserService", () => {
+  const service = new UserService(repository, admin);
 
-        const result = await service.getUsers(
-            new Headers(),
-            2,
-            9,
-        );
+  beforeEach(() => {
+    vi.clearAllMocks();
+    repository.findById.mockResolvedValue(record);
+  });
 
-        expect(listUsers).toHaveBeenCalledWith(
-            expect.any(Headers),
-            undefined,
-            9,
-            9,
-            undefined,
-        );
+  it("uses the schema-derived query and maps Prisma users to accounts", async () => {
+    repository.findMany.mockResolvedValue({ items: [record], total: 12 });
 
-        expect(result).toEqual({
-            users: [],
-            total: 20,
-            page: 2,
-            limit: 9,
-        });
+    const result = await service.getUsers(query);
+
+    expect(repository.findMany).toHaveBeenCalledWith(query);
+    expect(result).toMatchObject({ page: 2, limit: 9, total: 12 });
+    expect(result.users[0]).toMatchObject({ id: record.id, gameCount: 5, status: "ACTIVE" });
+  });
+
+  it("updates only changed name and role through Better Auth", async () => {
+    const updated = { ...record, name: "Changed", role: "ADMIN" as const };
+    repository.findById.mockResolvedValueOnce(record).mockResolvedValueOnce(updated);
+    const headers = new Headers();
+
+    const result = await service.updateUser(headers, record.id, {
+      ...form, name: "Changed", role: UserRole.ADMIN,
     });
 
-    it("should pass role filter to user adapter", async () => {
-        const listUsers = vi.spyOn(
-            UserAdapter.prototype,
-            "listUsers",
-        ).mockResolvedValue({
-            users: [],
-            total: 5,
-            limit: 9,
-            offset: 0,
-        } as never);
+    expect(admin.updateName).toHaveBeenCalledWith(headers, { userId: record.id, data: { name: "Changed" } });
+    expect(admin.setRole).toHaveBeenCalledWith(headers, { userId: record.id, role: UserRole.ADMIN });
+    expect(admin.banUser).not.toHaveBeenCalled();
+    expect(repository.updateStatus).not.toHaveBeenCalled();
+    expect(result.name).toBe("Changed");
+  });
 
-        vi.spyOn(
-            UserAdapter.prototype,
-            "getUserMetadata",
-        ).mockResolvedValue([]);
-
-        const service = new UserService(new UserAdapter());
-
-        await service.getUsers(
-            new Headers(),
-            1,
-            9,
-            UserRole.ADMIN,
-        );
-
-        expect(listUsers).toHaveBeenCalledWith(
-            expect.any(Headers),
-            UserRole.ADMIN,
-            0,
-            9,
-            undefined,
-        );
+  it("bans and persists a suspended status", async () => {
+    await service.updateUser(new Headers(), record.id, {
+      ...form, status: "SUSPENDED", reason: "Violation",
     });
 
-    it("should create user accounts using UserFactory", async () => {
-        vi.spyOn(
-            UserAdapter.prototype,
-            "listUsers",
-        ).mockResolvedValue({
-            users: [{
-                id: "user-1",
-                name: "John Doe",
-                email: "john@example.com",
-                image: null,
-                role: "USER",
-                banReason: null,
-                banExpires: null,
-            }],
-            total: 1,
-            limit: 9,
-            offset: 0,
-        } as never);
-
-        vi.spyOn(
-            UserAdapter.prototype,
-            "getUserMetadata",
-        ).mockResolvedValue([
-            {
-                id: "user-1",
-                status: "ACTIVE",
-                _count: {
-                    games: 5,
-                },
-            },
-        ] as never);
-
-        const service = new UserService(new UserAdapter());
-
-        const result = await service.getUsers(
-            new Headers(),
-        );
-
-        expect(result.users).toEqual([
-            {
-                id: "user-1",
-                name: "John Doe",
-                email: "john@example.com",
-                image: null,
-                role: UserRole.USER,
-                status: "ACTIVE",
-                gameCount: 5,
-                suspension: {
-                    startDate: null,
-                    endDate: null,
-                },
-                reason: "",
-            },
-        ]);
+    expect(admin.banUser).toHaveBeenCalledWith(expect.any(Headers), {
+      userId: record.id, banReason: "Violation", banExpiresIn: undefined,
     });
+    expect(repository.updateStatus).toHaveBeenCalledWith(record.id, "SUSPENDED");
+  });
 
-    it("should pass status filter to user adapter", async () => {
-        const listUsers = vi.spyOn(
-            UserAdapter.prototype,
-            "listUsers",
-        ).mockResolvedValue({
-            users: [],
-            total: 3,
-            limit: 9,
-            offset: 0,
-        } as never);
+  it("rejects an expired suspension before changing the account", async () => {
+    await expect(service.updateUser(new Headers(), record.id, {
+      ...form,
+      name: "Changed",
+      status: "SUSPENDED",
+      suspension: { startDate: null, endDate: "2020-01-01" },
+    })).rejects.toBeInstanceOf(AppError);
 
-        vi.spyOn(
-            UserAdapter.prototype,
-            "getUserMetadata",
-        ).mockResolvedValue([]);
+    expect(admin.updateName).not.toHaveBeenCalled();
+    expect(admin.banUser).not.toHaveBeenCalled();
+  });
 
-        const service = new UserService(
-            new UserAdapter(),
-        );
+  it("unbans a suspended account when reactivated", async () => {
+    repository.findById.mockResolvedValueOnce({ ...record, status: "SUSPENDED", banned: true });
+    await service.updateUser(new Headers(), record.id, form);
 
-        await service.getUsers(
-            new Headers(),
-            1,
-            9,
-            undefined,
-            "SUSPENDED",
-        );
+    expect(admin.unbanUser).toHaveBeenCalled();
+    expect(repository.updateStatus).toHaveBeenCalledWith(record.id, "ACTIVE");
+  });
 
-        expect(listUsers).toHaveBeenCalledWith(
-            expect.any(Headers),
-            undefined,
-            0,
-            9,
-            "SUSPENDED",
-        );
-    });
+  it("returns 404 for a missing user and does not call the adapter", async () => {
+    repository.findById.mockResolvedValue(null);
+    await expect(service.updateUser(new Headers(), "missing", form)).rejects.toMatchObject({ status: 404 });
+    expect(admin.updateName).not.toHaveBeenCalled();
+  });
+
+  it("deletes an existing user through Better Auth", async () => {
+    const headers = new Headers();
+    await service.deleteUser(headers, record.id);
+    expect(admin.removeUser).toHaveBeenCalledWith(headers, { userId: record.id });
+  });
 });
