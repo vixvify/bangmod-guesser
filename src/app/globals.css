@@ -22,6 +22,13 @@
   --color-primary-light: #ffab78;
   --color-primary-soft: #ffd0ad;
   --color-primary-focus: #ffe16a;
+  --color-rank-gold: #f4c95d;
+  --color-rank-silver: #cdd8e3;
+  --color-rank-bronze: #d99469;
+  --color-rank-gold-card: #382e1d;
+  --color-rank-silver-card: #26343f;
+  --color-rank-bronze-card: #342820;
+  --color-leaderboard-self: #1b303a;
   --color-secondary-main: #06131a;
   --color-secondary-dark: #1b120c;
   --color-secondary-light: #fff4e8;

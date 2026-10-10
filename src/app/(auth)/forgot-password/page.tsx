@@ -38,7 +38,7 @@ export default function ForgotPasswordPage() {
         <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
           ลืมรหัสผ่าน
         </h1>
-        <p className="mt-3 text-sm leading-6 text-surface-muted">
+        <p className="mt-3 text-sm leading-6 text-secondary-dark/65">
           กรอกอีเมลที่ใช้สมัครบัญชีเพื่อขอลิงก์เปลี่ยนรหัสผ่าน
         </p>
       </header>
@@ -47,7 +47,6 @@ export default function ForgotPasswordPage() {
         <Input
           {...register("email")}
           id="forgot-password-email"
-          theme="dark"
           label="อีเมล"
           type="email"
           autoComplete="email"
@@ -65,7 +64,7 @@ export default function ForgotPasswordPage() {
       <p className="mt-8 text-center text-sm">
         <Link
           href={AppRoutes.login}
-          className="font-bold text-primary-light transition-colors hover:text-primary-main focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-main"
+          className="font-bold text-primary-main transition-colors hover:text-secondary-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-main"
         >
           กลับไปหน้าเข้าสู่ระบบ
         </Link>

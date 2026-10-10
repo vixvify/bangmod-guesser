@@ -10,6 +10,7 @@ vi.mock("@/lib/auth-check", () => ({
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
+  usePathname: () => "/",
 }));
 
 vi.mock("@/lib/auth-client", () => ({

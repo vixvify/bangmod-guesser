@@ -94,11 +94,18 @@ export function Navbar({
           </Button>
 
           <Button
+            href={AppRoutes.leaderboard}
+            aria-current={pathname === AppRoutes.leaderboard ? "page" : undefined}
+            className={styles.navButton}
+            onClick={(event: MouseEvent<HTMLAnchorElement>) => {
+              if (navigationGuard?.request(() => router.push(AppRoutes.leaderboard))) {
+                event.preventDefault();
+              }
+            }}
             variant="surface"
             size="icon"
-            disabled
-            aria-label="ตารางอันดับ — เร็ว ๆ นี้"
-            title="ตารางอันดับ — เร็ว ๆ นี้"
+            aria-label="อันดับผู้เล่น"
+            title="อันดับผู้เล่น"
           >
             <LeaderboardOutlinedIcon />
           </Button>

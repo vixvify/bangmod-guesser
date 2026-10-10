@@ -45,6 +45,16 @@ describe("Navbar", () => {
     expect(markup.match(/aria-current="page"/g)).toHaveLength(1);
   });
 
+  it("links to the leaderboard and marks it active on its page", () => {
+    pathnameMock.mockReturnValue("/leaderboard");
+    const markup = renderToStaticMarkup(<Navbar user={null} />);
+    const leaderboardLink = markup.match(/<a[^>]*href="\/leaderboard"[^>]*>/)?.[0];
+
+    expect(leaderboardLink).toContain('aria-current="page"');
+    expect(leaderboardLink).toContain("navButton");
+    expect(markup.match(/aria-current="page"/g)).toHaveLength(1);
+  });
+
   it("does not mark unrelated pages as home or profile", () => {
     pathnameMock.mockReturnValue("/admin/users");
     const markup = renderToStaticMarkup(
@@ -73,13 +83,12 @@ describe("Navbar", () => {
     expect(markup).toContain("width:2.5rem");
     expect(markup).toContain("height:2.5rem");
     expect(markup).toContain("ตั้งค่าเกม");
-    expect(markup).toContain("ตารางอันดับ — เร็ว ๆ นี้");
+    expect(markup).toContain('href="/leaderboard"');
     expect(markup).toContain('href="/login"');
-    expect(markup.match(/<(?:button|a)[^>]*class="[^"]*navButton[^"]*"[^>]*>/g)).toHaveLength(1);
+    expect(markup.match(/<(?:button|a)[^>]*class="[^"]*navButton[^"]*"[^>]*>/g)).toHaveLength(2);
     expect(markup).toContain("เข้าสู่ระบบ");
     expect(markup).not.toContain("ออกจากระบบ");
     expect(markup).not.toContain('href="/profile"');
-    expect(markup).toContain("disabled");
   });
 
   it("shows settings, leaderboard, profile, and logout actions for authenticated users", () => {
@@ -95,9 +104,9 @@ describe("Navbar", () => {
     );
 
     expect(markup).toContain('href="/profile"');
-    expect(markup.match(/<(?:button|a)[^>]*class="[^"]*navButton[^"]*"[^>]*>/g)).toHaveLength(2);
+    expect(markup.match(/<(?:button|a)[^>]*class="[^"]*navButton[^"]*"[^>]*>/g)).toHaveLength(3);
     expect(markup).toContain("โปรไฟล์ของ KMUTT Student");
-    expect(markup).toContain("ตารางอันดับ — เร็ว ๆ นี้");
+    expect(markup).toContain('href="/leaderboard"');
     expect(markup).toContain("ออกจากระบบ");
     expect(markup).not.toContain('href="/login"');
   });
