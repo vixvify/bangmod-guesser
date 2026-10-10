@@ -41,10 +41,10 @@ vi.mock("next/dynamic", () => ({
   },
 }));
 
-import GamePage from "@/app/game/page";
+import { GameSession } from "@/components/game/game-session";
 import { AppRoutes } from "@/routes/app/routes";
 
-describe("GamePage", () => {
+describe("GameSession", () => {
   afterEach(() => {
     cleanup();
     vi.restoreAllMocks();
@@ -52,7 +52,7 @@ describe("GamePage", () => {
   });
 
   it("renders the game screen with timer, image viewer, and submit button", () => {
-    render(<GamePage />);
+    render(<GameSession />);
 
     expect(screen.getByText("ข้อที่")).toBeTruthy();
     expect(screen.getByText("1")).toBeTruthy();
@@ -61,14 +61,14 @@ describe("GamePage", () => {
   });
 
   it("disables the submit button before any map marker is placed", () => {
-    render(<GamePage />);
+    render(<GameSession />);
 
     const submitBtn = screen.getByRole("button", { name: "ส่งคำตอบ" });
     expect(submitBtn.hasAttribute("disabled")).toBe(true);
   });
 
   it("confirms leaving when submitting the current mock round", () => {
-    render(<GamePage />);
+    render(<GameSession />);
 
     const submitBtn = screen.getByRole("button", { name: "ส่งคำตอบ" });
     expect(submitBtn.hasAttribute("disabled")).toBe(true);
@@ -91,7 +91,7 @@ describe("GamePage", () => {
   });
 
   it("confirms the exit button before leaving", () => {
-    render(<GamePage />);
+    render(<GameSession />);
 
     fireEvent.click(screen.getByRole("button", { name: GAME_MESSAGES.exitGame.button }));
     expect(push).not.toHaveBeenCalled();
@@ -99,7 +99,7 @@ describe("GamePage", () => {
   });
 
   it("warns on browser Back, then stays in the game when cancelled", () => {
-    render(<GamePage />);
+    render(<GameSession />);
 
     fireEvent.popState(window);
     const dialog = screen.getByRole("dialog", { name: GAME_MESSAGES.exitGame.title });
@@ -110,7 +110,7 @@ describe("GamePage", () => {
 
   it("continues browser Back after confirmation", () => {
     const go = vi.spyOn(window.history, "go").mockImplementation(() => {});
-    render(<GamePage />);
+    render(<GameSession />);
 
     fireEvent.popState(window);
     fireEvent.click(within(screen.getByRole("dialog", { name: GAME_MESSAGES.exitGame.title }))
@@ -121,7 +121,7 @@ describe("GamePage", () => {
   });
 
   it("uses the native browser warning for reload or tab close", () => {
-    render(<GamePage />);
+    render(<GameSession />);
 
     const event = new Event("beforeunload", { cancelable: true });
     window.dispatchEvent(event);

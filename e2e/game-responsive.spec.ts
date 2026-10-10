@@ -9,7 +9,7 @@ for (const viewport of [
     page,
   }) => {
     await page.setViewportSize(viewport);
-    await page.goto("/game", { waitUntil: "domcontentloaded" });
+    await page.goto("/game/demo", { waitUntil: "domcontentloaded" });
 
     const image = page.locator('img[src*="kmutt-bangmod-1.jpg"]').first();
     const submit = page.getByRole("button", { name: "ส่งคำตอบ" });
@@ -46,7 +46,7 @@ for (const viewport of [
     page,
   }) => {
     await page.setViewportSize(viewport);
-    await page.goto("/game", { waitUntil: "domcontentloaded" });
+    await page.goto("/game/demo", { waitUntil: "domcontentloaded" });
 
     const image = page.locator('img[src*="kmutt-bangmod-1.jpg"]').first();
     const submit = page.getByRole("button", { name: "ส่งคำตอบ" });
@@ -70,7 +70,7 @@ test("shows the image in a proportional popup on portrait screens", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 400, height: 850 });
-  await page.goto("/game", { waitUntil: "domcontentloaded" });
+  await page.goto("/game/demo", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".leaflet-container")).toBeVisible();
   await page.getByRole("button", { name: "เต็มจอ" }).click();
 
@@ -91,7 +91,7 @@ test("keeps the displayed image ratio when opening the popup on desktop", async 
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/game", { waitUntil: "domcontentloaded" });
+  await page.goto("/game/demo", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".leaflet-container")).toBeVisible();
 
   const imageFrame = page.getByRole("button", { name: "เต็มจอ" }).locator("xpath=../..");

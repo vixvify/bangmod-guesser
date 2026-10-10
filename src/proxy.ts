@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { AppRoutes } from "@/routes/app/routes";
 
-const PUBLIC_ROUTES: string[] = [AppRoutes.home, AppRoutes.game];
+const PUBLIC_ROUTES: string[] = [AppRoutes.home];
 
 const AUTH_ROUTES: string[] = [
   AppRoutes.login,
@@ -13,7 +13,8 @@ const AUTH_ROUTES: string[] = [
 
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
-  const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
+  const isPublicRoute =
+    PUBLIC_ROUTES.includes(pathname) || pathname.startsWith(`${AppRoutes.gameBase}/`);
   const isAuthRoute = AUTH_ROUTES.includes(pathname);
 
   if (isPublicRoute) {

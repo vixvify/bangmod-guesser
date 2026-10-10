@@ -11,7 +11,7 @@ import { GAME_DEFAULTS, GAME_MESSAGES } from "@/core/constants/game";
 import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
 import { AppRoutes } from "@/routes/app/routes";
 
-export default function GamePage() {
+export function GameSession() {
   const router = useRouter();
   const [markerPosition, setMarkerPosition] = useState<{
     lat: number;

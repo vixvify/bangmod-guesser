@@ -3,10 +3,15 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SettingsModal } from "@/components/ui/settings-modal";
-import { SETTINGS_MESSAGES } from "@/core/constants/settings";
+import { DEFAULT_SETTINGS, SETTINGS_MESSAGES } from "@/core/constants/settings";
+import { useSettingsStore } from "@/store/settings-store";
 
 describe("SettingsModal", () => {
-  afterEach(cleanup);
+  afterEach(() => {
+    cleanup();
+    useSettingsStore.getState().setSettings(DEFAULT_SETTINGS);
+    useSettingsStore.persist.clearStorage();
+  });
 
   it("renders the settings modal with title, sliders, select, and action buttons", () => {
     render(<SettingsModal open={true} onClose={vi.fn()} />);
@@ -45,7 +50,7 @@ describe("SettingsModal", () => {
     expect(sfxSlider.getAttribute("aria-valuenow")).toBe("81");
   });
 
-  it("restores the initial percentages when the modal is reopened", async () => {
+  it("discards draft changes when the modal is cancelled and reopened", async () => {
     const { rerender } = render(<SettingsModal open={true} onClose={vi.fn()} />);
 
     fireEvent.keyDown(
@@ -59,6 +64,7 @@ describe("SettingsModal", () => {
     rerender(<SettingsModal open={true} onClose={vi.fn()} />);
 
     expect(screen.getByText("80%")).toBeTruthy();
+    expect(useSettingsStore.getState().systemSound).toBe(80);
   });
 
   it("calls onClose when the cancel button is clicked", () => {
@@ -69,16 +75,18 @@ describe("SettingsModal", () => {
     expect(handleClose).toHaveBeenCalledTimes(1);
   });
 
-  it("calls onSave and onClose with updated settings when confirmed", async () => {
+  it("saves the selected quality and sound levels to the store when confirmed", async () => {
     const handleClose = vi.fn();
-    const handleSave = vi.fn();
     render(
       <SettingsModal
         open={true}
         onClose={handleClose}
-        onSave={handleSave}
       />,
     );
+
+    fireEvent.keyDown(screen.getByRole("slider", { name: SETTINGS_MESSAGES.sfxVolume }), {
+      key: "ArrowRight",
+    });
 
     const qualitySelect = screen.getByRole("combobox");
     fireEvent.mouseDown(qualitySelect);
@@ -89,12 +97,20 @@ describe("SettingsModal", () => {
 
     fireEvent.click(screen.getByRole("button", { name: SETTINGS_MESSAGES.confirm }));
 
-    expect(handleSave).toHaveBeenCalledWith(
-      expect.objectContaining({
-        imageQuality: "medium",
-      }),
-    );
+    expect(useSettingsStore.getState()).toMatchObject({
+      imageQuality: "medium", systemSound: 81, musicSound: 50,
+    });
     expect(handleClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows saved settings when opened in another modal instance", () => {
+    useSettingsStore.getState().setSettings({ imageQuality: "low", systemSound: 42, musicSound: 73 });
+
+    render(<SettingsModal open={true} onClose={vi.fn()} />);
+
+    expect(screen.getByText("42%")).toBeTruthy();
+    expect(screen.getByText("73%")).toBeTruthy();
+    expect(screen.getByRole("combobox").textContent).toContain(SETTINGS_MESSAGES.qualities.low);
   });
 
   it("calls onClose when the close icon button is clicked", () => {

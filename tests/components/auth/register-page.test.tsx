@@ -91,7 +91,7 @@ describe("RegisterPage", () => {
 
   it("registers with schema-normalized fields without sending confirmation", async () => {
     signUpEmail.mockResolvedValue({ error: null });
-    await renderPage("/game");
+    await renderPage("/game/demo");
     await fillForm();
     await submitValidRegistration();
 
@@ -101,7 +101,7 @@ describe("RegisterPage", () => {
         email: "player@example.com",
         password: "Password1",
       });
-      expect(replace).toHaveBeenCalledWith("/login?callbackUrl=%2Fgame");
+      expect(replace).toHaveBeenCalledWith("/login?callbackUrl=%2Fgame%2Fdemo");
     });
     expect(refresh).not.toHaveBeenCalled();
     expect(toastSuccess).toHaveBeenCalledWith("สมัครสมาชิกสำเร็จ กรุณาเข้าสู่ระบบ");

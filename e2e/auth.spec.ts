@@ -79,12 +79,12 @@ test("signs up, then signs in and returns to the requested page", async ({ page 
     });
   });
 
-  await page.goto("/register?callbackUrl=%2Fgame", { waitUntil: "networkidle" });
+  await page.goto("/register?callbackUrl=%2Fgame%2Fdemo", { waitUntil: "networkidle" });
   await fillRegistration(page);
   await page.getByRole("button", { name: "สมัครสมาชิก" }).click();
 
   await expect(page).toHaveURL(/\/login\?/);
-  expect(new URL(page.url()).searchParams.get("callbackUrl")).toBe("/game");
+  expect(new URL(page.url()).searchParams.get("callbackUrl")).toBe("/game/demo");
   expect(registrationBody).toEqual({
     name: player.name,
     email: player.email,
@@ -95,7 +95,7 @@ test("signs up, then signs in and returns to the requested page", async ({ page 
   await page.getByLabel("รหัสผ่าน", { exact: true }).fill(player.password);
   await page.getByRole("button", { name: "เข้าสู่ระบบ", exact: true }).click();
 
-  await expect(page).toHaveURL(/\/game$/);
+  await expect(page).toHaveURL(/\/game\/demo$/);
   expect(loginBody).toEqual({ email: player.email, password: player.password });
 });
 
@@ -166,7 +166,7 @@ test("starts Google sign-in from login and keeps the requested destination", asy
     });
   });
 
-  await page.goto("/login?callbackUrl=%2Fgame", { waitUntil: "networkidle" });
+  await page.goto("/login?callbackUrl=%2Fgame%2Fdemo", { waitUntil: "networkidle" });
   const googleButton = page.getByRole("button", { name: "เข้าสู่ระบบด้วย Google" });
   const googleLogo = googleButton.locator("img");
   const divider = page.getByText("หรือ", { exact: true });
@@ -191,7 +191,7 @@ test("starts Google sign-in from login and keeps the requested destination", asy
   await expect(page.getByText(AUTH_MESSAGES.submit.googleLoginFailed)).toBeVisible();
   expect(socialBody).toMatchObject({
     provider: "google",
-    callbackURL: "/game",
-    errorCallbackURL: "/login?callbackUrl=%2Fgame",
+    callbackURL: "/game/demo",
+    errorCallbackURL: "/login?callbackUrl=%2Fgame%2Fdemo",
   });
 });
