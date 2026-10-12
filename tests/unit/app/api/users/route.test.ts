@@ -9,7 +9,8 @@ import {
 import { GET } from "@/app/api/users/route";
 import { UserRole } from "@/core/domain/user";
 import { AppError } from "@/core/errors/app.error";
-import { UserService } from "@/core/service/user.service";
+const { getUsers } = vi.hoisted(() => ({ getUsers: vi.fn() }));
+vi.mock("@/infrastructure/container", () => ({ userService: { getUsers } }));
 
 vi.mock("next/headers", () => ({
     headers: vi.fn().mockResolvedValue(
@@ -38,9 +39,7 @@ describe("GET /api/users", () => {
     });
 
     it("should return users successfully", async () => {
-        const getUsers = vi
-            .spyOn(UserService.prototype, "getUsers")
-            .mockResolvedValue({
+        getUsers.mockResolvedValue({
                 users: [],
                 total: 0,
                 page: 1,
@@ -55,19 +54,11 @@ describe("GET /api/users", () => {
 
         expect(response.status).toBe(200);
 
-        expect(getUsers).toHaveBeenCalledWith(
-            expect.any(Headers),
-            1,
-            9,
-            undefined,
-            undefined,
-        );
+        expect(getUsers).toHaveBeenCalledWith({ page: 1, limit: 9 });
     });
 
     it("should pass query parameters to user service", async () => {
-        const getUsers = vi
-            .spyOn(UserService.prototype, "getUsers")
-            .mockResolvedValue({
+        getUsers.mockResolvedValue({
                 users: [],
                 total: 5,
                 page: 2,
@@ -82,13 +73,9 @@ describe("GET /api/users", () => {
 
         expect(response.status).toBe(200);
 
-        expect(getUsers).toHaveBeenCalledWith(
-            expect.any(Headers),
-            2,
-            20,
-            UserRole.ADMIN,
-            "SUSPENDED",
-        );
+        expect(getUsers).toHaveBeenCalledWith({
+            page: 2, limit: 20, role: UserRole.ADMIN, status: "SUSPENDED",
+        });
     });
 
     it("should return 400 for invalid pagination", async () => {
@@ -134,9 +121,7 @@ describe("GET /api/users", () => {
     });
 
     it("should return error response when service fails", async () => {
-        const getUsers = vi
-            .spyOn(UserService.prototype, "getUsers")
-            .mockRejectedValue(
+        getUsers.mockRejectedValue(
                 new AppError(
                     "Failed to get users",
                     400,

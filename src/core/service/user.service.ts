@@ -1,239 +1,92 @@
-import {
-    UserRole,
-    type UserStatus,
-} from "@/core/domain/user";
+import type { PaginatedUsers, UserAccount } from "@/core/domain/user";
 import { AppError } from "@/core/errors/app.error";
-import { UserAdapter } from "@/infrastructure/adapters/user.adapter";
+import type { UserAdminPort } from "@/core/ports/user-admin.port";
+import type { UserRepository } from "@/core/ports/user.repository";
+import type {
+  SearchUserQuery,
+  UserFormInput,
+} from "@/core/schema/user.schema";
 import { UserFactory } from "@/infrastructure/factories/user.factory";
 
 export class UserService {
-    constructor(
-        private readonly userAdapter: UserAdapter,
-    ) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly userAdmin: UserAdminPort,
+  ) {}
 
-    async getUsers(
-        headers: Headers,
-        page: number = 1,
-        limit: number = 9,
-        role?: UserRole,
-        status?: UserStatus,
+  async getUsers(query: SearchUserQuery): Promise<PaginatedUsers> {
+    const { items, total } = await this.userRepository.findMany(query);
+    return {
+      users: items.map(UserFactory.toAccount),
+      total,
+      page: query.page,
+      limit: query.limit,
+    };
+  }
+
+  async getUser(id: string): Promise<UserAccount> {
+    const record = await this.userRepository.findById(id);
+    if (!record) throw new AppError("User not found", 404);
+    return UserFactory.toAccount(record);
+  }
+
+  async updateUser(
+    headers: Headers,
+    id: string,
+    input: UserFormInput,
+  ): Promise<UserAccount> {
+    const existing = await this.userRepository.findById(id);
+    if (!existing) throw new AppError("User not found", 404);
+
+    const existingEndDate =
+      existing.banExpires?.toISOString().slice(0, 10) ?? null;
+    const nextEndDate =
+      input.status === "SUSPENDED" ? input.suspension.endDate : null;
+    const statusChanged = input.status !== existing.status;
+    const suspensionChanged =
+      input.status === "SUSPENDED" &&
+      (!existing.banned ||
+        existingEndDate !== nextEndDate ||
+        existing.banReason !== (input.reason || null));
+    const expiresIn = nextEndDate
+      ? Math.floor((new Date(nextEndDate).getTime() - Date.now()) / 1000)
+      : undefined;
+    if (
+      (statusChanged || suspensionChanged) &&
+      expiresIn !== undefined &&
+      expiresIn <= 0
     ) {
-        const offset = (page - 1) * limit;
-
-        const result =
-            await this.userAdapter.listUsers(
-                headers,
-                role,
-                offset,
-                limit,
-                status,
-            );
-
-        const userIds =
-            result.users.map(
-                (user) => user.id,
-            );
-
-        const metadata =
-            await this.userAdapter.getUserMetadata(
-                userIds,
-            );
-
-        const metadataMap = new Map(
-            metadata.map((item) => [
-                item.id,
-                {
-                    gameCount: item._count.games,
-                    status: item.status,
-                },
-            ]),
-        );
-
-        const users = result.users.map(
-            (user) => {
-                const userMetadata =
-                    metadataMap.get(user.id);
-
-                return UserFactory.toAccount(
-                    user,
-                    {
-                        gameCount:
-                            userMetadata?.gameCount ??
-                            0,
-                        status:
-                            userMetadata?.status ??
-                            "ACTIVE",
-                    },
-                );
-            },
-        );
-
-        return {
-            users,
-            total: result.total,
-            page,
-            limit,
-        };
+      throw new AppError("End date must be in the future", 400);
     }
 
-    async getUser(
-        headers: Headers,
-        userId: string,
-    ) {
-        return this.userAdapter.getUser(
-            headers,
-            userId,
-        );
+    if (input.name !== existing.name) {
+      await this.userAdmin.updateName(headers, { userId: id, data: { name: input.name } });
+    }
+    if (input.role !== existing.role) {
+      await this.userAdmin.setRole(headers, { userId: id, role: input.role });
     }
 
-    async updateUser(
-        headers: Headers,
-        userId: string,
-        data: {
-            name: string;
-            role: UserRole;
-            status: UserStatus;
-            suspension: {
-                endDate: string | null;
-            };
-            reason: string;
-        },
-    ) {
-        await this.updateName(
-            headers,
-            userId,
-            data.name,
-        );
+    if (statusChanged || suspensionChanged) {
+      if (input.status === "SUSPENDED") {
+        await this.userAdmin.banUser(headers, {
+          userId: id,
+          banReason: input.reason || undefined,
+          banExpiresIn: expiresIn,
+        });
+      } else if (existing.banned) {
+        await this.userAdmin.unbanUser(headers, { userId: id });
+      }
 
-        await this.updateRole(
-            headers,
-            userId,
-            data.role,
-        );
-
-        await this.updateStatus(
-            headers,
-            userId,
-            data.status,
-            data.reason,
-            data.suspension.endDate
-                ? new Date(
-                    data.suspension.endDate,
-                )
-                : undefined,
-        );
-
-        return {
-            success: true,
-            userId,
-        };
+      if (statusChanged)
+        await this.userRepository.updateStatus(id, input.status);
     }
 
-    async updateName(
-        headers: Headers,
-        userId: string,
-        name: string,
-    ) {
-        return this.userAdapter.updateUser(
-            headers,
-            userId,
-            { name },
-        );
-    }
+    return this.getUser(id);
+  }
 
-    async updateRole(
-        headers: Headers,
-        userId: string,
-        role: UserRole,
-    ) {
-        return this.userAdapter.setRole(
-            headers,
-            userId,
-            role,
-        );
-    }
-
-    async deleteUser(
-        headers: Headers,
-        userId: string,
-    ) {
-        return this.userAdapter.removeUser(
-            headers,
-            userId,
-        );
-    }
-
-    async updateStatus(
-        headers: Headers,
-        userId: string,
-        status: UserStatus,
-        reason?: string,
-        endDate?: Date,
-    ) {
-        if (status === "SUSPENDED") {
-            if (endDate) {
-                const now = new Date();
-
-                const seconds = Math.floor(
-                    (
-                        endDate.getTime() -
-                        now.getTime()
-                    ) / 1000,
-                );
-
-                if (seconds <= 0) {
-                    throw new AppError(
-                        "End date must be in the future",
-                        400,
-                    );
-                }
-
-                await this.userAdapter.banUser(
-                    headers,
-                    userId,
-                    reason,
-                    seconds,
-                );
-            } else {
-                await this.userAdapter.banUser(
-                    headers,
-                    userId,
-                    reason,
-                );
-            }
-
-            return this.userAdapter.updateStatus(
-                userId,
-                "SUSPENDED",
-            );
-        }
-
-        if (status === "ACTIVE") {
-            await this.userAdapter.unbanUser(
-                headers,
-                userId,
-            );
-
-            return this.userAdapter.updateStatus(
-                userId,
-                "ACTIVE",
-            );
-        }
-
-        if (status === "INACTIVE") {
-            await this.userAdapter.unbanUser(
-                headers,
-                userId,
-            );
-
-            return this.userAdapter.updateStatus(
-                userId,
-                "INACTIVE",
-            );
-        }
-
-        throw new Error(
-            `Unsupported user status: ${status}`,
-        );
-    }
+  async deleteUser(headers: Headers, id: string): Promise<void> {
+    const existing = await this.userRepository.findById(id);
+    if (!existing) throw new AppError("User not found", 404);
+    await this.userAdmin.removeUser(headers, { userId: id });
+  }
 }

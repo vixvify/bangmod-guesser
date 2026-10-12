@@ -4,27 +4,12 @@ import {
   type User,
   type UserAccount,
 } from "@/core/domain/user";
-import type { UserModel } from "../../../prisma/types/user";
+import type { UserModel, UserModelWithGameCount } from "../../../prisma/types/user";
 
 const roleMap: Record<PrismaRole, UserRole> = {
   [PrismaRole.USER]: UserRole.USER,
   [PrismaRole.ADMIN]: UserRole.ADMIN,
 };
-
-interface UserAccountSource {
-  id: string;
-  name: string;
-  email: string;
-  image?: string | null;
-  role?: string;
-  banReason?: string | null;
-  banExpires?: Date | null;
-}
-
-interface UserAccountMetadata {
-  status: UserAccount["status"];
-  gameCount: number;
-}
 
 export const UserFactory = {
   public(user: UserModel): User {
@@ -36,24 +21,20 @@ export const UserFactory = {
     };
   },
 
-  toAccount(
-    user: UserAccountSource,
-    metadata: UserAccountMetadata,
-  ): UserAccount {
+  toAccount(user: UserModelWithGameCount): UserAccount {
     return {
       id: user.id,
       name: user.name,
       email: user.email,
-      image: user.image ?? null,
-      role:
-        user.role === UserRole.ADMIN ? UserRole.ADMIN : UserRole.USER,
-      status: metadata.status,
-      gameCount: metadata.gameCount,
+      image: user.image,
+      role: roleMap[user.role],
+      status: user.status,
+      gameCount: user._count.games,
       suspension: {
         startDate: null,
         endDate:
-          metadata.status === "SUSPENDED" &&
-          user.banExpires ? user.banExpires.toISOString() : null,
+          user.status === "SUSPENDED" &&
+          user.banExpires ? user.banExpires.toISOString().slice(0, 10) : null,
       },
       reason: user.banReason ?? "",
     };

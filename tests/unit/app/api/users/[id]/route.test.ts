@@ -11,7 +11,8 @@ import {
 } from "@/app/api/users/[id]/route";
 import { UserRole } from "@/core/domain/user";
 import { AppError } from "@/core/errors/app.error";
-import { UserService } from "@/core/service/user.service";
+const { updateUser, deleteUser } = vi.hoisted(() => ({ updateUser: vi.fn(), deleteUser: vi.fn() }));
+vi.mock("@/infrastructure/container", () => ({ userService: { updateUser, deleteUser } }));
 import { requireAuth } from "@/lib/auth-check";
 
 vi.mock("next/headers", () => ({
@@ -60,14 +61,16 @@ describe("PATCH /api/users/[id]", () => {
     });
 
     it("should update user successfully", async () => {
-        const updateUser = vi
-            .spyOn(
-                UserService.prototype,
-                "updateUser"
-            )
-            .mockResolvedValue({
-                success: true,
-                userId: "user-1"
+        updateUser.mockResolvedValue({
+                id: "user-1",
+                name: "Updated User",
+                email: "user@example.com",
+                image: null,
+                role: UserRole.USER,
+                status: "ACTIVE",
+                gameCount: 0,
+                suspension: { startDate: null, endDate: null },
+                reason: "",
             });
 
         const request = createPatchRequest(validUserData);
@@ -81,10 +84,7 @@ describe("PATCH /api/users/[id]", () => {
 
         const body = await response.json();
 
-        expect(body.data).toEqual({
-            success: true,
-            userId: "user-1"
-        });
+        expect(body.data).toMatchObject({ id: "user-1", name: "Updated User" });
 
         expect(body.statusCode).toBe("SUCCESS");
 
@@ -129,10 +129,7 @@ describe("PATCH /api/users/[id]", () => {
     });
 
     it("should return error response when service fails", async () => {
-        vi.spyOn(
-            UserService.prototype,
-            "updateUser"
-        ).mockRejectedValue(
+        updateUser.mockRejectedValue(
             new AppError(
                 "Failed to update user",
                 400
@@ -167,13 +164,7 @@ describe("DELETE /api/users/[id]", () => {
     });
 
     it("should delete user successfully", async () => {
-        const deleteUser = vi
-            .spyOn(
-                UserService.prototype,
-                "deleteUser"
-            ).mockResolvedValue({
-                success: true
-            } as never);
+        deleteUser.mockResolvedValue(undefined);
 
         const request = new Request(
             "http://localhost/api/users/user-1",
@@ -225,10 +216,7 @@ describe("DELETE /api/users/[id]", () => {
     });
 
     it("should return error response when service fails", async () => {
-        vi.spyOn(
-            UserService.prototype,
-            "deleteUser"
-        ).mockRejectedValue(
+        deleteUser.mockRejectedValue(
             new AppError(
                 "Failed to delete user",
                 400

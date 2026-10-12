@@ -17,9 +17,10 @@ import { AUTH_MESSAGES } from "@/core/constants/auth";
 import type { User } from "@/core/domain/user";
 import { AppRoutes } from "@/routes/app/routes";
 import { Button } from "@/components/ui/button";
-import { authClient } from "@/lib/auth-client";
 import { playSoundEffect } from "@/lib/sound-effect";
 import styles from "./navbar.module.css";
+import httpClient from "@/lib/http";
+import { SessionRoutes } from "@/routes/api/session.routes";
 
 type NavbarProps = {
   user: User | null;
@@ -43,11 +44,7 @@ export function Navbar({
     setIsLoggingOut(true);
 
     try {
-      const { error } = await authClient.signOut();
-      if (error) {
-        toast.error(AUTH_MESSAGES.logout.failed);
-        return;
-      }
+      await httpClient.post<null>(SessionRoutes.logout);
 
       setIsLogoutModalOpen(false);
       toast.success(AUTH_MESSAGES.logout.success);
