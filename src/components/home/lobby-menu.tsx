@@ -20,6 +20,7 @@ export function LobbyMenu() {
     <div className="mx-auto mt-8 w-full max-w-80 motion-safe:animate-home-enter motion-safe:[animation-delay:240ms]">
       <div className="relative -rotate-2 rounded-2xl border border-primary-soft/35 p-1.5">
         <Button
+          sound="accept"
           variant="play"
           disabled={isStarting}
           onClick={() => setIsStarting(true)}

@@ -8,6 +8,7 @@ type ConfirmModalProps = {
   open: boolean;
   busy?: boolean;
   theme?: "light" | "dark";
+  soundEnabled?: boolean;
   title: string;
   description: string;
   confirmLabel: string;
@@ -20,6 +21,7 @@ export function ConfirmModal({
   open,
   busy = false,
   theme = "light",
+  soundEnabled = false,
   title,
   description,
   confirmLabel,
@@ -49,10 +51,10 @@ export function ConfirmModal({
           </p>
         </div>
         <div className="flex flex-wrap justify-end gap-3">
-          <Button variant={isDark ? "outline" : "surface"} size="small" onClick={onCancel} disabled={busy}>
+          <Button sound={soundEnabled ? "click" : undefined} variant={isDark ? "outline" : "surface"} size="small" onClick={onCancel} disabled={busy}>
             {cancelLabel}
           </Button>
-          <Button variant="primary" size="small" onClick={onConfirm} disabled={busy}>
+          <Button sound={soundEnabled ? "accept" : undefined} variant="primary" size="small" onClick={onConfirm} disabled={busy}>
             {confirmLabel}
           </Button>
         </div>

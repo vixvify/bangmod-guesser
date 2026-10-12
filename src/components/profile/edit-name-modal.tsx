@@ -81,6 +81,7 @@ export function EditNameModal({
         />
         <div className="mt-8 flex justify-end gap-3 pt-2">
           <Button
+            sound="click"
             type="button"
             variant="outline"
             size="small"
@@ -90,6 +91,7 @@ export function EditNameModal({
             ยกเลิก
           </Button>
           <Button
+            sound="accept"
             type="submit"
             variant="primary"
             size="small"

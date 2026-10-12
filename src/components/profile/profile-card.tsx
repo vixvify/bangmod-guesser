@@ -12,6 +12,7 @@ import { PROFILE_MESSAGES } from "@/core/constants/profile";
 import type { User } from "@/core/domain/user";
 import { authClient } from "@/lib/auth-client";
 import { getProfileImageUrl } from "@/lib/profile-image";
+import { playSoundEffect } from "@/lib/sound-effect";
 import { AppRoutes } from "@/routes/app/routes";
 
 type ProfileCardProps = {
@@ -76,7 +77,10 @@ export function ProfileCard({ profile, canManageSystem = false }: ProfileCardPro
             size="small"
             aria-label="แก้ไขชื่อผู้ใช้"
             title="แก้ไขชื่อผู้ใช้"
-            onClick={() => setIsEditOpen(true)}
+            onClick={() => {
+              playSoundEffect("click");
+              setIsEditOpen(true);
+            }}
             sx={{ color: "var(--color-primary-light)", "&:hover": { backgroundColor: "color-mix(in srgb, var(--color-primary-main) 12%, transparent)" } }}
           >
             <EditOutlinedIcon fontSize="small" />
@@ -87,7 +91,7 @@ export function ProfileCard({ profile, canManageSystem = false }: ProfileCardPro
         </p>
       </div>
       {canManageSystem && (
-        <Button href={AppRoutes.admin} variant="primary" size="small" className="ml-auto shrink-0">
+        <Button href={AppRoutes.admin} sound="click" variant="primary" size="small" className="ml-auto shrink-0">
           จัดการระบบ
         </Button>
       )}

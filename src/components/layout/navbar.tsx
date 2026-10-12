@@ -18,16 +18,19 @@ import type { User } from "@/core/domain/user";
 import { AppRoutes } from "@/routes/app/routes";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
+import { playSoundEffect } from "@/lib/sound-effect";
 import styles from "./navbar.module.css";
 
 type NavbarProps = {
   user: User | null;
   brandColor?: string;
+  soundEnabled?: boolean;
 };
 
 export function Navbar({
   user,
   brandColor = "var(--color-secondary-light)",
+  soundEnabled = true,
 }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -65,6 +68,7 @@ export function Navbar({
         <NextLink
           href={AppRoutes.home}
           onClick={(event) => {
+            if (soundEnabled) playSoundEffect("click");
             if (navigationGuard?.request(() => router.push(AppRoutes.home))) {
               event.preventDefault();
             }
@@ -82,6 +86,7 @@ export function Navbar({
 
         <nav aria-label="เมนูหลัก" className="flex items-center gap-2">
           <Button
+            sound={soundEnabled ? "click" : undefined}
             variant="surface"
             size="icon"
             onClick={() => setIsSettingsOpen(true)}
@@ -94,6 +99,7 @@ export function Navbar({
           </Button>
 
           <Button
+            sound={soundEnabled ? "click" : undefined}
             href={AppRoutes.leaderboard}
             aria-current={pathname === AppRoutes.leaderboard ? "page" : undefined}
             className={styles.navButton}
@@ -113,6 +119,7 @@ export function Navbar({
           {user ? (
             <>
               <Button
+                sound={soundEnabled ? "click" : undefined}
                 href={AppRoutes.profile}
                 aria-current={pathname === AppRoutes.profile ? "page" : undefined}
                 className={styles.navButton}
@@ -129,6 +136,7 @@ export function Navbar({
                 <PersonOutlineIcon />
               </Button>
               <Button
+                sound={soundEnabled ? "click" : undefined}
                 variant="surface"
                 size="small"
                 onClick={() => {
@@ -143,7 +151,7 @@ export function Navbar({
               </Button>
             </>
           ) : (
-            <Button href={AppRoutes.login} variant="surface" size="small">
+            <Button href={AppRoutes.login} variant="surface" size="small" sound={soundEnabled ? "click" : undefined}>
               <LoginOutlinedIcon fontSize="small" />
               เข้าสู่ระบบ
             </Button>
@@ -151,6 +159,7 @@ export function Navbar({
         </nav>
       </ContentContainer>
       <ConfirmModal
+        soundEnabled={soundEnabled}
         open={isLogoutModalOpen}
         theme="dark"
         busy={isLoggingOut}
@@ -162,6 +171,7 @@ export function Navbar({
         onCancel={() => setIsLogoutModalOpen(false)}
       />
       <SettingsModal
+        soundEnabled={soundEnabled}
         open={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
       />

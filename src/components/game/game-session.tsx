@@ -9,9 +9,11 @@ import { GameImageViewer } from "@/components/game/game-image-viewer";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { GAME_DEFAULTS, GAME_MESSAGES } from "@/core/constants/game";
 import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
+import { useGameMusic } from "@/hooks/use-game-music";
 import { AppRoutes } from "@/routes/app/routes";
 
 export function GameSession() {
+  useGameMusic();
   const router = useRouter();
   const [markerPosition, setMarkerPosition] = useState<{
     lat: number;
@@ -68,6 +70,7 @@ export function GameSession() {
         />
       </GameLayout>
       <ConfirmModal
+        soundEnabled
         open={isExitModalOpen}
         theme="dark"
         title={GAME_MESSAGES.exitGame.title}

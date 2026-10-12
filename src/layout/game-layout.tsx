@@ -27,6 +27,7 @@ export function GameLayout({ children, headerCenter, onExit }: GameLayoutProps) 
           className="flex items-center gap-2 lg:pointer-events-auto"
         >
           <Button
+            sound="click"
             variant="surface"
             size="icon"
             onClick={() => setIsSettingsOpen(true)}
@@ -37,6 +38,7 @@ export function GameLayout({ children, headerCenter, onExit }: GameLayoutProps) 
           </Button>
 
           <Button
+            sound="click"
             variant="surface"
             size="small"
             onClick={onExit}

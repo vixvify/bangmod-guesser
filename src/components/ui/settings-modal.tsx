@@ -13,10 +13,12 @@ import {
   SETTINGS_MESSAGES,
 } from "@/core/constants/settings";
 import { useSettingsStore } from "@/store/settings-store";
+import { playSoundEffect } from "@/lib/sound-effect";
 
 type SettingsModalProps = {
   open: boolean;
   onClose: () => void;
+  soundEnabled?: boolean;
 };
 
 const sliderStyles = {
@@ -87,7 +89,7 @@ function VolumeControl({ label, value, onChange }: VolumeControlProps) {
   );
 }
 
-export function SettingsModal({ open, onClose }: SettingsModalProps) {
+export function SettingsModal({ open, onClose, soundEnabled = true }: SettingsModalProps) {
   const titleId = useId();
   const savedSettings = useSettingsStore();
   const settingsKey = `${savedSettings.imageQuality}:${savedSettings.systemSound}:${savedSettings.musicSound}`;
@@ -112,6 +114,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
         key={settingsKey}
         titleId={titleId}
         onClose={onClose}
+        soundEnabled={soundEnabled}
         initialSettings={savedSettings}
       />
     </Modal>
@@ -122,15 +125,18 @@ function SettingsContent({
   titleId,
   onClose,
   initialSettings,
+  soundEnabled,
 }: {
   titleId: string;
   onClose: () => void;
   initialSettings: GameSettings;
+  soundEnabled: boolean;
 }) {
   const [settings, setSettings] = useState<GameSettings>(initialSettings);
 
   const handleConfirm = () => {
     useSettingsStore.getState().setSettings(settings);
+    if (soundEnabled) playSoundEffect("accept");
     onClose();
   };
 
@@ -151,7 +157,10 @@ function SettingsContent({
         </h2>
         <IconButton
           type="button"
-          onClick={onClose}
+          onClick={() => {
+            if (soundEnabled) playSoundEffect("click");
+            onClose();
+          }}
           aria-label={SETTINGS_MESSAGES.close}
           size="small"
           sx={{
@@ -212,7 +221,7 @@ function SettingsContent({
       </div>
 
       <div className="mt-8 flex justify-end gap-3 pt-2">
-        <Button variant="outline" size="small" onClick={onClose}>
+        <Button sound={soundEnabled ? "click" : undefined} variant="outline" size="small" onClick={onClose}>
           {SETTINGS_MESSAGES.cancel}
         </Button>
         <Button variant="primary" size="small" onClick={handleConfirm}>

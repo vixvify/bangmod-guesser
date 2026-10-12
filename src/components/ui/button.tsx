@@ -5,6 +5,7 @@ import ButtonBase from "@mui/material/ButtonBase";
 import type { Theme } from "@mui/material/styles";
 import type { SystemStyleObject } from "@mui/system";
 import type { ButtonHTMLAttributes, ComponentProps, ReactNode } from "react";
+import { playSoundEffect, type SoundEffect } from "@/lib/sound-effect";
 
 type ButtonVariant = "primary" | "ghost" | "outline" | "surface" | "play";
 type ButtonSize = "default" | "small" | "icon";
@@ -14,6 +15,7 @@ type ButtonSharedProps = {
   className?: string;
   size?: ButtonSize;
   variant?: ButtonVariant;
+  sound?: SoundEffect;
 };
 
 type NativeButtonProps = ButtonSharedProps &
@@ -123,13 +125,14 @@ export function Button(props: ButtonProps) {
     className = "",
     size = "default",
     variant = "primary",
+    sound,
     ...buttonOrLinkProps
   } = props;
   const classes = `group inline-flex items-center justify-center overflow-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-focus ${sizeClasses[size]} ${className}`;
   const sx = [buttonStyles, variantStyles[variant], sizeStyles[size]];
 
   if ("href" in buttonOrLinkProps) {
-    const { href, ...linkProps } = buttonOrLinkProps;
+    const { href, onClick, ...linkProps } = buttonOrLinkProps;
 
     return (
       <ButtonBase
@@ -138,16 +141,29 @@ export function Button(props: ButtonProps) {
         className={classes}
         sx={sx}
         {...linkProps}
+        onClick={(event) => {
+          if (sound) playSoundEffect(sound);
+          onClick?.(event);
+        }}
       >
         {children}
       </ButtonBase>
     );
   }
 
-  const { type = "button", ...buttonProps } = buttonOrLinkProps;
+  const { type = "button", onClick, ...buttonProps } = buttonOrLinkProps;
 
   return (
-    <ButtonBase type={type} className={classes} sx={sx} {...buttonProps}>
+    <ButtonBase
+      type={type}
+      className={classes}
+      sx={sx}
+      {...buttonProps}
+      onClick={(event) => {
+        if (sound) playSoundEffect(sound);
+        onClick?.(event);
+      }}
+    >
       {children}
     </ButtonBase>
   );
