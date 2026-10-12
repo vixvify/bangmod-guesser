@@ -3,6 +3,7 @@
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { UserRole } from "@/core/domain/user";
+import { SETTINGS_MESSAGES } from "@/core/constants/settings";
 
 const { signOut, routerRefresh, toastError, toastSuccess } = vi.hoisted(() => ({
   signOut: vi.fn(),
@@ -10,6 +11,10 @@ const { signOut, routerRefresh, toastError, toastSuccess } = vi.hoisted(() => ({
   toastError: vi.fn(),
   toastSuccess: vi.fn(),
 }));
+
+const { playSoundEffect } = vi.hoisted(() => ({ playSoundEffect: vi.fn() }));
+
+vi.mock("@/lib/sound-effect", () => ({ playSoundEffect }));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: routerRefresh }),
@@ -47,6 +52,7 @@ describe("Navbar logout", () => {
     signOut.mockReset();
     toastError.mockReset();
     toastSuccess.mockReset();
+    playSoundEffect.mockReset();
   });
 
   it("opens a confirmation dialog and leaves the user signed in when cancelled", async () => {
@@ -54,7 +60,7 @@ describe("Navbar logout", () => {
 
     fireEvent.click(getByRole("button", { name: /ออกจากระบบ/ }));
 
-    expect(getByRole("dialog")).toBeTruthy();
+    expect(getByRole("dialog").className).toContain("bg-secondary-main");
     expect(signOut).not.toHaveBeenCalled();
 
     fireEvent.click(getByRole("button", { name: "ยกเลิก" }));
@@ -113,14 +119,28 @@ describe("Navbar logout", () => {
 
   it("opens settings modal when settings button is clicked and closes on cancel", async () => {
     const { getByRole, queryByRole } = render(<Navbar user={user} />);
+    const settingsButton = getByRole("button", { name: "ตั้งค่าเกม" });
 
-    fireEvent.click(getByRole("button", { name: "ตั้งค่าเกม" }));
+    expect(settingsButton.getAttribute("aria-pressed")).toBe("false");
+    fireEvent.click(settingsButton);
+    expect(playSoundEffect).toHaveBeenCalledWith("click");
 
     expect(getByRole("dialog")).toBeTruthy();
+    expect(settingsButton.getAttribute("aria-pressed")).toBe("true");
     expect(getByRole("heading", { name: "ตั้งค่าเกม" })).toBeTruthy();
 
     fireEvent.click(getByRole("button", { name: "ยกเลิก" }));
 
     await waitFor(() => expect(queryByRole("dialog")).toBeNull());
+    expect(settingsButton.getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("keeps the admin navbar and its settings modal silent", () => {
+    const { getByRole } = render(<Navbar user={user} soundEnabled={false} />);
+
+    fireEvent.click(getByRole("button", { name: SETTINGS_MESSAGES.title }));
+    fireEvent.click(getByRole("button", { name: SETTINGS_MESSAGES.confirm }));
+
+    expect(playSoundEffect).not.toHaveBeenCalled();
   });
 });

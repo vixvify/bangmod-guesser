@@ -11,6 +11,7 @@ type MainLayoutProps = {
   brandColor?: string;
   className?: string;
   variant?: "fullBleed" | "contained";
+  soundEnabled?: boolean;
 };
 
 export function MainLayout({
@@ -19,11 +20,12 @@ export function MainLayout({
   brandColor,
   className = "relative min-h-svh text-secondary-light",
   variant = "fullBleed",
+  soundEnabled = true,
 }: MainLayoutProps) {
   return (
     <main className={`${className} flex flex-col`}>
       <NavigationGuardProvider>
-        <Navbar user={user} brandColor={brandColor} />
+        <Navbar user={user} brandColor={brandColor} soundEnabled={soundEnabled} />
         {variant === "contained" ? (
           <ContentContainer
             contentWidth="wide"

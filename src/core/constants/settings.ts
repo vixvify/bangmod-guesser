@@ -1,3 +1,5 @@
+import type { GameSettings } from "@/core/schema/settings.schema";
+
 export const SETTINGS_MESSAGES = {
   title: "ตั้งค่าเกม",
   sfxVolume: "เสียงระบบ",
@@ -13,16 +15,10 @@ export const SETTINGS_MESSAGES = {
   },
 } as const;
 
-export type ImageQuality = keyof typeof SETTINGS_MESSAGES.qualities;
-
-export type GameSettings = {
-  sfxVolume: number;
-  musicVolume: number;
-  imageQuality: ImageQuality;
-};
+export type { GameSettings, ImageQuality } from "@/core/schema/settings.schema";
 
 export const DEFAULT_SETTINGS: GameSettings = {
-  sfxVolume: 80,
-  musicVolume: 50,
   imageQuality: "ultra",
+  systemSound: 80,
+  musicSound: 50,
 };

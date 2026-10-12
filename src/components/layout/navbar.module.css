@@ -1,0 +1,15 @@
+.navButton[aria-current="page"],
+.navButton[aria-pressed="true"] {
+  background-color: var(--color-primary-main);
+  color: var(--color-surface-text);
+}
+
+.navButton[aria-current="page"] svg,
+.navButton[aria-pressed="true"] svg {
+  color: var(--color-surface-text);
+}
+
+.navButton[aria-current="page"]:not(.Mui-disabled):hover,
+.navButton[aria-pressed="true"]:not(.Mui-disabled):hover {
+  background-color: var(--color-primary-hover);
+}

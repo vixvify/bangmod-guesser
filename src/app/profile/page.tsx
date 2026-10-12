@@ -15,8 +15,8 @@ export default async function ProfilePage() {
     <MainLayout
       user={user}
       variant="contained"
-      brandColor="var(--color-secondary-dark)"
-      className="relative min-h-svh bg-slate-50 text-secondary-dark"
+      brandColor="var(--color-surface-text)"
+      className="relative min-h-svh bg-secondary-main text-surface-text"
     >
       <ProfileCard
         profile={user}
@@ -24,22 +24,28 @@ export default async function ProfilePage() {
       />
       <section
         aria-labelledby="game-history-title"
-        className="mt-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6"
+        className="mt-5 rounded-3xl border border-surface-border bg-surface-overlay p-4 shadow-2xl shadow-black/20 sm:p-6"
       >
-        <div className="flex flex-col gap-5 rounded-2xl border border-slate-100 bg-slate-50 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-6">
+          <div className="flex flex-col gap-5 rounded-2xl border border-surface-border bg-surface-overlay p-5 sm:flex-row sm:items-end sm:justify-between sm:p-6">
           <div>
-            <h2 id="game-history-title" className="text-xl font-bold text-secondary-dark">
+            <h2 id="game-history-title" className="text-xl font-bold text-surface-text">
               ประวัติการเล่นเกม
             </h2>
-            <p className="text-sm text-neutral-500">Game History</p>
+            <p className="text-sm text-primary-light">Game History</p>
           </div>
           <DateRangePicker
             label="เลือกช่วงเวลา"
             defaultValue={{ startDate: "2026-09-02", endDate: "2026-09-04" }}
+            theme="dark"
           />
         </div>
         <GameHistory games={mockGameHistory} />
-        <ListPagination totalItems={mockGameHistory.length} pageSize={4} itemLabel="เกม" />
+        <ListPagination
+          totalItems={mockGameHistory.length}
+          pageSize={4}
+          itemLabel="เกม"
+          theme="dark"
+        />
       </section>
     </MainLayout>
   );

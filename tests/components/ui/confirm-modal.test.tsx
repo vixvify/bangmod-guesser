@@ -7,6 +7,25 @@ import { ConfirmModal } from "@/components/ui/confirm-modal";
 afterEach(cleanup);
 
 describe("ConfirmModal", () => {
+  it("uses the dark theme for logout without changing the shared light default", () => {
+    render(
+      <ConfirmModal
+        open
+        theme="dark"
+        title="ออกจากระบบ"
+        description="ยืนยันการออกจากระบบ"
+        confirmLabel="ยืนยัน"
+        cancelLabel="ยกเลิก"
+        onConfirm={vi.fn()}
+        onCancel={vi.fn()}
+      />,
+    );
+
+    const dialog = screen.getByRole("dialog", { name: "ออกจากระบบ" });
+    expect(dialog.className).toContain("bg-secondary-main");
+    expect(dialog.className).toContain("text-surface-text");
+  });
+
   it("uses a light dialog surface with readable actions", () => {
     render(
       <ConfirmModal

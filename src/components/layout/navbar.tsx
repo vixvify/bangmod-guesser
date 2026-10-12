@@ -1,7 +1,7 @@
 "use client";
 
 import NextLink from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, type MouseEvent } from "react";
 import { ContentContainer } from "@/components/layout/content-container";
 import { useNavigationGuard } from "@/hooks/use-navigation-guard";
@@ -17,19 +17,24 @@ import { AUTH_MESSAGES } from "@/core/constants/auth";
 import type { User } from "@/core/domain/user";
 import { AppRoutes } from "@/routes/app/routes";
 import { Button } from "@/components/ui/button";
+import { playSoundEffect } from "@/lib/sound-effect";
+import styles from "./navbar.module.css";
 import httpClient from "@/lib/http";
 import { SessionRoutes } from "@/routes/api/session.routes";
 
 type NavbarProps = {
   user: User | null;
   brandColor?: string;
+  soundEnabled?: boolean;
 };
 
 export function Navbar({
   user,
   brandColor = "var(--color-secondary-light)",
+  soundEnabled = true,
 }: NavbarProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const navigationGuard = useNavigationGuard();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
@@ -60,6 +65,7 @@ export function Navbar({
         <NextLink
           href={AppRoutes.home}
           onClick={(event) => {
+            if (soundEnabled) playSoundEffect("click");
             if (navigationGuard?.request(() => router.push(AppRoutes.home))) {
               event.preventDefault();
             }
@@ -77,9 +83,12 @@ export function Navbar({
 
         <nav aria-label="เมนูหลัก" className="flex items-center gap-2">
           <Button
+            sound={soundEnabled ? "click" : undefined}
             variant="surface"
             size="icon"
             onClick={() => setIsSettingsOpen(true)}
+            aria-pressed={isSettingsOpen}
+            className={styles.navButton}
             aria-label="ตั้งค่าเกม"
             title="ตั้งค่าเกม"
           >
@@ -87,11 +96,19 @@ export function Navbar({
           </Button>
 
           <Button
+            sound={soundEnabled ? "click" : undefined}
+            href={AppRoutes.leaderboard}
+            aria-current={pathname === AppRoutes.leaderboard ? "page" : undefined}
+            className={styles.navButton}
+            onClick={(event: MouseEvent<HTMLAnchorElement>) => {
+              if (navigationGuard?.request(() => router.push(AppRoutes.leaderboard))) {
+                event.preventDefault();
+              }
+            }}
             variant="surface"
             size="icon"
-            disabled
-            aria-label="ตารางอันดับ — เร็ว ๆ นี้"
-            title="ตารางอันดับ — เร็ว ๆ นี้"
+            aria-label="อันดับผู้เล่น"
+            title="อันดับผู้เล่น"
           >
             <LeaderboardOutlinedIcon />
           </Button>
@@ -99,7 +116,10 @@ export function Navbar({
           {user ? (
             <>
               <Button
+                sound={soundEnabled ? "click" : undefined}
                 href={AppRoutes.profile}
+                aria-current={pathname === AppRoutes.profile ? "page" : undefined}
+                className={styles.navButton}
                 onClick={(event: MouseEvent<HTMLAnchorElement>) => {
                   if (navigationGuard?.request(() => router.push(AppRoutes.profile))) {
                     event.preventDefault();
@@ -113,6 +133,7 @@ export function Navbar({
                 <PersonOutlineIcon />
               </Button>
               <Button
+                sound={soundEnabled ? "click" : undefined}
                 variant="surface"
                 size="small"
                 onClick={() => {
@@ -127,7 +148,7 @@ export function Navbar({
               </Button>
             </>
           ) : (
-            <Button href={AppRoutes.login} variant="surface" size="small">
+            <Button href={AppRoutes.login} variant="surface" size="small" sound={soundEnabled ? "click" : undefined}>
               <LoginOutlinedIcon fontSize="small" />
               เข้าสู่ระบบ
             </Button>
@@ -135,7 +156,9 @@ export function Navbar({
         </nav>
       </ContentContainer>
       <ConfirmModal
+        soundEnabled={soundEnabled}
         open={isLogoutModalOpen}
+        theme="dark"
         busy={isLoggingOut}
         title={AUTH_MESSAGES.logout.title}
         description={AUTH_MESSAGES.logout.description}
@@ -145,6 +168,7 @@ export function Navbar({
         onCancel={() => setIsLogoutModalOpen(false)}
       />
       <SettingsModal
+        soundEnabled={soundEnabled}
         open={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
       />

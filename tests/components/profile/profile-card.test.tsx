@@ -59,6 +59,7 @@ describe("ProfileCard", () => {
   it("shows the user's initial when no image is available", () => {
     const { container } = render(<ProfileCard profile={profile} />);
 
+    expect(container.querySelector("section")?.className).toContain("bg-surface-overlay");
     expect(container.querySelector(".MuiAvatar-root")?.textContent).toBe("U");
     expect(container.querySelector(".MuiAvatar-root img")).toBeNull();
   });
@@ -71,6 +72,8 @@ describe("ProfileCard", () => {
     fireEvent.click(screen.getByRole("button", { name: "แก้ไขชื่อผู้ใช้" }));
 
     expect(screen.getByRole("dialog", { name: "แก้ไขชื่อผู้ใช้" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "แก้ไขชื่อผู้ใช้" }).className).toContain("text-2xl");
+    expect(screen.getByRole("dialog", { name: "แก้ไขชื่อผู้ใช้" }).className).toContain("bg-secondary-main");
     expect(screen.getByRole("separator")).toBeTruthy();
     expect(
       screen.getByRole("button", { name: "บันทึก" }).parentElement?.classList.contains("mt-8"),

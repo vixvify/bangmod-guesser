@@ -5,7 +5,10 @@ import { UserRole } from "@/core/domain/user";
 import { requireAuth } from "@/lib/auth-check";
 
 vi.mock("@/lib/auth-check", () => ({ requireAuth: vi.fn() }));
-vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: vi.fn() }),
+  usePathname: () => "/admin",
+}));
 vi.mock("@/lib/auth-client", () => ({ authClient: { signOut: vi.fn() } }));
 
 describe("AdminLayout", () => {

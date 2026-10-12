@@ -12,6 +12,7 @@ import Modal from "@mui/material/Modal";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import { Button } from "@/components/ui/button";
 import { MAP_CONFIG } from "@/core/constants/game";
+import { playSoundEffect } from "@/lib/sound-effect";
 
 const GameMap = dynamic(
   () => import("@/components/game/game-map").then((mod) => mod.GameMap),
@@ -98,7 +99,10 @@ export function GameImageViewer({
           {mainContent === "image" && (
             <div className="absolute top-3 right-3 z-10">
               <IconButton
-                onClick={handleOpenFullscreen}
+                onClick={() => {
+                  playSoundEffect("click");
+                  handleOpenFullscreen();
+                }}
                 aria-label="เต็มจอ"
                 size="small"
                 sx={iconButtonSx}
@@ -130,7 +134,10 @@ export function GameImageViewer({
 
             <div className="absolute top-2 right-2 z-1000">
               <IconButton
-                onClick={handleSwap}
+                onClick={() => {
+                  playSoundEffect("click");
+                  handleSwap();
+                }}
                 aria-label="สลับตำแหน่ง"
                 size="small"
                 sx={swapButtonSx}
@@ -144,6 +151,7 @@ export function GameImageViewer({
 
           {onSubmit && (
             <Button
+              sound="accept"
               variant="primary"
               size="default"
               onClick={onSubmit}
@@ -186,7 +194,10 @@ export function GameImageViewer({
 
             <div className="absolute top-3 right-3 z-10">
               <IconButton
-                onClick={() => setIsFullscreen(false)}
+                onClick={() => {
+                  playSoundEffect("click");
+                  setIsFullscreen(false);
+                }}
                 aria-label="ออกจากเต็มจอ"
                 size="small"
                 sx={iconButtonSx}

@@ -87,14 +87,14 @@ describe("LoginPage", () => {
 
   it("starts Google OAuth without requiring email fields and preserves the requested page", async () => {
     signInSocial.mockResolvedValue({ data: { url: "https://accounts.google.com/" } });
-    await renderPage("/game?mode=solo");
+    await renderPage("/game/demo?mode=solo");
 
     fireEvent.click(screen.getByRole("button", { name: "เข้าสู่ระบบด้วย Google" }));
 
     await waitFor(() => {
       expect(signInSocial).toHaveBeenCalledWith({
-        callbackURL: "/game?mode=solo",
-        errorCallbackURL: "/login?callbackUrl=%2Fgame%3Fmode%3Dsolo",
+        callbackURL: "/game/demo?mode=solo",
+        errorCallbackURL: "/login?callbackUrl=%2Fgame%2Fdemo%3Fmode%3Dsolo",
       });
     });
     expect(replace).not.toHaveBeenCalled();
@@ -145,7 +145,7 @@ describe("LoginPage", () => {
 
   it("submits normalized credentials and returns to the requested local page", async () => {
     signInEmail.mockResolvedValue({ data: null });
-    await renderPage("/game");
+    await renderPage("/game/demo");
 
     fireEvent.change(await screen.findByRole("textbox", { name: "อีเมล" }), {
       target: { value: "  STUDENT@EXAMPLE.COM  " },
@@ -160,7 +160,7 @@ describe("LoginPage", () => {
         email: "student@example.com",
         password: "Password1",
       });
-      expect(replace).toHaveBeenCalledWith("/game");
+      expect(replace).toHaveBeenCalledWith("/game/demo");
     });
     expect(refresh).toHaveBeenCalledOnce();
     expect(toastSuccess).toHaveBeenCalledWith("เข้าสู่ระบบสำเร็จ");

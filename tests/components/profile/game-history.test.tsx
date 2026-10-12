@@ -9,8 +9,9 @@ afterEach(cleanup);
 
 describe("GameHistory", () => {
   it("renders the games supplied by the page", () => {
-    render(<GameHistory games={mockGameHistory} />);
+    const { container } = render(<GameHistory games={mockGameHistory} />);
 
+    expect(container.querySelector("li")?.className).toContain("bg-surface-overlay");
     expect(screen.getByText("#GAME-0001")).toBeTruthy();
     expect(screen.getByText("#GAME-0004")).toBeTruthy();
     expect(screen.getAllByRole("listitem")).toHaveLength(4);

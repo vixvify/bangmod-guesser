@@ -50,6 +50,19 @@ describe("createAudio", () => {
     player.dispose();
   });
 
+  it("updates the volume without changing the playback state", () => {
+    const { audio } = mockAudio();
+    const player = createAudio("/audio/game.mp3", { onStateChange: vi.fn() });
+
+    player.setVolume(0.7);
+    expect(audio.volume).toBe(0.7);
+    player.setVolume(2);
+    expect(audio.volume).toBe(1);
+    player.setVolume(-1);
+    expect(audio.volume).toBe(0);
+    player.dispose();
+  });
+
   it("releases audio and ignores a pending play result after disposal", async () => {
     const { audio, play, pause, load } = mockAudio();
     const pending = Promise.withResolvers<void>();

@@ -90,6 +90,18 @@ describe("App proxy middleware", () => {
     expect(getSession).not.toHaveBeenCalled();
   });
 
+  it("allows guests to open game pages for a specific game ID", async () => {
+    for (const pathname of [
+      AppRoutes.game("demo"),
+      AppRoutes.gameRoundScore("demo"),
+      AppRoutes.gameSummary("demo"),
+    ]) {
+      const response = await proxy(createRequest(pathname));
+      expect(response.headers.get("location")).toBeNull();
+    }
+    expect(getSession).not.toHaveBeenCalled();
+  });
+
   it("allows guest access to auth routes", async () => {
     const request = createRequest(AppRoutes.login);
 

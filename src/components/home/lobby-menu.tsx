@@ -6,16 +6,21 @@ import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 import { Button } from "@/components/ui/button";
 import { Countdown } from "@/components/ui/countdown";
 import { AppRoutes } from "@/routes/app/routes";
+import { GAME_DEFAULTS } from "@/core/constants/game";
 
 export function LobbyMenu() {
   const [isStarting, setIsStarting] = useState(false);
   const router = useRouter();
-  const enterGame = useCallback(() => router.push(AppRoutes.game), [router]);
+  const enterGame = useCallback(
+    () => router.push(AppRoutes.game(GAME_DEFAULTS.demoGameId)),
+    [router],
+  );
 
   return (
     <div className="mx-auto mt-8 w-full max-w-80 motion-safe:animate-home-enter motion-safe:[animation-delay:240ms]">
       <div className="relative -rotate-2 rounded-2xl border border-primary-soft/35 p-1.5">
         <Button
+          sound="accept"
           variant="play"
           disabled={isStarting}
           onClick={() => setIsStarting(true)}

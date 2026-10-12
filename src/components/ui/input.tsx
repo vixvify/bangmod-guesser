@@ -20,6 +20,7 @@ type InputProps = Omit<
   error?: string;
   icon?: ReactNode;
   ref?: Ref<HTMLInputElement>;
+  theme?: "light" | "dark";
 };
 
 export function Input({
@@ -30,8 +31,10 @@ export function Input({
   ref,
   size = "medium",
   type,
+  theme = "light",
   ...inputProps
 }: InputProps) {
+  const isDark = theme === "dark";
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const isPassword = type === "password";
   const errorId = `${id}-error`;
@@ -42,11 +45,11 @@ export function Input({
         htmlFor={id}
         sx={{
           mb: "0.5rem",
-          color: "var(--color-secondary-dark)",
+          color: isDark ? "var(--color-surface-text)" : "var(--color-secondary-dark)",
           fontFamily: "var(--font-prompt), sans-serif",
           fontSize: "0.875rem",
           fontWeight: 700,
-          "&.Mui-focused": { color: "var(--color-secondary-dark)" },
+          "&.Mui-focused": { color: isDark ? "var(--color-primary-light)" : "var(--color-secondary-dark)" },
         }}
       >
         {label}
@@ -60,7 +63,14 @@ export function Input({
         aria-invalid={Boolean(error)}
         aria-describedby={error ? errorId : undefined}
         startAdornment={
-          icon ? <InputAdornment position="start">{icon}</InputAdornment> : null
+          icon ? (
+            <InputAdornment
+              position="start"
+              sx={{ color: isDark ? "var(--color-surface-text)" : "var(--color-secondary-dark)" }}
+            >
+              {icon}
+            </InputAdornment>
+          ) : null
         }
         endAdornment={
           isPassword ? (
@@ -73,7 +83,7 @@ export function Input({
                 onClick={() => setIsPasswordVisible((visible) => !visible)}
                 onMouseDown={(event) => event.preventDefault()}
                 sx={{
-                  color: "var(--color-secondary-dark)",
+                  color: isDark ? "var(--color-surface-text)" : "var(--color-secondary-dark)",
                   "&:hover": { color: "var(--color-primary-main)" },
                 }}
               >
@@ -89,11 +99,13 @@ export function Input({
         sx={{
           minHeight: size === "small" ? "2.5rem" : "3.25rem",
           borderRadius: "0.75rem",
-          backgroundColor: "#fff",
-          color: "var(--color-secondary-dark)",
+          backgroundColor: isDark ? "var(--color-surface-control)" : "#fff",
+          color: isDark ? "var(--color-surface-text)" : "var(--color-secondary-dark)",
           fontFamily: "var(--font-prompt), sans-serif",
           "& .MuiOutlinedInput-notchedOutline": {
-            borderColor: "color-mix(in srgb, var(--color-secondary-main) 18%, white)",
+            borderColor: isDark
+              ? "var(--color-surface-control-border)"
+              : "color-mix(in srgb, var(--color-secondary-main) 18%, white)",
           },
           "&:hover .MuiOutlinedInput-notchedOutline": {
             borderColor: "var(--color-primary-main)",
@@ -104,11 +116,14 @@ export function Input({
           "& .MuiOutlinedInput-input": {
             py: size === "small" ? "0.5rem" : "0.875rem",
             fontFamily: "inherit",
-            "&::placeholder": { fontFamily: "inherit" },
+            "&::placeholder": {
+              fontFamily: "inherit",
+              ...(isDark && { color: "var(--color-surface-placeholder)", opacity: 1 }),
+            },
             "&:autofill, &:-webkit-autofill": {
-              WebkitBoxShadow: "0 0 0 100rem #fff inset",
-              WebkitTextFillColor: "var(--color-secondary-dark)",
-              caretColor: "var(--color-secondary-dark)",
+              WebkitBoxShadow: `0 0 0 100rem ${isDark ? "var(--color-secondary-main)" : "#fff"} inset`,
+              WebkitTextFillColor: isDark ? "var(--color-surface-text)" : "var(--color-secondary-dark)",
+              caretColor: isDark ? "var(--color-surface-text)" : "var(--color-secondary-dark)",
             },
           },
         }}

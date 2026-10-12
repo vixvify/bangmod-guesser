@@ -1,10 +1,12 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { UserRole } from "@/core/domain/user";
+
+const { pathnameMock } = vi.hoisted(() => ({ pathnameMock: vi.fn(() => "/") }));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
-  usePathname: () => "/",
+  usePathname: pathnameMock,
 }));
 
 vi.mock("@/lib/auth-client", () => ({
@@ -14,6 +16,61 @@ vi.mock("@/lib/auth-client", () => ({
 import { Navbar } from "@/components/layout/navbar";
 
 describe("Navbar", () => {
+  beforeEach(() => pathnameMock.mockReturnValue("/"));
+
+  it("does not mark the brand as active on the home page", () => {
+    const markup = renderToStaticMarkup(<Navbar user={null} />);
+    const homeLink = markup.match(/<a[^>]*href="\/"[^>]*>/)?.[0];
+
+    expect(homeLink).not.toContain('aria-current="page"');
+    expect(markup).not.toContain('aria-current="page"');
+  });
+
+  it("marks only the profile link active on the profile page", () => {
+    pathnameMock.mockReturnValue("/profile");
+    const markup = renderToStaticMarkup(
+      <Navbar
+        user={{
+          id: "user_1",
+          name: "KMUTT Student",
+          email: "student@example.com",
+          role: UserRole.USER,
+        }}
+      />,
+    );
+    const profileLink = markup.match(/<a[^>]*href="\/profile"[^>]*>/)?.[0];
+
+    expect(profileLink).toContain('aria-current="page"');
+    expect(profileLink).toContain("navButton");
+    expect(markup.match(/aria-current="page"/g)).toHaveLength(1);
+  });
+
+  it("links to the leaderboard and marks it active on its page", () => {
+    pathnameMock.mockReturnValue("/leaderboard");
+    const markup = renderToStaticMarkup(<Navbar user={null} />);
+    const leaderboardLink = markup.match(/<a[^>]*href="\/leaderboard"[^>]*>/)?.[0];
+
+    expect(leaderboardLink).toContain('aria-current="page"');
+    expect(leaderboardLink).toContain("navButton");
+    expect(markup.match(/aria-current="page"/g)).toHaveLength(1);
+  });
+
+  it("does not mark unrelated pages as home or profile", () => {
+    pathnameMock.mockReturnValue("/admin/users");
+    const markup = renderToStaticMarkup(
+      <Navbar
+        user={{
+          id: "admin_1",
+          name: "Admin",
+          email: "admin@example.com",
+          role: UserRole.ADMIN,
+        }}
+      />,
+    );
+
+    expect(markup).not.toContain('aria-current="page"');
+  });
+
   it("shows the brand, settings, leaderboard, and login actions for guests", () => {
     const markup = renderToStaticMarkup(<Navbar user={null} />);
 
@@ -26,12 +83,12 @@ describe("Navbar", () => {
     expect(markup).toContain("width:2.5rem");
     expect(markup).toContain("height:2.5rem");
     expect(markup).toContain("ตั้งค่าเกม");
-    expect(markup).toContain("ตารางอันดับ — เร็ว ๆ นี้");
+    expect(markup).toContain('href="/leaderboard"');
     expect(markup).toContain('href="/login"');
+    expect(markup.match(/<(?:button|a)[^>]*class="[^"]*navButton[^"]*"[^>]*>/g)).toHaveLength(2);
     expect(markup).toContain("เข้าสู่ระบบ");
     expect(markup).not.toContain("ออกจากระบบ");
     expect(markup).not.toContain('href="/profile"');
-    expect(markup).toContain("disabled");
   });
 
   it("shows settings, leaderboard, profile, and logout actions for authenticated users", () => {
@@ -47,8 +104,9 @@ describe("Navbar", () => {
     );
 
     expect(markup).toContain('href="/profile"');
+    expect(markup.match(/<(?:button|a)[^>]*class="[^"]*navButton[^"]*"[^>]*>/g)).toHaveLength(3);
     expect(markup).toContain("โปรไฟล์ของ KMUTT Student");
-    expect(markup).toContain("ตารางอันดับ — เร็ว ๆ นี้");
+    expect(markup).toContain('href="/leaderboard"');
     expect(markup).toContain("ออกจากระบบ");
     expect(markup).not.toContain('href="/login"');
   });

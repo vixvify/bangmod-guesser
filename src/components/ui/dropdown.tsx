@@ -18,6 +18,7 @@ export type DropdownProps<T extends string = string> = {
   onChange: (value: T) => void;
   disabled?: boolean;
   className?: string;
+  theme?: "light" | "dark";
   "aria-label"?: string;
 };
 
@@ -28,8 +29,10 @@ export function Dropdown<T extends string = string>({
   onChange,
   disabled = false,
   className = "",
+  theme = "light",
   "aria-label": ariaLabel,
 }: DropdownProps<T>) {
+  const isDark = theme === "dark";
   const handleChange = (event: SelectChangeEvent<string>) => {
     onChange(event.target.value as T);
   };
@@ -44,13 +47,13 @@ export function Dropdown<T extends string = string>({
         IconComponent={KeyboardArrowDownRoundedIcon}
         sx={{
           borderRadius: "0.5rem",
-          backgroundColor: "#ffffff",
-          color: "var(--color-secondary-dark)",
+          backgroundColor: isDark ? "var(--color-surface-control)" : "#ffffff",
+          color: isDark ? "var(--color-surface-text)" : "var(--color-secondary-dark)",
           fontFamily: "inherit",
           fontSize: "0.875rem",
           fontWeight: 600,
           "& .MuiOutlinedInput-notchedOutline": {
-            borderColor: "rgb(0 0 0 / 15%)",
+            borderColor: isDark ? "var(--color-surface-control-border)" : "rgb(0 0 0 / 15%)",
           },
           "&:hover .MuiOutlinedInput-notchedOutline": {
             borderColor: "var(--color-primary-main)",
@@ -66,7 +69,7 @@ export function Dropdown<T extends string = string>({
             paddingRight: "2rem",
           },
           "& .MuiSelect-icon": {
-            color: "var(--color-secondary-dark)",
+            color: isDark ? "var(--color-surface-text)" : "var(--color-secondary-dark)",
             right: "0.375rem",
           },
         }}
@@ -76,6 +79,9 @@ export function Dropdown<T extends string = string>({
               sx: {
                 borderRadius: "0.5rem",
                 marginTop: "0.25rem",
+                backgroundColor: isDark ? "var(--color-secondary-main)" : "#fff",
+                color: isDark ? "var(--color-surface-text)" : "var(--color-secondary-dark)",
+                border: isDark ? "1px solid var(--color-surface-border)" : undefined,
                 boxShadow: "0 0.5rem 1.5rem rgba(0, 0, 0, 0.15)",
                 "& .MuiMenuItem-root": {
                   fontFamily: "inherit",
@@ -89,7 +95,7 @@ export function Dropdown<T extends string = string>({
                     },
                   },
                   "&:hover": {
-                    backgroundColor: "rgba(0, 0, 0, 0.04)",
+                    backgroundColor: isDark ? "var(--color-surface-control-hover)" : "rgba(0, 0, 0, 0.04)",
                   },
                 },
               },

@@ -10,6 +10,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   return (
     <MainLayout
       user={user}
+      soundEnabled={false}
       variant="contained"
       brandColor="var(--color-secondary-dark)"
       className="relative min-h-svh bg-slate-50 text-secondary-dark"

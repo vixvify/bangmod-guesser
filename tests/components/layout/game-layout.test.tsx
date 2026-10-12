@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { GAME_MESSAGES } from "@/core/constants/game";
 
@@ -15,11 +15,16 @@ vi.mock("@/lib/auth-client", () => ({
 import { GameLayout } from "@/layout/game-layout";
 
 describe("GameLayout", () => {
-  afterEach(cleanup);
+  const onExit = vi.fn();
+
+  afterEach(() => {
+    cleanup();
+    onExit.mockReset();
+  });
 
   it("renders children content", () => {
     render(
-      <GameLayout>
+      <GameLayout onExit={onExit}>
         <p>Game content</p>
       </GameLayout>,
     );
@@ -29,7 +34,7 @@ describe("GameLayout", () => {
 
   it("renders a decorative backdrop behind the game content", () => {
     const { container } = render(
-      <GameLayout>
+      <GameLayout onExit={onExit}>
         <p>Game content</p>
       </GameLayout>,
     );
@@ -41,7 +46,7 @@ describe("GameLayout", () => {
 
   it("renders the header center slot", () => {
     render(
-      <GameLayout headerCenter={<span>Timer</span>}>
+      <GameLayout onExit={onExit} headerCenter={<span>Timer</span>}>
         <p>Content</p>
       </GameLayout>,
     );
@@ -51,7 +56,7 @@ describe("GameLayout", () => {
 
   it("renders the settings button", () => {
     render(
-      <GameLayout>
+      <GameLayout onExit={onExit}>
         <p>Content</p>
       </GameLayout>,
     );
@@ -61,7 +66,7 @@ describe("GameLayout", () => {
 
   it("renders the exit game button", () => {
     render(
-      <GameLayout>
+      <GameLayout onExit={onExit}>
         <p>Content</p>
       </GameLayout>,
     );
@@ -73,7 +78,7 @@ describe("GameLayout", () => {
 
   it("opens the settings dialog when the settings button is clicked", () => {
     render(
-      <GameLayout>
+      <GameLayout onExit={onExit}>
         <p>Content</p>
       </GameLayout>,
     );
@@ -83,9 +88,9 @@ describe("GameLayout", () => {
     expect(screen.getByRole("dialog")).toBeTruthy();
   });
 
-  it("opens the exit confirm dialog when exit button is clicked", () => {
+  it("requests exit when the exit button is clicked", () => {
     render(
-      <GameLayout>
+      <GameLayout onExit={onExit}>
         <p>Content</p>
       </GameLayout>,
     );
@@ -94,36 +99,12 @@ describe("GameLayout", () => {
       screen.getByRole("button", { name: GAME_MESSAGES.exitGame.button }),
     );
 
-    expect(
-      screen.getByRole("heading", { name: GAME_MESSAGES.exitGame.title }),
-    ).toBeTruthy();
-    expect(screen.getByText(GAME_MESSAGES.exitGame.description)).toBeTruthy();
-  });
-
-  it("closes the exit dialog when cancel is clicked", async () => {
-    render(
-      <GameLayout>
-        <p>Content</p>
-      </GameLayout>,
-    );
-
-    fireEvent.click(
-      screen.getByRole("button", { name: GAME_MESSAGES.exitGame.button }),
-    );
-    fireEvent.click(
-      screen.getByRole("button", { name: GAME_MESSAGES.exitGame.cancel }),
-    );
-
-    await waitFor(() => {
-      expect(
-        screen.queryByRole("heading", { name: GAME_MESSAGES.exitGame.title }),
-      ).toBeNull();
-    });
+    expect(onExit).toHaveBeenCalledOnce();
   });
 
   it("has the game menu navigation landmark", () => {
     render(
-      <GameLayout>
+      <GameLayout onExit={onExit}>
         <p>Content</p>
       </GameLayout>,
     );

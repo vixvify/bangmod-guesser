@@ -41,6 +41,10 @@ export function createAudio(source: string, options: AudioOptions) {
       audio.pause();
       updateState("paused");
     },
+    setVolume(volume: number) {
+      if (lifecycle.signal.aborted) return;
+      audio.volume = Math.min(1, Math.max(0, volume));
+    },
     dispose() {
       if (lifecycle.signal.aborted) return;
       lifecycle.abort();

@@ -50,7 +50,7 @@ describe("LobbyMenu", () => {
     act(() => {
       vi.advanceTimersByTime(1);
     });
-    expect(push).toHaveBeenCalledExactlyOnceWith("/game");
+    expect(push).toHaveBeenCalledExactlyOnceWith("/game/demo");
   });
 
   it("keeps instructions and credits out of the lobby actions", () => {

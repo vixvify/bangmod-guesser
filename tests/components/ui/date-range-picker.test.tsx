@@ -102,6 +102,21 @@ describe("DateRangePicker", () => {
     expect(middle.dataset.image).toBeUndefined();
   });
 
+  it("uses a dark calendar surface when requested for the profile", () => {
+    render(
+      <DateRangePicker
+        label="Date range"
+        theme="dark"
+        defaultValue={{ startDate: "2026-09-02", endDate: "2026-09-04" }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("textbox", { name: "Date range" }));
+    expect(screen.getByRole("button", { name: /^2 / }).dataset.image).toContain(
+      "var(--color-secondary-main)",
+    );
+  });
+
   it("rounds each end of a range that wraps to the next week", () => {
     render(
       <DateRangePicker
