@@ -76,12 +76,15 @@ export function Navbar({
               fontWeight: 900,
             } as React.CSSProperties
           }
-          className="min-w-0 text-[var(--brand-color)] text-sm tracking-tight no-underline transition-colors duration-[280ms] hover:text-primary-main focus-visible:outline-2 focus-visible:outline-primary-focus sm:text-2xl"
+          className="min-w-0 text-(--brand-color) text-sm tracking-tight no-underline transition-colors duration-280 hover:text-primary-main focus-visible:outline-2 focus-visible:outline-primary-focus sm:text-2xl"
         >
           Bangmod Guesser
         </NextLink>
 
-        <nav aria-label="เมนูหลัก" className="flex shrink-0 items-center gap-1 sm:gap-2">
+        <nav
+          aria-label="เมนูหลัก"
+          className="flex shrink-0 items-center gap-1 sm:gap-2"
+        >
           <Button
             sound={soundEnabled ? "click" : undefined}
             variant="surface"
@@ -99,10 +102,16 @@ export function Navbar({
           <Button
             sound={soundEnabled ? "click" : undefined}
             href={AppRoutes.leaderboard}
-            aria-current={pathname === AppRoutes.leaderboard ? "page" : undefined}
+            aria-current={
+              pathname === AppRoutes.leaderboard ? "page" : undefined
+            }
             className={styles.navButton}
             onClick={(event: MouseEvent<HTMLAnchorElement>) => {
-              if (navigationGuard?.request(() => router.push(AppRoutes.leaderboard))) {
+              if (
+                navigationGuard?.request(() =>
+                  router.push(AppRoutes.leaderboard),
+                )
+              ) {
                 event.preventDefault();
               }
             }}
@@ -119,10 +128,16 @@ export function Navbar({
               <Button
                 sound={soundEnabled ? "click" : undefined}
                 href={AppRoutes.profile}
-                aria-current={pathname === AppRoutes.profile ? "page" : undefined}
+                aria-current={
+                  pathname === AppRoutes.profile ? "page" : undefined
+                }
                 className={styles.navButton}
                 onClick={(event: MouseEvent<HTMLAnchorElement>) => {
-                  if (navigationGuard?.request(() => router.push(AppRoutes.profile))) {
+                  if (
+                    navigationGuard?.request(() =>
+                      router.push(AppRoutes.profile),
+                    )
+                  ) {
                     event.preventDefault();
                   }
                 }}
@@ -138,7 +153,9 @@ export function Navbar({
                 variant="surface"
                 size="small"
                 onClick={() => {
-                  if (!navigationGuard?.request(() => setIsLogoutModalOpen(true))) {
+                  if (
+                    !navigationGuard?.request(() => setIsLogoutModalOpen(true))
+                  ) {
                     setIsLogoutModalOpen(true);
                   }
                 }}
@@ -147,11 +164,19 @@ export function Navbar({
                 aria-haspopup="dialog"
               >
                 <LogoutOutlinedIcon fontSize="small" />
-                <span className="hidden sm:inline">{isLoggingOut ? "กำลังออกจากระบบ..." : "ออกจากระบบ"}</span>
+                <span className="hidden sm:inline">
+                  {isLoggingOut ? "กำลังออกจากระบบ..." : "ออกจากระบบ"}
+                </span>
               </Button>
             </>
           ) : (
-            <Button href={AppRoutes.login} variant="surface" size="small" aria-label="เข้าสู่ระบบ" sound={soundEnabled ? "click" : undefined}>
+            <Button
+              href={AppRoutes.login}
+              variant="surface"
+              size="small"
+              aria-label="เข้าสู่ระบบ"
+              sound={soundEnabled ? "click" : undefined}
+            >
               <LoginOutlinedIcon fontSize="small" />
               <span className="hidden sm:inline">เข้าสู่ระบบ</span>
             </Button>
