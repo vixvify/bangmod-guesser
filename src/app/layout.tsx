@@ -33,10 +33,11 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="th"
       className={`${geistSans.variable} ${geistMono.variable} ${prompt.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <a href="#main-content" className="skip-link">ข้ามไปเนื้อหาหลัก</a>
         <AppRouterCacheProvider>
           {children}
           <Toaster

@@ -138,3 +138,33 @@ body {
     0 0.4375rem 0 var(--color-secondary-dark),
     0 0.75rem 1.5rem var(--color-secondary-main);
 }
+
+/* A two-tone focus ring remains visible on both light and dark surfaces. */
+:is(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--color-primary-focus);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px var(--color-secondary-main);
+}
+
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 2000;
+  transform: translateY(-200%);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-secondary-light);
+  color: var(--color-secondary-dark);
+}
+
+.skip-link:focus { transform: translateY(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

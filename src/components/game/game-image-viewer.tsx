@@ -29,21 +29,21 @@ type GameImageViewerProps = {
 };
 
 const iconButtonSx = {
-  backgroundColor: "rgba(255,255,255,0.9)",
+  backgroundColor: "var(--color-secondary-light)",
   backdropFilter: "blur(8px)",
-  color: "#1b120c",
-  width: 36,
-  height: 36,
+  color: "var(--color-secondary-dark)",
+  width: 44,
+  height: 44,
   "&:hover": {
-    backgroundColor: "#fff",
-    color: "var(--color-primary-main)",
+    backgroundColor: "var(--color-primary-soft)",
   },
 } as const;
 
 const swapButtonSx = {
   ...iconButtonSx,
-  width: 28,
-  height: 28,
+  backgroundColor: "var(--color-primary-main)",
+  border: "2px solid var(--color-secondary-light)",
+  boxShadow: "0 3px 12px var(--color-secondary-main)",
 } as const;
 
 export function GameImageViewer({
@@ -139,11 +139,13 @@ export function GameImageViewer({
                   handleSwap();
                 }}
                 aria-label="สลับตำแหน่ง"
+                aria-pressed={isSwapped}
+                title={isSwapped ? "ขยายภาพสถานที่" : "ขยายแผนที่"}
                 size="small"
                 sx={swapButtonSx}
               >
                 <SyncAltRoundedIcon
-                  sx={{ fontSize: 16, transform: "rotate(45deg)" }}
+                  sx={{ fontSize: 24, transform: "rotate(45deg)" }}
                 />
               </IconButton>
             </div>

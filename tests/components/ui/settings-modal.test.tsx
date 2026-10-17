@@ -5,8 +5,21 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { SettingsModal } from "@/components/ui/settings-modal";
 import { DEFAULT_SETTINGS, SETTINGS_MESSAGES } from "@/core/constants/settings";
 import { useSettingsStore } from "@/store/settings-store";
+import userEvent from "@testing-library/user-event";
 
 describe("SettingsModal", () => {
+  it("keeps keyboard focus inside the modal and closes with Escape", async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    render(<SettingsModal open onClose={onClose} />);
+    const dialog = screen.getByRole("dialog");
+    expect(dialog.contains(document.activeElement)).toBe(true);
+    screen.getByRole("button", { name: SETTINGS_MESSAGES.confirm }).focus();
+    await user.tab();
+    expect(dialog.contains(document.activeElement)).toBe(true);
+    await user.keyboard("{Escape}");
+    expect(onClose).toHaveBeenCalledOnce();
+  });
   afterEach(() => {
     cleanup();
     useSettingsStore.getState().setSettings(DEFAULT_SETTINGS);

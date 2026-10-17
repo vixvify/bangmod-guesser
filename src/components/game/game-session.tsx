@@ -12,7 +12,11 @@ import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
 import { useGameMusic } from "@/hooks/use-game-music";
 import { AppRoutes } from "@/routes/app/routes";
 
-export function GameSession() {
+export function GameSession({
+  gameId = GAME_DEFAULTS.demoGameId,
+}: {
+  gameId?: string;
+}) {
   useGameMusic();
   const router = useRouter();
   const [markerPosition, setMarkerPosition] = useState<{
@@ -26,7 +30,10 @@ export function GameSession() {
     () => setIsExitModalOpen(true),
   );
 
-  const handleTimeUp = useCallback(() => {}, []);
+  const handleSubmit = useCallback(
+    () => router.push(AppRoutes.gameRoundScore(gameId)),
+    [gameId, router],
+  );
 
   const handleMapClick = useCallback((lat: number, lng: number) => {
     setMarkerPosition({ lat, lng });
@@ -55,7 +62,7 @@ export function GameSession() {
             <GameRound round={GAME_DEFAULTS.currentRound} />
             <GameTimer
               initialSeconds={GAME_DEFAULTS.roundDurationSeconds}
-              onTimeUp={handleTimeUp}
+              onTimeUp={handleSubmit}
             />
           </div>
         }
@@ -65,7 +72,7 @@ export function GameSession() {
           imageAlt="สถานที่ในมหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี"
           markerPosition={markerPosition}
           onMapClick={handleMapClick}
-          onSubmit={requestExit}
+          onSubmit={handleSubmit}
           isSubmitDisabled={!markerPosition}
         />
       </GameLayout>

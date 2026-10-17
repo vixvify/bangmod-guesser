@@ -23,9 +23,10 @@ export function MainLayout({
   soundEnabled = true,
 }: MainLayoutProps) {
   return (
-    <main className={`${className} flex flex-col`}>
+    <div className={`${className} flex flex-col`}>
       <NavigationGuardProvider>
         <Navbar user={user} brandColor={brandColor} soundEnabled={soundEnabled} />
+        <main id="main-content" tabIndex={-1} className="flex flex-1 flex-col outline-none">
         {variant === "contained" ? (
           <ContentContainer
             contentWidth="wide"
@@ -37,8 +38,9 @@ export function MainLayout({
         ) : (
           children
         )}
+        </main>
       </NavigationGuardProvider>
       <Footer />
-    </main>
+    </div>
   );
 }

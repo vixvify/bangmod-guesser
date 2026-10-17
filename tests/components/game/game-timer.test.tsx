@@ -24,6 +24,7 @@ describe("GameTimer", () => {
     const timer = screen.getByRole("timer");
     expect(timer).toBeTruthy();
     expect(timer.getAttribute("aria-label")).toBe("เวลาที่เหลือ");
+    expect(timer.getAttribute("aria-live")).toBe("off");
   });
 
   it("displays the formatted time from useCountdown", () => {

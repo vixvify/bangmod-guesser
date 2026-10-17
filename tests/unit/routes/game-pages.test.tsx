@@ -4,6 +4,12 @@ import { renderToStaticMarkup } from "react-dom/server";
 vi.mock("@/components/game/game-session", () => ({
   GameSession: () => <div data-testid="game-session" />,
 }));
+vi.mock("@/components/game/game-round-score", () => ({
+  GameRoundScore: ({ gameId }: { gameId: string }) => <main data-game-id={gameId}>round score</main>,
+}));
+vi.mock("@/components/game/game-summary", () => ({
+  GameSummary: ({ gameId }: { gameId: string }) => <main data-game-id={gameId}>summary</main>,
+}));
 
 import GamePage from "@/app/game/[gameId]/page";
 import RoundScorePage from "@/app/game/[gameId]/round-score/page";
@@ -16,7 +22,7 @@ describe("game pages", () => {
     expect(renderToStaticMarkup(session)).toContain('data-testid="game-session"');
   });
 
-  it("keeps score and summary pages blank while retaining their parameters", async () => {
+  it("composes the score and summary screens with the route game ID", async () => {
     const score = renderToStaticMarkup(
       await RoundScorePage({
         params: Promise.resolve({ gameId: "game-123" }),
@@ -26,7 +32,7 @@ describe("game pages", () => {
       await GameSummaryPage({ params: Promise.resolve({ gameId: "game-123" }) }),
     );
 
-    expect(score).toBe('<main data-game-id="game-123"></main>');
-    expect(summary).toBe('<main data-game-id="game-123"></main>');
+    expect(score).toBe('<main data-game-id="game-123">round score</main>');
+    expect(summary).toBe('<main data-game-id="game-123">summary</main>');
   });
 });

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Modal from "@mui/material/Modal";
+import { playSoundEffect } from "@/lib/sound-effect";
 
 type CountdownProps = {
   onComplete: () => void;
@@ -15,11 +16,12 @@ export function Countdown({ onComplete }: CountdownProps) {
       window.setTimeout(
         () => {
           setCount(value);
-          if (value === 0) onComplete();
+          playSoundEffect(value === 0 ? "accept" : "click");
         },
         (index + 1) * 1000,
       ),
     );
+    timers.push(window.setTimeout(onComplete, 3700));
 
     return () => {
       timers.forEach(window.clearTimeout);
