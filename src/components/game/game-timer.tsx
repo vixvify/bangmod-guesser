@@ -13,10 +13,11 @@ export function GameTimer({ initialSeconds, onTimeUp }: GameTimerProps) {
   const { secondsLeft, isUrgent } = useCountdown({ initialSeconds, onTimeUp });
 
   return (
+    <>
     <div
       role="timer"
       aria-label="เวลาที่เหลือ"
-      aria-live="polite"
+      aria-live="off"
       className={`inline-flex items-center gap-2.5 rounded-xl border px-4 py-2 font-semibold tabular-nums transition-colors duration-300 ${
         isUrgent
           ? "border-red-400/60 bg-red-500/15 text-red-400"
@@ -25,12 +26,16 @@ export function GameTimer({ initialSeconds, onTimeUp }: GameTimerProps) {
     >
       <AccessTimeRoundedIcon
         fontSize="small"
-        className={isUrgent ? "animate-pulse" : ""}
+        className={isUrgent ? "motion-safe:animate-pulse" : ""}
       />
       <span className="hidden text-xs tracking-wide opacity-75 sm:inline">เวลาที่เหลือ</span>
       <span className="text-2xl font-bold tracking-wider">
         {formatTime(secondsLeft)}
       </span>
     </div>
+    <p role="status" aria-live="polite" className="sr-only">
+      {secondsLeft === 0 ? "หมดเวลา" : isUrgent ? "เหลือเวลาไม่เกิน 10 วินาที" : ""}
+    </p>
+    </>
   );
 }

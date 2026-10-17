@@ -7,5 +7,5 @@ export default async function GamePage({
 }) {
   const { gameId } = await params;
 
-  return <GameSession key={gameId} />;
+  return <GameSession key={gameId} gameId={gameId} />;
 }

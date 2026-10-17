@@ -22,7 +22,8 @@ describe("MainLayout", () => {
         </MainLayout>,
       );
 
-      expect(markup).toMatch(/<main class="[^"]*min-h-svh[^"]*flex flex-col[^"]*">/);
+      expect(markup).toMatch(/<div class="[^"]*min-h-svh[^"]*flex flex-col[^"]*">/);
+      expect(markup).toContain('<main id="main-content" tabindex="-1"');
       expect(markup).toMatch(/<footer[^>]*class="[^"]*mt-auto[^"]*"/);
     },
   );

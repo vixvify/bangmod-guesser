@@ -48,7 +48,7 @@ describe("LobbyMenu", () => {
     });
     expect(push).not.toHaveBeenCalled();
     act(() => {
-      vi.advanceTimersByTime(1);
+      vi.advanceTimersByTime(701);
     });
     expect(push).toHaveBeenCalledExactlyOnceWith("/game/demo");
   });

@@ -32,6 +32,11 @@ const buttonStyles: SystemStyleObject<Theme> = {
   borderRadius: "0.5rem",
   fontFamily: "inherit",
   textDecoration: "none",
+  "&.Mui-focusVisible": {
+    outline: "3px solid var(--color-primary-focus)",
+    outlineOffset: "3px",
+    boxShadow: "0 0 0 6px var(--color-secondary-main)",
+  },
   transition:
     "background-color 180ms ease, color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, filter 180ms ease",
 };
@@ -39,7 +44,7 @@ const buttonStyles: SystemStyleObject<Theme> = {
 const variantStyles: Record<ButtonVariant, SystemStyleObject<Theme>> = {
   primary: {
     backgroundColor: "var(--color-primary-main)",
-    color: "#fff",
+    color: "var(--color-secondary-dark)",
     boxShadow: "0 0.625rem 1.5rem rgb(255 122 47 / 25%)",
     "&:not(.Mui-disabled):hover": {
       backgroundColor: "var(--color-primary-hover)",

@@ -1,0 +1,34 @@
+.roundResult { animation: result-enter 600ms ease-out both; }
+
+.roundMedal {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 12rem;
+  height: 11.5rem;
+  margin: 0 auto -0.75rem;
+  filter: drop-shadow(0 0.5rem 1.5rem color-mix(in srgb, var(--color-rank-gold) 20%, transparent));
+}
+.medalStar { position: absolute; inset: 0; width: 100%; height: 100%; fill: var(--color-rank-gold); stroke: var(--color-primary-soft); stroke-width: 3; }
+.statCard { padding: 1.1rem 0.75rem; text-align: center; border: 1px solid var(--color-surface-border); border-radius: 1rem; background: var(--color-secondary-main); }
+.statCard dt { display: flex; align-items: center; justify-content: center; gap: 0.4rem; font-size: 0.75rem; color: var(--color-surface-muted); }
+.actualKey, .guessKey { display: inline-block; width: 0.65rem; height: 0.65rem; border-radius: 50%; margin-right: 0.5rem; }
+.actualKey { background: var(--color-primary-main); }
+.guessKey { background: var(--color-surface-text); }
+.actualMarker, .guessMarker { display: grid; place-items: center; border: 3px solid var(--color-secondary-light); border-radius: 50%; font-family: var(--font-prompt), sans-serif; font-size: 0.875rem; font-weight: 700; box-shadow: 0 2px 8px var(--color-secondary-main); }
+.actualMarker { background: var(--color-primary-main); color: var(--color-secondary-dark); }
+.guessMarker { background: var(--color-secondary-main); color: var(--color-secondary-light); }
+.summary { position: relative; isolation: isolate; overflow: hidden; border: 1px solid var(--color-surface-border); border-radius: 2rem; background: var(--color-secondary-main); box-shadow: 0 2rem 6rem color-mix(in srgb, var(--color-secondary-main) 65%, transparent); animation: result-enter 700ms ease-out both; }
+.summaryMap { position: absolute; inset: 0 0 auto; height: 23rem; opacity: 0.3; pointer-events: none; }
+.summaryMap::after { content: ""; position: absolute; z-index: 1000; inset: 0; background: linear-gradient(to bottom, transparent, var(--color-secondary-main)); }
+.summaryGlow { pointer-events: none; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 30%, color-mix(in srgb, var(--color-primary-main) 14%, transparent), transparent 60%); }
+.trophy { display: grid; place-items: center; width: 4.5rem; height: 4.5rem; margin: 0 auto 1.25rem; border-radius: 50%; color: var(--color-rank-gold); background: var(--color-secondary-main); border: 1px solid color-mix(in srgb, var(--color-rank-gold) 45%, transparent); box-shadow: 0 0 2rem color-mix(in srgb, var(--color-rank-gold) 15%, transparent); }
+.scoreNumber { margin: 0.25rem 0; font-family: var(--font-display); font-size: clamp(5rem, 16vw, 8.5rem); line-height: 1.15; font-variant-numeric: tabular-nums; letter-spacing: -0.025em; color: var(--color-primary-light); text-shadow: 0 0.25rem 0 var(--color-secondary-main); }
+.scoreComplete { color: var(--color-rank-gold); animation: score-celebrate 650ms ease-out both; }
+.scoreTrack { position: relative; height: 1.25rem; overflow: hidden; border-radius: 1rem; border: 1px solid var(--color-surface-control-border); background: var(--color-surface-control); }
+.scoreFill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--color-primary-main), var(--color-rank-gold)); box-shadow: 0 0 1rem var(--color-primary-main); }
+.scoreDivisions { position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0, transparent calc(20% - 1px), var(--color-secondary-main) calc(20% - 1px), var(--color-secondary-main) 20%); }
+@keyframes result-enter { from { opacity: 0; transform: translateY(1rem); } to { opacity: 1; transform: translateY(0); } }
+@keyframes score-celebrate { 0%, 100% { transform: scale(1); } 45% { transform: scale(1.06); text-shadow: 0 0 2rem color-mix(in srgb, var(--color-rank-gold) 35%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .roundResult, .summary, .scoreComplete { animation: none; } }

@@ -61,7 +61,7 @@ export function Input({
         id={id}
         inputRef={ref}
         aria-invalid={Boolean(error)}
-        aria-describedby={error ? errorId : undefined}
+        aria-describedby={[inputProps["aria-describedby"], error ? errorId : undefined].filter(Boolean).join(" ") || undefined}
         startAdornment={
           icon ? (
             <InputAdornment

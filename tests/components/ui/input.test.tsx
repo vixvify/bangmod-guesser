@@ -7,6 +7,10 @@ import { Input } from "@/components/ui/input";
 afterEach(cleanup);
 
 describe("Input", () => {
+  it("preserves help text alongside validation errors for screen readers", () => {
+    render(<Input id="name" label="Name" aria-describedby="name-help" error="Required" />);
+    expect(screen.getByRole("textbox", { name: "Name" }).getAttribute("aria-describedby")).toBe("name-help name-error");
+  });
   it("supports a compact field with an accessible label", () => {
     render(<Input id="username" label="ชื่อผู้ใช้" size="small" />);
 

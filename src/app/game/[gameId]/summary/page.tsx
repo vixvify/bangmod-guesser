@@ -1,3 +1,6 @@
+import { GameSummary } from "@/components/game/game-summary";
+import { mockGameSummary } from "@/_mock/_game";
+
 export default async function GameSummaryPage({
   params,
 }: {
@@ -5,5 +8,5 @@ export default async function GameSummaryPage({
 }) {
   const { gameId } = await params;
 
-  return <main data-game-id={gameId} />;
+  return <GameSummary gameId={gameId} summary={mockGameSummary} />;
 }

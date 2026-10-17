@@ -4,7 +4,7 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import Modal from "@mui/material/Modal";
 import IconButton from "@mui/material/IconButton";
 import Slider from "@mui/material/Slider";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useState, type ComponentPropsWithRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Dropdown, type DropdownOption } from "@/components/ui/dropdown";
 import {
@@ -126,12 +126,14 @@ function SettingsContent({
   onClose,
   initialSettings,
   soundEnabled,
+  ref,
+  ...modalProps
 }: {
   titleId: string;
   onClose: () => void;
   initialSettings: GameSettings;
   soundEnabled: boolean;
-}) {
+} & ComponentPropsWithRef<"div">) {
   const [settings, setSettings] = useState<GameSettings>(initialSettings);
 
   const handleConfirm = () => {
@@ -142,11 +144,13 @@ function SettingsContent({
 
   return (
     <div
+      {...modalProps}
+      ref={ref}
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
       tabIndex={-1}
-      className="w-full max-w-md rounded-2xl border border-surface-border bg-secondary-main px-6 py-5 text-surface-text shadow-2xl outline-none sm:px-8 sm:py-7"
+      className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-2xl border border-surface-border bg-secondary-main px-6 py-5 text-surface-text shadow-2xl outline-none sm:px-8 sm:py-7"
     >
       <div className="flex items-center justify-between">
         <h2

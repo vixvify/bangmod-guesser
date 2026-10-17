@@ -10,7 +10,7 @@ type AuthLayoutProps = {
 
 export function AuthLayout({ children }: AuthLayoutProps) {
   return (
-    <main className="grid min-h-svh bg-secondary-light md:grid-cols-[3fr_2fr]">
+    <main id="main-content" tabIndex={-1} className="grid min-h-svh bg-secondary-light outline-none md:grid-cols-[3fr_2fr]">
       <div className="relative min-h-56 overflow-hidden bg-secondary-dark md:min-h-svh">
         <Image
           src="/images/kmutt-bangmod-1.jpg"

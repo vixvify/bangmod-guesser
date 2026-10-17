@@ -67,8 +67,8 @@ describe("GameSession", () => {
     expect(submitBtn.hasAttribute("disabled")).toBe(true);
   });
 
-  it("confirms leaving when submitting the current mock round", () => {
-    render(<GameSession />);
+  it("opens the round score for the current game after submitting a marker", () => {
+    render(<GameSession gameId="test-game" />);
 
     const submitBtn = screen.getByRole("button", { name: "ส่งคำตอบ" });
     expect(submitBtn.hasAttribute("disabled")).toBe(true);
@@ -79,15 +79,8 @@ describe("GameSession", () => {
     expect(submitBtn.hasAttribute("disabled")).toBe(false);
 
     fireEvent.click(submitBtn);
-    expect(push).not.toHaveBeenCalled();
-    const dialog = screen.getByRole("dialog", { name: GAME_MESSAGES.exitGame.title });
-    fireEvent.click(within(dialog).getByRole("button", { name: GAME_MESSAGES.exitGame.cancel }));
-    expect(push).not.toHaveBeenCalled();
-
-    fireEvent.click(submitBtn);
-    fireEvent.click(within(screen.getByRole("dialog", { name: GAME_MESSAGES.exitGame.title }))
-      .getByRole("button", { name: GAME_MESSAGES.exitGame.confirm }));
-    expect(push).toHaveBeenCalledWith(AppRoutes.home);
+    expect(push).toHaveBeenCalledWith(AppRoutes.gameRoundScore("test-game"));
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 
   it("confirms the exit button before leaving", () => {

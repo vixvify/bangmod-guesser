@@ -13,13 +13,14 @@ type GameLayoutProps = {
   children: ReactNode;
   headerCenter?: ReactNode;
   onExit: () => void;
+  scrollable?: boolean;
 };
 
-export function GameLayout({ children, headerCenter, onExit }: GameLayoutProps) {
+export function GameLayout({ children, headerCenter, onExit, scrollable = false }: GameLayoutProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   return (
-    <div className="relative flex min-h-svh flex-col overflow-x-hidden bg-secondary-main lg:h-svh lg:overflow-hidden">
+    <div className={`relative flex min-h-svh flex-col overflow-x-hidden bg-secondary-main ${scrollable ? "" : "lg:h-svh lg:overflow-hidden"}`}>
       <GameBackdrop />
       <header className="relative z-30 flex shrink-0 items-center justify-end px-3 pb-1 pt-3 sm:px-5 sm:pt-5 lg:pointer-events-none lg:absolute lg:inset-x-0 lg:top-0 lg:px-6">
         <nav
@@ -49,12 +50,12 @@ export function GameLayout({ children, headerCenter, onExit }: GameLayoutProps) 
         </nav>
       </header>
 
-      <div className="relative z-10 flex min-w-0 flex-1 flex-col items-center justify-start px-3 pb-6 pt-7 sm:p-5 lg:min-h-0 lg:justify-center">
+      <main id="main-content" tabIndex={-1} className={`relative z-10 flex min-w-0 flex-1 flex-col items-center justify-start px-3 pb-6 pt-7 outline-none sm:p-5 lg:min-h-0 lg:justify-center ${scrollable ? "lg:pt-24 lg:pb-12" : ""}`}>
         <div className="flex w-full max-w-6xl flex-col items-center justify-center gap-3 sm:gap-4">
           {headerCenter && <div className="shrink-0">{headerCenter}</div>}
           {children}
         </div>
-      </div>
+      </main>
 
       <SettingsModal
         open={isSettingsOpen}
