@@ -36,6 +36,5 @@ export const mockGameSummary: GameSummary = {
   baseScore,
   bonusScore,
   totalScore: baseScore + bonusScore,
-  maxScore: 5000,
+  maxScore: 6000,
 };
-
