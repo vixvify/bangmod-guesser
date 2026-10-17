@@ -36,7 +36,7 @@ export function GameRoundScore({
   const isLastRound = result.round >= totalRounds;
 
   return (
-    <GameLayout scrollable onExit={() => setShowExit(true)}>
+    <GameLayout onExit={() => setShowExit(true)}>
       <article
         data-game-id={gameId}
         className={`${styles.roundResult} w-full max-w-3xl`}

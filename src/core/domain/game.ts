@@ -11,6 +11,8 @@ export type GameRoundResult = {
 
 export type GameSummary = {
   rounds: GameRoundResult[];
+  baseScore: number;
   bonusScore: number;
+  totalScore: number;
   maxScore: number;
 };

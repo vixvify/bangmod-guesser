@@ -23,8 +23,19 @@ export const mockGameRounds: GameRoundResult[] = [
 }));
 
 export const mockRoundResult = mockGameRounds[1];
+
+export const mockRoundAccumulatedScore = mockGameRounds
+  .filter((round) => round.round <= mockRoundResult.round)
+  .reduce((total, round) => total + round.score, 0);
+
+const baseScore = mockGameRounds.reduce((sum, round) => sum + round.score, 0);
+const bonusScore = 300;
+
 export const mockGameSummary: GameSummary = {
   rounds: mockGameRounds,
-  bonusScore: 300,
+  baseScore,
+  bonusScore,
+  totalScore: baseScore + bonusScore,
   maxScore: 5000,
 };
+
