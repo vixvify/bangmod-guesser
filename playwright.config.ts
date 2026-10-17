@@ -14,7 +14,7 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   webServer: {
-    command: "npm run dev -- --port 3100",
+    command: `"${process.execPath}" node_modules/next/dist/bin/next dev --port 3100`,
     url: baseURL,
     reuseExistingServer: false,
     timeout: 120_000,

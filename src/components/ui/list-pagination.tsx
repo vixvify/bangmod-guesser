@@ -37,6 +37,10 @@ export function ListPagination({
           onPageChange?.(nextPage);
         }}
         aria-label={`หน้ารายการ${itemLabel}`}
+        getItemAriaLabel={(type, pageNumber, selected) => {
+          if (type === "page") return `${selected ? "หน้าปัจจุบัน" : "ไปหน้า"} ${pageNumber}`;
+          return { first: "หน้าแรก", last: "หน้าสุดท้าย", next: "หน้าถัดไป", previous: "หน้าก่อนหน้า" }[type];
+        }}
         sx={{
           "& .MuiPaginationItem-root": {
             fontFamily: "var(--font-prompt), sans-serif",

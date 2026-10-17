@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { proxy } from "@/proxy";
+import { proxy, config } from "@/proxy";
+import { unstable_doesProxyMatch } from "next/experimental/testing/server";
 import { AppRoutes } from "@/routes/app/routes";
 
 const { getSession } = vi.hoisted(() => ({ getSession: vi.fn() }));
@@ -90,16 +91,29 @@ describe("App proxy middleware", () => {
     expect(getSession).not.toHaveBeenCalled();
   });
 
-  it("allows guests to open game pages for a specific game ID", async () => {
+  it("requires login for game, round score, and summary while preserving the destination", async () => {
     for (const pathname of [
       AppRoutes.game("demo"),
       AppRoutes.gameRoundScore("demo"),
       AppRoutes.gameSummary("demo"),
     ]) {
       const response = await proxy(createRequest(pathname));
-      expect(response.headers.get("location")).toBeNull();
+      const redirect = new URL(response.headers.get("location")!);
+      expect(redirect.pathname).toBe(AppRoutes.login);
+      expect(redirect.searchParams.get("callbackUrl")).toBe(pathname);
     }
     expect(getSession).not.toHaveBeenCalled();
+  });
+
+  it.each([AppRoutes.game("demo"), AppRoutes.gameRoundScore("demo"), AppRoutes.gameSummary("demo")])("only allows a valid session to open %s", async (path) => {
+    const request = createRequest(path, { "better-auth.session_token": "token" });
+    expect((await proxy(request)).status).toBe(307);
+    getSession.mockResolvedValue({ user: { id: "player" } });
+    expect((await proxy(request)).headers.get("location")).toBeNull();
+  });
+
+  it("also protects game IDs containing dots", () => {
+    expect(unstable_doesProxyMatch({ config, nextConfig: {}, url: "/game/game.v2/summary" })).toBe(true);
   });
 
   it("allows guest access to auth routes", async () => {

@@ -37,6 +37,7 @@ export function DateRangePicker({
     defaultValue ?? { startDate: null, endDate: null },
   );
   const inputId = useId();
+  const dialogId = useId();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const displayValue =
     range.startDate && range.endDate
@@ -101,6 +102,7 @@ export function DateRangePicker({
           inputProps={{
             "aria-haspopup": "dialog",
             "aria-expanded": Boolean(anchor),
+            "aria-controls": anchor ? dialogId : undefined,
           }}
           endAdornment={
             <InputAdornment position="end">
@@ -140,6 +142,10 @@ export function DateRangePicker({
         transformOrigin={{ vertical: "top", horizontal: "left" }}
         slotProps={{
           paper: {
+            id: dialogId,
+            role: "dialog",
+            "aria-modal": true,
+            "aria-label": label,
             sx: {
               borderRadius: "1rem",
               mt: 1,
@@ -152,7 +158,7 @@ export function DateRangePicker({
           },
         }}
       >
-        <div className={`grid grid-cols-2 gap-3 border-b px-5 py-4 text-sm ${isDark ? "border-surface-border text-surface-text" : "border-slate-100 text-secondary-dark"}`}>
+        <div role="status" aria-live="polite" className={`grid grid-cols-2 gap-3 border-b px-5 py-4 text-sm ${isDark ? "border-surface-border text-surface-text" : "border-slate-100 text-secondary-dark"}`}>
           <div>
             <p className={`text-xs ${isDark ? "text-surface-muted" : "text-neutral-500"}`}>วันเริ่มต้น</p>
             <p>
@@ -224,7 +230,7 @@ export function DateRangePicker({
                         ? "var(--color-primary-soft)"
                         : undefined,
                     backgroundImage: endpointBackground,
-                    color: isEndpoint ? "#fff" : isDark ? "var(--color-surface-text)" : undefined,
+                    color: isEndpoint || isBetween ? "var(--color-secondary-dark)" : isDark ? "var(--color-surface-text)" : undefined,
                     borderRadius: radius,
                     "&.MuiPickerDay-selected": {
                       backgroundColor: isEndpoint ? "transparent" : undefined,
