@@ -91,7 +91,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <>
       <header className="mb-8">
-        <p className="text-xs font-extrabold tracking-[0.2em] text-primary-main">
+        <p className="text-xs font-extrabold tracking-[0.2em] text-primary-ink">
           BANGMOD GUESSER
         </p>
         <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
@@ -132,7 +132,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
         <p className="mt-2 text-right text-xs">
           <Link
             href={AppRoutes.forgotPassword}
-            className="text-secondary-dark/65 transition-colors hover:text-primary-main focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-main"
+            className="text-secondary-dark/65 transition-colors hover:text-primary-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-ink"
           >
             ลืมรหัสผ่าน?
           </Link>
@@ -151,7 +151,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
 
       <div className="mt-6 flex items-center gap-3" aria-hidden="true">
         <span className="h-px flex-1 bg-secondary-dark/15" />
-        <span className="text-xs text-secondary-dark/50">หรือ</span>
+        <span className="text-xs text-secondary-dark/75">หรือ</span>
         <span className="h-px flex-1 bg-secondary-dark/15" />
       </div>
 
@@ -165,7 +165,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
           className="min-h-12 w-full"
         >
           <span className="inline-flex items-center gap-4">
-            <Image src="/logo/google.webp" alt="" width={20} height={20} />
+            <Image src="/logo/google.webp" alt="" width={20} height={20} style={{ width: 20, height: "auto" }} />
             <span>เข้าสู่ระบบด้วย Google</span>
           </span>
         </Button>
@@ -175,7 +175,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
         ยังไม่มีบัญชี?{" "}
         <Link
           href={registerHref}
-          className="font-bold text-primary-main transition-colors hover:text-secondary-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-main"
+          className="font-bold text-primary-ink transition-colors hover:text-secondary-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-ink"
         >
           สมัครสมาชิก
         </Link>

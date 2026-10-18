@@ -62,7 +62,7 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
   return (
     <>
       <header className="mb-8">
-        <p className="text-xs font-extrabold tracking-[0.2em] text-primary-main">
+        <p className="text-xs font-extrabold tracking-[0.2em] text-primary-ink">
           BANGMOD GUESSER
         </p>
         <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
@@ -137,7 +137,7 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
         มีบัญชีอยู่แล้ว?{" "}
         <Link
           href={loginHref}
-          className="font-bold text-primary-main transition-colors hover:text-secondary-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-main"
+          className="font-bold text-primary-ink transition-colors hover:text-secondary-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-ink"
         >
           เข้าสู่ระบบ
         </Link>

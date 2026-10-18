@@ -7,7 +7,9 @@ import { signInGamePlayer } from "../tests/helpers/sign-in-game-player";
 async function expectAccessible(page: Page) {
   await page.addScriptTag({ content: axe.source });
   const violations = await page.evaluate(async () => {
-    const { violations } = await (window as Window & { axe: typeof axe }).axe.run(document, {
+    const axeRunner = (window as Window & { axe?: typeof axe }).axe;
+    if (!axeRunner) throw new Error("axe-core did not load");
+    const { violations } = await axeRunner.run(document, {
       runOnly: {
         type: "tag",
         values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa", "best-practice"],
