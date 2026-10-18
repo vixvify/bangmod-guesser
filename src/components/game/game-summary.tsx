@@ -36,7 +36,7 @@ export function GameSummary({
   );
 
   return (
-    <GameLayout onExit={() => router.push(AppRoutes.home)}>
+    <GameLayout scrollable onExit={() => router.push(AppRoutes.home)}>
       <article
         data-game-id={gameId}
         className={`${styles.summary} w-full max-w-4xl`}

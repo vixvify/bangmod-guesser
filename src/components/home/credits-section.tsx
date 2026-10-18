@@ -17,12 +17,6 @@ export function CreditsSection() {
       aria-labelledby="credits-title"
       className="relative isolate flex min-h-svh flex-col justify-center overflow-hidden bg-secondary-main py-24 text-secondary-light lg:py-32"
     >
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute -bottom-10 left-1/2 -z-10 -translate-x-1/2 whitespace-nowrap font-display text-[clamp(8rem,28vw,28rem)] leading-none text-secondary-light/3"
-      >
-        BANGMOD
-      </span>
       <ContentContainer>
         <ScrollReveal className="grid items-end gap-6 pb-12 md:grid-cols-2">
           <div>

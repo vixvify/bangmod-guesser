@@ -48,7 +48,7 @@ export function HowToPlaySection() {
                     aria-hidden="true"
                     className="relative mb-8 flex h-40 items-end justify-between border-b border-secondary-dark/20 pb-5"
                   >
-                    <span className="font-display text-9xl leading-none text-secondary-dark/10">
+                    <span className="font-display text-9xl leading-none text-secondary-dark/60">
                       0{index + 1}
                     </span>
                     <span className="absolute right-3 top-4 grid size-24 rotate-6 place-items-center border-2 border-secondary-dark bg-primary-main shadow-[0.3125rem_0.3125rem_0_var(--color-secondary-dark)]">

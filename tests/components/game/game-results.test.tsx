@@ -43,12 +43,13 @@ describe("game results", () => {
     expect(screen.getByRole("link", { name: /สรุปผลเกม/ }).getAttribute("href")).toBe("/game/game-123/summary");
   });
 
-  it("shows final totals, a readable round breakdown, and replay navigation", async () => {
+  it("shows final totals and starts a countdown before replay", async () => {
     render(<GameSummary gameId="game-123" summary={mockGameSummary} />);
     expect(screen.getByRole("meter").getAttribute("aria-valuenow")).toBe("4321");
-    expect(screen.getAllByRole("listitem")).toHaveLength(5);
+    expect(screen.getByRole("meter").getAttribute("aria-valuemax")).toBe(String(mockGameSummary.maxScore));
     expect(screen.getByText("01:27")).toBeTruthy();
-    expect(screen.getByRole("link", { name: /เล่นอีกครั้ง/ }).getAttribute("href")).toBe("/game/game-123");
+    await userEvent.setup().click(screen.getByRole("button", { name: /เล่นอีกครั้ง/ }));
+    expect(screen.getByRole("dialog", { name: "กำลังเข้าสู่เกม" })).toBeTruthy();
     expect(await screen.findByText(/คะแนนจากการทาย 4,021 คะแนน โบนัส 300 คะแนน รวม 4,321/)).toBeTruthy();
   });
 });

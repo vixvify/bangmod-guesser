@@ -84,12 +84,12 @@ test("signs up, then signs in and returns to the requested page", async ({ page 
     });
   });
 
-  await page.goto("/register?callbackUrl=%2Fgame%2Fdemo", { waitUntil: "networkidle" });
+  await page.goto("/register?callbackUrl=%2F%3Ffrom%3Dauth-test", { waitUntil: "networkidle" });
   await fillRegistration(page);
   await page.getByRole("button", { name: "สมัครสมาชิก" }).click();
 
   await expect(page).toHaveURL(/\/login\?/);
-  expect(new URL(page.url()).searchParams.get("callbackUrl")).toBe("/game/demo");
+  expect(new URL(page.url()).searchParams.get("callbackUrl")).toBe("/?from=auth-test");
   expect(registrationBody).toEqual({
     name: player.name,
     email: player.email,
@@ -100,7 +100,7 @@ test("signs up, then signs in and returns to the requested page", async ({ page 
   await page.getByLabel("รหัสผ่าน", { exact: true }).fill(player.password);
   await page.getByRole("button", { name: "เข้าสู่ระบบ", exact: true }).click();
 
-  await expect(page).toHaveURL(/\/game\/demo$/);
+  await expect(page).toHaveURL(/\/\?from=auth-test$/);
   expect(loginBody).toEqual({ email: player.email, password: player.password });
 });
 

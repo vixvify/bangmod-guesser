@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { proxy, config } from "@/proxy";
-import { unstable_doesProxyMatch } from "next/experimental/testing/server";
+import { unstable_doesMiddlewareMatch } from "next/experimental/testing/server";
 import { AppRoutes } from "@/routes/app/routes";
 
 const { getSession } = vi.hoisted(() => ({ getSession: vi.fn() }));
@@ -113,7 +113,7 @@ describe("App proxy middleware", () => {
   });
 
   it("also protects game IDs containing dots", () => {
-    expect(unstable_doesProxyMatch({ config, nextConfig: {}, url: "/game/game.v2/summary" })).toBe(true);
+    expect(unstable_doesMiddlewareMatch({ config, nextConfig: {}, url: "/game/game.v2/summary" })).toBe(true);
   });
 
   it("allows guest access to auth routes", async () => {

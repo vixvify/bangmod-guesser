@@ -1,8 +1,14 @@
 import { expect, test } from "@playwright/test";
 import { GAME_MESSAGES } from "@/core/constants/game";
+import { signInGamePlayer } from "../tests/helpers/sign-in-game-player";
+
+test.beforeEach(async ({ page }, testInfo) => {
+  await signInGamePlayer(page, testInfo);
+});
 
 test("asks before leaving the game with its exit button", async ({ page }) => {
   await page.goto("/game/demo", { waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => window.history.state?.__unsavedChangesGuard === true);
 
   await page.getByRole("button", { name: GAME_MESSAGES.exitGame.button }).click();
   const confirmation = page.getByRole("dialog", { name: GAME_MESSAGES.exitGame.title });
