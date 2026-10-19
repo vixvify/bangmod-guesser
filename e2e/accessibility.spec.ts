@@ -5,6 +5,7 @@ import { E2E_BASE_URL, E2E_DATABASE_URL } from "./config";
 import { signInGamePlayer } from "../tests/helpers/sign-in-game-player";
 
 async function expectAccessible(page: Page) {
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addScriptTag({ content: axe.source });
   const violations = await page.evaluate(async () => {
     const axeRunner = (window as Window & { axe?: typeof axe }).axe;
@@ -18,7 +19,7 @@ async function expectAccessible(page: Page) {
     return violations.map(({ id, impact, nodes }) => ({
       id,
       impact,
-      targets: nodes.map(({ target }) => target),
+      targets: nodes.map(({ target, html, failureSummary }) => ({ target, html, failureSummary })),
     }));
   });
   expect(violations, `Accessibility issues at ${page.url()}`).toEqual([]);
@@ -46,9 +47,9 @@ for (const path of [
 }
 
 test("skip link, settings modal, and keyboard focus work on the home page", async ({ page }) => {
-  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.goto("/", { waitUntil: "networkidle" });
   await page.keyboard.press("Tab");
-  const skipLink = page.getByRole("link", { name: "ข้ามไปยังเนื้อหาหลัก" });
+  const skipLink = page.getByRole("link", { name: "ข้ามไปเนื้อหาหลัก" });
   await expect(skipLink).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.locator("#main-content")).toBeFocused();
@@ -84,14 +85,21 @@ test("admin pages and user editor pass automated accessibility checks", async ({
     });
     expect(login.ok()).toBe(true);
 
-    for (const path of ["/admin", "/admin/users", "/admin/locations", "/admin/locations/create"]) {
+    for (const [path, heading] of [
+      ["/admin", "ภาพรวมระบบ"],
+      ["/admin/users", "จัดการผู้ใช้"],
+      ["/admin/locations", "จัดการสถานที่"],
+      ["/admin/locations/create", "สร้างสถานที่"],
+    ]) {
       await page.goto(path, { waitUntil: "domcontentloaded" });
+      await expect(page.getByRole("heading", { level: 1, name: heading })).toBeVisible();
       await expectAccessible(page);
     }
 
     await page.goto("/admin/users", { waitUntil: "domcontentloaded" });
     await page.getByRole("button", { name: `แก้ไข ${admin.name}` }).click();
     await expect(page.getByRole("dialog", { name: "แก้ไขผู้ใช้" })).toBeVisible();
+    await expect(page.locator(".MuiBackdrop-root")).toHaveCSS("opacity", "1");
     await expectAccessible(page);
   } finally {
     await prisma.$disconnect();

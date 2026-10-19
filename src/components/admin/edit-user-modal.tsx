@@ -72,6 +72,7 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
     <>
     <Modal
       open
+      role="region"
       onClose={requestClose}
       aria-labelledby={titleId}
       sx={{

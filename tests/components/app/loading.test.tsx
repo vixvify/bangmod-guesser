@@ -3,9 +3,11 @@ import { describe, expect, it } from "vitest";
 import Loading from "@/app/loading";
 
 describe("Loading", () => {
-  it("renders an accessible spinner without additional loading content", () => {
+  it("keeps the main landmark and announces loading status", () => {
     const markup = renderToStaticMarkup(<Loading />);
 
+    expect(markup).toContain("<main");
+    expect(markup).toContain("<h1");
     expect(markup).toContain('role="status"');
     expect(markup).toContain('aria-live="polite"');
     expect(markup).toContain('aria-busy="true"');

@@ -45,11 +45,11 @@ export function Input({
         htmlFor={id}
         sx={{
           mb: "0.5rem",
-          color: isDark ? "var(--color-surface-text)" : "var(--color-secondary-dark)",
+          color: isDark ? "var(--color-surface-text)" : "var(--color-form-label)",
           fontFamily: "var(--font-prompt), sans-serif",
           fontSize: "0.875rem",
           fontWeight: 700,
-          "&.Mui-focused": { color: isDark ? "var(--color-primary-light)" : "var(--color-secondary-dark)" },
+          "&.Mui-focused": { color: isDark ? "var(--color-primary-light)" : "var(--color-form-label)" },
         }}
       >
         {label}

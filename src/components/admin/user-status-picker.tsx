@@ -59,7 +59,7 @@ export function UserStatusPicker({ value, onChange }: UserStatusPickerProps) {
           label={
             <span className="flex flex-col">
               <span className="text-sm font-semibold">{option.label}</span>
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-slate-600">
                 {option.description}
               </span>
             </span>

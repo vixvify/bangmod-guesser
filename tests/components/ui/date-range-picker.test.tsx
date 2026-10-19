@@ -80,7 +80,11 @@ describe("DateRangePicker", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("textbox", { name: "Date range" }));
+    const trigger = screen.getByRole("combobox", { name: "Date range" });
+    expect(trigger.getAttribute("aria-haspopup")).toBe("dialog");
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    fireEvent.click(trigger);
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
     const start = screen.getByRole("button", { name: /^2 / });
     const middle = screen.getByRole("button", { name: /^3 / });
     const end = screen.getByRole("button", { name: /^4 / });
@@ -111,7 +115,7 @@ describe("DateRangePicker", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("textbox", { name: "Date range" }));
+    fireEvent.click(screen.getByRole("combobox", { name: "Date range" }));
     expect(screen.getByRole("button", { name: /^2 / }).dataset.image).toContain(
       "var(--color-secondary-main)",
     );
@@ -125,7 +129,7 @@ describe("DateRangePicker", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("textbox", { name: "Date range" }));
+    fireEvent.click(screen.getByRole("combobox", { name: "Date range" }));
     expect(screen.getByRole("button", { name: /^5 / }).dataset.radius).toBe("0 50% 50% 0");
     expect(screen.getByRole("button", { name: /^6 / }).dataset.radius).toBe("50% 0 0 50%");
   });
@@ -138,7 +142,7 @@ describe("DateRangePicker", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("textbox", { name: "Date range" }));
+    fireEvent.click(screen.getByRole("combobox", { name: "Date range" }));
     const start = screen.getByRole("button", { name: /^4 / });
     expect(start.dataset.image).toContain("radial-gradient(circle");
     expect(start.dataset.image).not.toContain("linear-gradient(to ");
@@ -153,7 +157,7 @@ describe("DateRangePicker", () => {
       />,
     );
 
-    const input = screen.getByRole("textbox", { name: "เลือกช่วงเวลา" });
+    const input = screen.getByRole("combobox", { name: "เลือกช่วงเวลา" });
     expect(input).toHaveProperty("value", "2 กันยายน 2026 - 4 กันยายน 2026");
     expect(input.closest(".MuiOutlinedInput-root")).toBeTruthy();
     expect(screen.queryByText("เลือกวันเริ่มต้น")).toBeNull();
@@ -167,7 +171,7 @@ describe("DateRangePicker", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("textbox", { name: "เลือกช่วงเวลา" }));
+    fireEvent.click(screen.getByRole("combobox", { name: "เลือกช่วงเวลา" }));
     expect(screen.getByRole("button", { name: "2 กันยายน" }).dataset.image).toContain("radial-gradient(circle");
     expect(screen.getByRole("button", { name: "3 กันยายน" }).dataset.background).toBe("var(--color-primary-soft)");
     expect(screen.getByRole("button", { name: "4 กันยายน" }).dataset.image).toContain("radial-gradient(circle");
@@ -177,7 +181,7 @@ describe("DateRangePicker", () => {
     const onChange = vi.fn();
     render(<DateRangePicker label="เลือกช่วงเวลา" onChange={onChange} />);
 
-    fireEvent.click(screen.getByRole("textbox", { name: "เลือกช่วงเวลา" }));
+    fireEvent.click(screen.getByRole("combobox", { name: "เลือกช่วงเวลา" }));
     expect(screen.queryByText("เลือกวันเริ่มต้น")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "10 กันยายน" }));
     expect(onChange).toHaveBeenLastCalledWith({
@@ -191,7 +195,7 @@ describe("DateRangePicker", () => {
       startDate: "2026-09-10",
       endDate: "2026-09-12",
     });
-    expect(screen.getByRole("textbox", { name: "เลือกช่วงเวลา" })).toHaveProperty(
+    expect(screen.getByRole("combobox", { name: "เลือกช่วงเวลา" })).toHaveProperty(
       "value",
       "10 กันยายน 2026 - 12 กันยายน 2026",
     );
@@ -202,7 +206,7 @@ describe("DateRangePicker", () => {
     const onChange = vi.fn();
     render(<DateRangePicker label="เลือกช่วงเวลา" onChange={onChange} />);
 
-    fireEvent.click(screen.getByRole("textbox", { name: "เลือกช่วงเวลา" }));
+    fireEvent.click(screen.getByRole("combobox", { name: "เลือกช่วงเวลา" }));
     fireEvent.click(screen.getByRole("button", { name: "10 กันยายน" }));
     fireEvent.click(screen.getByRole("button", { name: "8 กันยายน" }));
 
