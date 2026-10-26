@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import ReplayRoundedIcon from "@mui/icons-material/ReplayRounded";
@@ -8,6 +9,7 @@ import EmojiEventsRoundedIcon from "@mui/icons-material/EmojiEventsRounded";
 import { GameLayout } from "@/layout/game-layout";
 import { GameScoreReveal } from "./game-score-reveal";
 import { Button } from "@/components/ui/button";
+import { Countdown } from "@/components/ui/countdown";
 import { AppRoutes } from "@/routes/app/routes";
 import { GAME_RESULT_MESSAGES as MESSAGES } from "@/core/constants/game-result";
 import type { GameSummary as GameSummaryData } from "@/core/domain/game";
@@ -22,13 +24,19 @@ export function GameSummary({
   summary: GameSummaryData;
 }) {
   const router = useRouter();
+  const [isStarting, setIsStarting] = useState(false);
   const totalSeconds = summary.rounds.reduce(
     (sum, round) => sum + round.elapsedSeconds,
     0,
   );
 
+  const enterGame = useCallback(
+    () => router.push(AppRoutes.game(gameId)),
+    [gameId, router],
+  );
+
   return (
-    <GameLayout onExit={() => router.push(AppRoutes.home)}>
+    <GameLayout scrollable onExit={() => router.push(AppRoutes.home)}>
       <article
         data-game-id={gameId}
         className={`${styles.summary} w-full max-w-4xl`}
@@ -73,8 +81,9 @@ export function GameSummary({
               {MESSAGES.home}
             </Button>
             <Button
-              href={AppRoutes.game(gameId)}
-              sound="accept"
+              sound="click"
+              disabled={isStarting}
+              onClick={() => setIsStarting(true)}
               className="flex-1"
             >
               <ReplayRoundedIcon />
@@ -83,7 +92,7 @@ export function GameSummary({
           </div>
         </div>
       </article>
+      {isStarting && <Countdown onComplete={enterGame} />}
     </GameLayout>
   );
 }
-

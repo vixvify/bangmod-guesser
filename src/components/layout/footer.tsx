@@ -42,9 +42,9 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="font-mono text-xs font-semibold uppercase tracking-wider text-secondary-light">
+            <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-secondary-light">
               ไปยังหน้าอื่น ๆ
-            </h3>
+            </h2>
             <ul className="mt-4 space-y-2.5 text-sm">
               {footerLinks.map(({ href, label }) => (
                 <li key={href}>
@@ -57,9 +57,9 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="font-mono text-xs font-semibold uppercase tracking-wider text-secondary-light">
+            <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-secondary-light">
               เกี่ยวกับโครงการ
-            </h3>
+            </h2>
             <div className="mt-4 space-y-2 text-sm text-secondary-light/65">
               <p>วิชา Web Programming 1</p>
               <p>สาขาวิทยาการคอมพิวเตอร์ประยุกต์ (ACS)</p>

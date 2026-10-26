@@ -67,6 +67,7 @@ export function GameSession({
           </div>
         }
       >
+        <h1 className="sr-only">ทายสถานที่</h1>
         <GameImageViewer
           imageSrc="/images/kmutt-bangmod-1.jpg"
           imageAlt="สถานที่ในมหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี"

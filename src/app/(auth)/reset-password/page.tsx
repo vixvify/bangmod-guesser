@@ -28,7 +28,7 @@ export default function ResetPasswordPage() {
   return (
     <>
       <header className="mb-8">
-        <p className="text-xs font-extrabold tracking-[0.2em] text-primary-main">
+        <p className="text-xs font-extrabold tracking-[0.2em] text-primary-ink">
           BANGMOD GUESSER
         </p>
         <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">

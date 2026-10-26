@@ -13,8 +13,7 @@ const AUTH_ROUTES: string[] = [
 
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
-  const isPublicRoute =
-    PUBLIC_ROUTES.includes(pathname) || pathname.startsWith(`${AppRoutes.gameBase}/`);
+  const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
   const isAuthRoute = AUTH_ROUTES.includes(pathname);
 
   if (isPublicRoute) {
@@ -44,5 +43,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)"],
+  matcher: ["/game/:path*", "/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)"],
 };

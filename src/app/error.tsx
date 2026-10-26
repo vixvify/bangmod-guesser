@@ -14,7 +14,7 @@ export default function ErrorPage({ error, retry }: ErrorPageProps) {
   }, [error]);
 
   return (
-    <main className="relative flex min-h-svh items-center justify-center overflow-hidden bg-secondary-main px-6 py-12 text-secondary-light">
+    <main id="main-content" tabIndex={-1} className="relative flex min-h-svh items-center justify-center overflow-hidden bg-secondary-main px-6 py-12 text-secondary-light">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,rgba(255,122,47,0.18),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-size-[auto,24px_24px]"

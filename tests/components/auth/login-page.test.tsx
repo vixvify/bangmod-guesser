@@ -143,6 +143,20 @@ describe("LoginPage", () => {
     expect(toastError).not.toHaveBeenCalled();
   });
 
+  it("explains invalid email before the disabled submit button", async () => {
+    await renderPage();
+    const email = screen.getByRole("textbox", { name: "อีเมล" });
+    fireEvent.change(email, { target: { value: "invalid-email" } });
+    fireEvent.blur(email);
+
+    await waitFor(() => {
+      expect(email.getAttribute("aria-invalid")).toBe("true");
+      expect(email.getAttribute("aria-describedby")).toContain("login-email-error");
+      expect(document.getElementById("login-email-error")?.textContent).toBeTruthy();
+    });
+    expect((screen.getByRole("button", { name: "เข้าสู่ระบบ" }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
   it("submits normalized credentials and returns to the requested local page", async () => {
     signInEmail.mockResolvedValue({ data: null });
     await renderPage("/game/demo");

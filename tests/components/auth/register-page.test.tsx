@@ -101,6 +101,19 @@ describe("RegisterPage", () => {
     expect(toastError).not.toHaveBeenCalled();
   });
 
+  it("describes a mismatched confirmation while submission is disabled", async () => {
+    await renderPage();
+    await fillForm("Different1");
+    const confirmation = screen.getByLabelText("ยืนยันรหัสผ่าน");
+    fireEvent.blur(confirmation);
+
+    await waitFor(() => {
+      expect(confirmation.getAttribute("aria-invalid")).toBe("true");
+      expect(confirmation.getAttribute("aria-describedby")).toContain("register-confirm-password-error");
+    });
+    expect((screen.getByRole("button", { name: "สมัครสมาชิก" }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
   it("registers with schema-normalized fields without sending confirmation", async () => {
     signUpEmail.mockResolvedValue({ data: null });
     await renderPage("/game/demo");

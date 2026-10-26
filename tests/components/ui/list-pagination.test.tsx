@@ -12,7 +12,7 @@ describe("ListPagination", () => {
     render(<ListPagination totalItems={7} pageSize={4} itemLabel="เกม" onPageChange={onPageChange} />);
 
     expect(screen.getByText("แสดง 1–4 จาก 7 เกม")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Go to page 2" }));
+    fireEvent.click(screen.getByRole("button", { name: "ไปหน้า 2" }));
     expect(onPageChange).toHaveBeenCalledWith(2);
     expect(screen.getByText("แสดง 5–7 จาก 7 เกม")).toBeTruthy();
   });
@@ -21,6 +21,6 @@ describe("ListPagination", () => {
     render(<ListPagination totalItems={7} pageSize={4} itemLabel="เกม" page={2} />);
 
     expect(screen.getByText("แสดง 5–7 จาก 7 เกม")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "page 2" }).hasAttribute("disabled")).toBe(false);
+    expect(screen.getByRole("button", { name: "หน้าปัจจุบัน 2" }).hasAttribute("disabled")).toBe(false);
   });
 });

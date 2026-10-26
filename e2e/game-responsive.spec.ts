@@ -1,4 +1,9 @@
 import { expect, test } from "@playwright/test";
+import { signInGamePlayer } from "../tests/helpers/sign-in-game-player";
+
+test.beforeEach(async ({ page }, testInfo) => {
+  await signInGamePlayer(page, testInfo);
+});
 
 for (const viewport of [
   { width: 320, height: 568 },

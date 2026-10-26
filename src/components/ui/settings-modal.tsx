@@ -101,6 +101,7 @@ export function SettingsModal({ open, onClose, soundEnabled = true }: SettingsMo
   return (
     <Modal
       open={open}
+      role="region"
       onClose={onClose}
       aria-labelledby={titleId}
       sx={{

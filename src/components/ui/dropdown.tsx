@@ -43,7 +43,7 @@ export function Dropdown<T extends string = string>({
         id={id}
         value={value}
         onChange={handleChange}
-        aria-label={ariaLabel}
+        inputProps={{ "aria-label": ariaLabel }}
         IconComponent={KeyboardArrowDownRoundedIcon}
         sx={{
           borderRadius: "0.5rem",
