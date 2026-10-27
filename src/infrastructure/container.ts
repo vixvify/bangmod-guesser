@@ -7,6 +7,8 @@ import { UserAdapter } from "./adapters/user.adapter";
 import { UserService } from "@/core/service/user.service";
 import { AuthAdapter } from "./adapters/auth.adapter";
 import { AuthService } from "@/core/service/auth.service";
+import { DashboardRepositoryImpl } from "./repositories/dashboard.repository";
+import { DashboardService } from "@/core/service/dashboard.service";
 
 const imageRepository = new ImageRepositoryImpl();
 export const imageService = new ImageService(imageRepository);
@@ -19,3 +21,4 @@ export const locationService = new LocationService(
 
 export const userService = new UserService(new UserRepositoryImpl(), new UserAdapter());
 export const authService = new AuthService(new AuthAdapter());
+export const dashboardService = new DashboardService(new DashboardRepositoryImpl());
