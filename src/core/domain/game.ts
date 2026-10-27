@@ -1,5 +1,11 @@
 import type { Location } from "./location";
 
+export type GameExitResult = {
+  id: string;
+  status: "PLAYING" | "COMPLETED" | "INCOMPLETE";
+  finishedAt: string | null;
+};
+
 export type GameRoundResult = {
   round: number;
   location: Location;
