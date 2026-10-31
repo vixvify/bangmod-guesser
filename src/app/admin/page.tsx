@@ -1,48 +1,59 @@
-import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
-import PeopleOutlineRoundedIcon from "@mui/icons-material/PeopleOutlineRounded";
-import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
+import { DashboardCharts } from "@/components/admin/dashboard-charts";
+import { DashboardFilters } from "@/components/admin/dashboard-filters";
+import { DashboardRecentGames } from "@/components/admin/dashboard-recent-games";
+import { DashboardStats } from "@/components/admin/dashboard-stats";
 import { Button } from "@/components/ui/button";
+import { DashboardQuerySchema } from "@/core/schema/dashboard.schema";
+import { getDashboard } from "@/lib/dashboard";
+import { parseSchema } from "@/lib/validation";
 import { AppRoutes } from "@/routes/app/routes";
 
-export default function AdminPage() {
+type AdminPageProps = {
+  searchParams: Promise<{ startDate?: string; endDate?: string }>;
+};
+
+export default async function AdminPage({ searchParams }: AdminPageProps) {
+  const query = parseSchema(DashboardQuerySchema, { pageSize: 5, ...await searchParams });
+  const dashboard = await getDashboard(query);
+
   return (
-    <div className="mx-auto w-full max-w-6xl">
-      <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-        ภาพรวมระบบ
-      </h1>
-      <p className="mt-2 text-sm text-slate-500 sm:text-base">
-        เลือกส่วนที่ต้องการจัดการ
-      </p>
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <PeopleOutlineRoundedIcon
-            sx={{ color: "var(--color-primary-main)", fontSize: "2rem" }}
-          />
-          <h2 className="mt-4 text-xl font-bold">จัดการผู้ใช้</h2>
-          <p className="mt-2 mb-6 text-sm text-slate-500">
-            ดูบัญชีผู้เล่น บทบาท และสถานะการใช้งาน
-          </p>
-          <Button href={AppRoutes.adminUsers} variant="primary" size="small">
-            จัดการผู้ใช้ <ArrowForwardRoundedIcon fontSize="small" />
+    <div className="mx-auto w-full max-w-6xl pb-8">
+      <header className="mb-6 flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            ภาพรวมระบบ
+          </h1>
+          <p className="mt-2 text-sm text-slate-500">ภาพรวมระบบและผลการเล่น</p>
+        </div>
+        <nav aria-label="จัดการระบบ" className="flex flex-wrap gap-2">
+          <Button href={AppRoutes.adminUsers} variant="surface" size="small">
+            จัดการผู้ใช้
           </Button>
-        </section>
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <PlaceOutlinedIcon
-            sx={{ color: "var(--color-primary-main)", fontSize: "2rem" }}
-          />
-          <h2 className="mt-4 text-xl font-bold">จัดการสถานที่</h2>
-          <p className="mt-2 mb-6 text-sm text-slate-500">
-            เพิ่ม แก้ไข และดูรูปภาพสถานที่ในเกม
-          </p>
           <Button
             href={AppRoutes.adminLocations}
-            variant="primary"
+            variant="surface"
             size="small"
           >
-            จัดการสถานที่ <ArrowForwardRoundedIcon fontSize="small" />
+            จัดการสถานที่
           </Button>
-        </section>
+        </nav>
+      </header>
+      <div className="mb-5 flex justify-start sm:justify-end">
+        <DashboardFilters
+          key={`${dashboard.period.startDate}:${dashboard.period.endDate}`}
+          period={dashboard.period}
+        />
       </div>
+      <DashboardStats summary={dashboard} />
+      <DashboardCharts
+        dailyGames={dashboard.dailyGames}
+        scores={dashboard.scores}
+      />
+      <DashboardRecentGames
+        key={`${dashboard.period.startDate}:${dashboard.period.endDate}`}
+        initialGames={dashboard.games}
+        period={dashboard.period}
+      />
     </div>
   );
 }

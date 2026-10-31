@@ -1,7 +1,7 @@
 import { DASHBOARD_QUERY_BATCH_SIZE, DASHBOARD_ROUND_MAX_SCORE } from "@/core/constants/dashboard";
 import type { DashboardDateRange, DashboardGameLogs, DashboardOverview } from "@/core/domain/dashboard";
-import { dashboardChangePercent, dashboardDistance, getDashboardDropOff, getDashboardScores, roundDashboardNumber } from "@/core/domain/dashboard-metrics";
-import { getDashboardPeriod, getDashboardTodayPeriod } from "@/core/domain/dashboard-period";
+import { dashboardChangePercent, dashboardDistance, getDashboardDropOff, getDashboardScores, roundDashboardNumber } from "@/core/service/dashboard-metrics";
+import { getDashboardPeriod, getDashboardTodayPeriod } from "@/core/service/dashboard-period";
 import type { DashboardRepository } from "@/core/ports/dashboard.repository";
 import type { DashboardQueryInput } from "@/core/schema/dashboard.schema";
 import { DashboardFactory } from "@/infrastructure/factories/dashboard.factory";
