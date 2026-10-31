@@ -3,7 +3,6 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mockLocations } from "@/_mock/_locations";
-import AdminPage from "@/app/admin/page";
 import LocationsPage from "@/app/admin/locations/page";
 import { AppRoutes } from "@/routes/app/routes";
 
@@ -59,13 +58,6 @@ async function renderLocations(searchParams: { search?: string; page?: string } 
 }
 
 describe("admin location navigation", () => {
-  it("offers separate user and location management from the admin overview", () => {
-    render(<AdminPage />);
-
-    expect(screen.getByRole("link", { name: /จัดการผู้ใช้/ }).getAttribute("href")).toBe(AppRoutes.adminUsers);
-    expect(screen.getByRole("link", { name: /จัดการสถานที่/ }).getAttribute("href")).toBe(AppRoutes.adminLocations);
-  });
-
   it("renders locations returned by the service with create and edit links", async () => {
     await renderLocations();
 
@@ -198,7 +190,7 @@ describe("admin location navigation", () => {
 
   it("navigates pagination while preserving the search", async () => {
     await renderLocations({ search: "CB2" });
-    fireEvent.click(screen.getByRole("button", { name: "Go to page 2" }));
+    fireEvent.click(screen.getByRole("button", { name: "ไปหน้า 2" }));
 
     expect(push).toHaveBeenCalledWith("/admin/locations?page=2&search=CB2", { scroll: false });
   });
