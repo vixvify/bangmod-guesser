@@ -25,7 +25,7 @@ async function renderDashboard(searchParams: { startDate?: string; endDate?: str
 describe("admin dashboard", () => {
   it("loads real dashboard contract and composes the overview", async () => {
     await renderDashboard();
-    expect(getDashboard).toHaveBeenCalledWith({ search: "", page: 1, pageSize: 10 });
+    expect(getDashboard).toHaveBeenCalledWith({ search: "", page: 1, pageSize: 5 });
     expect(screen.getByRole("heading", { name: "ภาพรวมระบบ" })).toBeTruthy();
     expect(screen.getByRole("link", { name: "จัดการผู้ใช้" }).getAttribute("href")).toBe(AppRoutes.adminUsers);
     expect(screen.getByRole("link", { name: "จัดการสถานที่" }).getAttribute("href")).toBe(AppRoutes.adminLocations);
@@ -53,7 +53,7 @@ describe("admin dashboard", () => {
     await renderDashboard();
     fireEvent.change(screen.getByRole("textbox", { name: "ค้นหาเกมหรือผู้เล่น" }), { target: { value: "Player" } });
     await waitFor(() => expect(getGames).toHaveBeenCalledWith(
-      "/api/dashboard/games?startDate=2026-10-01&endDate=2026-10-30&page=1&pageSize=10&search=Player",
+      "/api/dashboard/games?startDate=2026-10-01&endDate=2026-10-30&page=1&pageSize=5&search=Player",
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     ));
     expect(push).not.toHaveBeenCalled();

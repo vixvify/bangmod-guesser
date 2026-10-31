@@ -13,7 +13,7 @@ type AdminPageProps = {
 };
 
 export default async function AdminPage({ searchParams }: AdminPageProps) {
-  const query = parseSchema(DashboardQuerySchema, await searchParams);
+  const query = parseSchema(DashboardQuerySchema, { pageSize: 5, ...await searchParams });
   const dashboard = await getDashboard(query);
 
   return (
