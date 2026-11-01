@@ -2,7 +2,7 @@
 
 import NextLink from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, type MouseEvent } from "react";
+import { useState, useSyncExternalStore, type MouseEvent } from "react";
 import { ContentContainer } from "@/components/layout/content-container";
 import { useNavigationGuard } from "@/hooks/use-navigation-guard";
 import LeaderboardOutlinedIcon from "@mui/icons-material/LeaderboardOutlined";
@@ -28,6 +28,10 @@ type NavbarProps = {
   soundEnabled?: boolean;
 };
 
+const subscribeHydration = () => () => {};
+const hydratedOnClient = () => true;
+const notHydratedOnServer = () => false;
+
 export function Navbar({
   user,
   brandColor = "var(--color-secondary-light)",
@@ -39,6 +43,11 @@ export function Navbar({
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const isHydrated = useSyncExternalStore(
+    subscribeHydration,
+    hydratedOnClient,
+    notHydratedOnServer,
+  );
 
   async function handleLogout() {
     setIsLoggingOut(true);
@@ -90,6 +99,7 @@ export function Navbar({
             variant="surface"
             size="icon"
             onClick={() => setIsSettingsOpen(true)}
+            disabled={!isHydrated}
             aria-pressed={isSettingsOpen}
             aria-haspopup="dialog"
             className={styles.navButton}
