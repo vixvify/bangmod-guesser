@@ -14,6 +14,8 @@ test("keeps confirmed settings after a page reload", async ({ page }) => {
   await settings.getByRole("combobox", { name: SETTINGS_MESSAGES.imageQuality }).click();
   await page.getByRole("option", { name: SETTINGS_MESSAGES.qualities.medium }).click();
   await settings.getByRole("button", { name: SETTINGS_MESSAGES.confirm }).click();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("bangmod-guesser:settings")))
+    .toContain('"systemSound":81');
 
   await page.reload({ waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: SETTINGS_MESSAGES.title }).click();
