@@ -2,6 +2,7 @@ import { AppError } from "@/core/errors/app.error";
 import type { LeaderboardResult } from "@/core/domain/leaderboard";
 import type { ProfileResult } from "@/core/domain/profile";
 import type { LeaderboardRepository } from "@/core/ports/leaderboard.repository";
+import type { ProfileQueryInput } from "@/core/schema/profile.schema";
 import { LeaderboardFactory } from "@/infrastructure/factories/leaderboard.factory";
 
 const PROFILE_PAGE_SIZE = 4;
@@ -52,11 +53,7 @@ export class LeaderboardService {
 
   async getProfile(
     userId: string,
-    options: {
-      from?: string;
-      to?: string;
-      page?: number;
-    } = {},
+    options: ProfileQueryInput,
   ): Promise<ProfileResult> {
     const page = options.page ?? 1;
 
@@ -84,7 +81,7 @@ export class LeaderboardService {
     const result = await this.leaderboardRepository.findProfile(userId, {
       from,
       toExclusive,
-      page,
+      page: options.page,
       pageSize: PROFILE_PAGE_SIZE,
     });
 
