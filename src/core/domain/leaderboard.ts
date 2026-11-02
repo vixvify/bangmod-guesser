@@ -4,3 +4,8 @@ export interface LeaderboardEntry {
   gamesPlayed: number;
   totalScore: number;
 }
+
+export interface LeaderboardResult {
+  entries: LeaderboardEntry[];
+  myRank: LeaderboardEntry | null;
+}
