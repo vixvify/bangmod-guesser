@@ -1,10 +1,15 @@
 import type { Prisma } from "@prisma/client";
 import type {
   LeaderboardRepository,
-  LeaderboardUserRecord,
   ProfileDateFilter,
   ProfileRecordsResult,
 } from "@/core/ports/leaderboard.repository";
+import {
+  leaderboardUserSelect,
+  profileGameSelect,
+  profileUserSelect,
+  type LeaderboardUserRecord,
+} from "../../../prisma/types/leaderboard";
 import { prisma } from "@/lib/prisma";
 
 const completedGameWhere = {
@@ -20,16 +25,7 @@ export class LeaderboardRepositoryImpl implements LeaderboardRepository {
           some: completedGameWhere,
         },
       },
-      select: {
-        id: true,
-        name: true,
-        games: {
-          where: completedGameWhere,
-          select: {
-            totalScore: true,
-          },
-        },
-      },
+      select: leaderboardUserSelect,
     });
   }
 
@@ -55,9 +51,7 @@ export class LeaderboardRepositoryImpl implements LeaderboardRepository {
       prisma.user.findUnique({
         where: { id: userId },
         select: {
-          id: true,
-          name: true,
-          email: true,
+          ...profileUserSelect,
           games: {
             where: dateFilter,
             orderBy: {
@@ -65,30 +59,7 @@ export class LeaderboardRepositoryImpl implements LeaderboardRepository {
             },
             skip: (filter.page - 1) * filter.pageSize,
             take: filter.pageSize,
-            select: {
-              id: true,
-              status: true,
-              startedAt: true,
-              totalScore: true,
-              rounds: {
-                where: {
-                  guessedLatitude: { not: null },
-                  guessedLongitude: { not: null },
-                },
-                select: {
-                  questionNumber: true,
-                  guessedLatitude: true,
-                  guessedLongitude: true,
-                  score: true,
-                  location: {
-                    select: {
-                      latitude: true,
-                      longitude: true,
-                    },
-                  },
-                },
-              },
-            },
+            select: profileGameSelect,
           },
         },
       }),

@@ -10,7 +10,7 @@ import type {
   LeaderboardUserRecord,
   ProfileGameRecord,
   ProfileUserRecord,
-} from "@/core/ports/leaderboard.repository";
+} from "../../../prisma/types/leaderboard";
 import { haversineDistanceMeters } from "@/lib/calculate-distance";
 
 export const LeaderboardFactory = {
