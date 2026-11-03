@@ -6,6 +6,12 @@ import type { ProfileQueryInput } from "@/core/schema/profile.schema";
 import { LeaderboardFactory } from "@/infrastructure/factories/leaderboard.factory";
 
 const PROFILE_PAGE_SIZE = 4;
+const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
+const BANGKOK_UTC_OFFSET = "+07:00";
+
+function toBangkokStartOfDay(date: string): Date {
+  return new Date(`${date}T00:00:00.000${BANGKOK_UTC_OFFSET}`);
+}
 
 export class LeaderboardService {
   constructor(
@@ -56,29 +62,25 @@ export class LeaderboardService {
     options: ProfileQueryInput,
   ): Promise<ProfileResult> {
     const from = options.from
-      ? new Date(`${options.from}T00:00:00.000Z`)
+      ? toBangkokStartOfDay(options.from)
       : undefined;
 
-    const to = options.to
-      ? new Date(`${options.to}T00:00:00.000Z`)
-      : undefined;
-
-    const toExclusive = to
+    const toExclusive = options.to
       ? new Date(
-          Date.UTC(
-            to.getUTCFullYear(),
-            to.getUTCMonth(),
-            to.getUTCDate() + 1,
-          ),
+          toBangkokStartOfDay(options.to).getTime() +
+            MILLISECONDS_PER_DAY,
         )
       : undefined;
 
-    const result = await this.leaderboardRepository.findProfile(userId, {
-      from,
-      toExclusive,
-      page: options.page,
-      pageSize: PROFILE_PAGE_SIZE,
-    });
+    const result = await this.leaderboardRepository.findProfile(
+      userId,
+      {
+        from,
+        toExclusive,
+        page: options.page,
+        pageSize: PROFILE_PAGE_SIZE,
+      },
+    );
 
     if (!result.user) {
       throw new AppError("User not found", 404);

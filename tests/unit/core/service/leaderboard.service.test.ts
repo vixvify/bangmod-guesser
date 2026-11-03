@@ -125,6 +125,8 @@ describe("LeaderboardService", () => {
     expect(repository.findProfile).toHaveBeenCalledWith(
       "user-1",
       expect.objectContaining({
+        from: new Date("2026-09-30T17:00:00.000Z"),
+        toExclusive: new Date("2026-10-31T17:00:00.000Z"),
         page: 1,
         pageSize: 4,
       }),
