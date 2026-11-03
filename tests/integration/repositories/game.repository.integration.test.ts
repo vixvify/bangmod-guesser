@@ -2,13 +2,13 @@ import { randomUUID } from "node:crypto";
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Opt in only against the project's dedicated disposable E2E database.
-vi.mock("@/lib/prisma", async () => {
+vi.mock("@/shared/lib/prisma", async () => {
   const { PrismaClient } = await import("@prisma/client");
   const { E2E_DATABASE_URL } = await import("../../../e2e/config");
   return { prisma: new PrismaClient({ datasourceUrl: E2E_DATABASE_URL }) };
 });
-import { prisma } from "@/lib/prisma";
-import { GameRepositoryImpl } from "@/infrastructure/repositories/game.repository";
+import { prisma } from "@/shared/lib/prisma";
+import { GameRepositoryImpl } from "@/features/game/repositories/game.repository";
 
 const repository = new GameRepositoryImpl();
 const now = new Date("2026-10-27T12:00:00Z");

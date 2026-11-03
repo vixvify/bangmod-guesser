@@ -3,7 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { StrictMode } from "react";
-import { useCountdown } from "@/hooks/use-countdown";
+import { useCountdown } from "@/features/game/hooks/use-countdown";
 
 describe("useCountdown", () => {
   beforeEach(() => {

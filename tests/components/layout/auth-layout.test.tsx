@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { AuthLayout } from "@/layout/auth-layout";
+import { AuthLayout } from "@/features/auth/components/auth-layout";
 
 describe("AuthLayout", () => {
   it("places the campus image beside auth content without the main navbar", () => {

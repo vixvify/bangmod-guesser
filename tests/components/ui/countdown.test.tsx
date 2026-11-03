@@ -3,10 +3,10 @@
 import { StrictMode } from "react";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Countdown } from "@/components/ui/countdown";
-import { playSoundEffect } from "@/lib/sound-effect";
+import { Countdown } from "@/shared/components/ui/countdown";
+import { playSoundEffect } from "@/shared/lib/sound-effect";
 
-vi.mock("@/lib/sound-effect", () => ({ playSoundEffect: vi.fn() }));
+vi.mock("@/shared/lib/sound-effect", () => ({ playSoundEffect: vi.fn() }));
 
 beforeEach(() => {
   vi.useFakeTimers();

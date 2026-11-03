@@ -3,7 +3,7 @@ import {
   GAME_MESSAGES,
   GAME_DEFAULTS,
   MAP_CONFIG,
-} from "@/core/constants/game";
+} from "@/features/game/constants/game";
 
 describe("GAME_MESSAGES", () => {
   it("contains exit game action messages", () => {

@@ -2,14 +2,14 @@
 
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { GAME_MESSAGES } from "@/core/constants/game";
+import { GAME_MESSAGES } from "@/features/game/constants/game";
 
 const push = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
 }));
 
-vi.mock("@/lib/auth-client", () => ({
+vi.mock("@/features/auth/lib/auth-client", () => ({
   authClient: { signOut: vi.fn() },
 }));
 
@@ -41,8 +41,8 @@ vi.mock("next/dynamic", () => ({
   },
 }));
 
-import { GameSession } from "@/components/game/game-session";
-import { AppRoutes } from "@/routes/app/routes";
+import { GameSession } from "@/features/game/components/game-session";
+import { AppRoutes } from "@/shared/routes/routes";
 
 describe("GameSession", () => {
   afterEach(() => {

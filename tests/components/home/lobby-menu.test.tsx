@@ -8,7 +8,7 @@ import {
   screen,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { LobbyMenu } from "@/components/home/lobby-menu";
+import { LobbyMenu } from "@/features/home/components/lobby-menu";
 
 const { push, router } = vi.hoisted(() => {
   const push = vi.fn();

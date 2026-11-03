@@ -2,7 +2,7 @@
 
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import { ScrollReveal } from "@/shared/components/ui/scroll-reveal";
 
 const motion = vi.hoisted(() => ({ animate: vi.fn(), reduced: false }));
 

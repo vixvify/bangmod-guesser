@@ -2,13 +2,13 @@
 
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ProfileHistory } from "@/components/profile/profile-history";
-import type { ProfileResult } from "@/core/domain/profile";
-import httpClient from "@/lib/http";
+import { ProfileHistory } from "@/features/profile/components/profile-history";
+import type { ProfileResult } from "@/features/profile/domain/profile";
+import httpClient from "@/shared/lib/http";
 
-vi.mock("@/lib/http", () => ({ default: { get: vi.fn() } }));
-vi.mock("@/routes/api/profile.routes", () => ({ ProfileRoutes: { history: "/api/profile" } }));
-vi.mock("@/components/ui/date-range-picker", () => ({
+vi.mock("@/shared/lib/http", () => ({ default: { get: vi.fn() } }));
+vi.mock("@/features/profile/routes/profile.routes", () => ({ ProfileRoutes: { history: "/api/profile" } }));
+vi.mock("@/shared/components/ui/date-range-picker", () => ({
   DateRangePicker: ({ onChange, defaultValue }: { onChange: (range: { startDate: string | null; endDate: string | null }) => void; defaultValue: { startDate: string | null; endDate: string | null } }) => (
     <div>
       <span data-testid="selected-range">{defaultValue.startDate ?? "ทั้งหมด"}</span>

@@ -3,7 +3,7 @@ import {
   ProfileQuerySchema,
   UpdateUsernameFormSchema,
   UpdateUsernameSchema,
-} from "@/core/schema/profile.schema";
+} from "@/features/profile/schema/profile.schema";
 
 describe("UpdateUsernameSchema", () => {
   it("trims a valid username before saving", () => {

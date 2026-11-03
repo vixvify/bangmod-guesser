@@ -3,12 +3,13 @@
 ## Place code in the owning layer
 
 - Add a page, layout, loading state, not-found page, or route handler in `src/app`.
-- Add reusable presentation in `src/components`; do not place a whole feature UI in `page.tsx` when it has independently meaningful sections.
-- Add business decisions to a service in `src/core/service`.
-- Add request, form, param, and query validation to a Zod schema in `src/core/schema`; derive input types from that schema.
-- Add Prisma access only to `src/infrastructure/repositories`.
-- Add transformations from Prisma records to API/domain output to `src/infrastructure/factories` and call them from services, never repositories.
-- Add framework-independent helpers to `src/lib/utils.ts`; add runtime configuration to `src/lib/config.ts` and other technical integrations to `src/lib`.
+- Add reusable presentation in `src/features/<feature>/components`; do not place a whole feature UI in `page.tsx` when it has independently meaningful sections.
+- Put cross-feature presentation in `src/shared/components`; keep feature-specific hooks, routes, stores, and mocks with their feature.
+- Add business decisions to a service in `src/features/<feature>/service`.
+- Add request, form, param, and query validation to a Zod schema in `src/features/<feature>/schema`; derive input types from that schema.
+- Add Prisma access only to `src/features/<feature>/repositories`.
+- Add transformations from Prisma records to API/domain output to `src/features/<feature>/factories` and call them from services, never repositories.
+- Add framework-independent helpers to `src/shared/lib/utils.ts`; add runtime configuration to `src/shared/config/runtime.ts` and other technical integrations to `src/shared/lib`.
 
 ## Naming and file conventions
 
@@ -24,7 +25,7 @@
 ## TypeScript and import conventions
 
 - Use explicit types for exported functions, public class methods, and values where inference does not make the contract obvious.
-- Use `type` imports for type-only dependencies: `import type { User } from "@/core/domain/user"`.
+- Use `type` imports for type-only dependencies: `import type { User } from "@/features/users/domain/user"`.
 - Do not use `any`, `as any`, or broad assertions to bypass a type error. Use `unknown`, a schema, a type guard, or correct the underlying contract.
 - Prefer schema-derived input types such as `RegisterInput`; do not duplicate an inferable input type manually.
 - Use the `@/` alias for imports from `src` outside the current local module area. Use relative imports for closely related files in the same module.
@@ -43,23 +44,23 @@
 - Do not implement business logic, Prisma queries, validation rules, or reusable response formatting in route handlers.
 - Use `parseSchema()` for external input. Do not manually normalize fields that the schema already normalizes.
 - Throw `AppError` for expected application failures. Let `errorResponse()` convert it into the shared error response shape.
-- Use `authCheck()` for a valid authenticated user. Use `roleCheck(user, roles)` for protected roles.
+- Use `requireAuth()` when a route requires a signed-in user and the existing role helper for protected roles.
 - Do not expose passwords, session tokens, database errors, stack traces, or other persistence-only fields in API output.
 
 ## Persistence and type rules
 
 - Repositories return the Prisma data required by the port; do not use factories in repositories.
-- Keep Prisma relation payload types in `prisma/types`. Keep public output models in `src/core/domain`.
-- Services own password hashing, credential verification, duplicate checks, and factory selection.
+- Keep Prisma relation payload types in `prisma/types`. Keep public output models in `src/features/<feature>/domain`.
+- Services own application decisions and factory selection; Better Auth owns password and session handling.
 - Use the container for service instances. Do not create repositories or services ad hoc in route handlers.
 - Add database constraints and indexes in `prisma/schema.prisma`; seed static reference data instead of creating unnecessary services for it.
 
 ## Frontend rules
 
 - Prefer Server Components. Use `"use client"` only for state, effects, event handlers, browser APIs, or client-only libraries.
-- Client code uses the `/api` boundary through `src/lib/http.ts`; it never imports server-only code, services, repositories, or Prisma.
-- Reuse route constants from `src/routes` rather than duplicating shared route strings.
-- Keep global state focused in `src/store`; prefer local state when it does not need to be shared.
+- Client code uses the `/api` boundary through `src/shared/lib/http.ts`; it never imports server-only code, services, repositories, or Prisma.
+- Reuse route constants from `src/features/<feature>/routes` rather than duplicating shared route strings.
+- Keep global state focused in `src/features/<feature>/store`; prefer local state when it does not need to be shared.
 
 ## Test rules
 

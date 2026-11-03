@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AppError } from "@/core/errors/app.error";
-import { UserRole } from "@/core/domain/user";
+import { AppError } from "@/shared/errors/app.error";
+import { UserRole } from "@/features/users/domain/user";
 
 const sampleJpeg = new Uint8Array([0xff, 0xd8, 0xff]);
 
@@ -18,11 +18,11 @@ const { mockLocationService, mockRequireAuth } = vi.hoisted(() => ({
 
 vi.mock("server-only", () => ({}));
 
-vi.mock("@/infrastructure/container", () => ({
+vi.mock("@/container", () => ({
   locationService: mockLocationService,
 }));
 
-vi.mock("@/lib/auth-check", () => ({ requireAuth: mockRequireAuth }));
+vi.mock("@/features/auth/lib/auth-check", () => ({ requireAuth: mockRequireAuth }));
 
 import { GET as getLocations, POST as createLocation } from "@/app/api/locations/route";
 import {

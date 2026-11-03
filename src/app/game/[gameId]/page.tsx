@@ -1,5 +1,5 @@
-import { GameSession } from "@/components/game/game-session";
-import { requireAuth } from "@/lib/auth-check";
+import { GameSession } from "@/features/game/components/game-session";
+import { requireAuth } from "@/features/auth/lib/auth-check";
 
 export default async function GamePage({
   params,

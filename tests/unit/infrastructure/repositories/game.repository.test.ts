@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { GameRepositoryImpl } from "@/infrastructure/repositories/game.repository";
+import { GameRepositoryImpl } from "@/features/game/repositories/game.repository";
 import { gameStateSelect } from "../../../../prisma/types/game";
 
 const { findUnique, updateMany, transaction } = vi.hoisted(() => ({
   findUnique: vi.fn(), updateMany: vi.fn(), transaction: vi.fn(),
 }));
-vi.mock("@/lib/prisma", () => ({
+vi.mock("@/shared/lib/prisma", () => ({
   prisma: { game: { findUnique }, $transaction: transaction },
 }));
 

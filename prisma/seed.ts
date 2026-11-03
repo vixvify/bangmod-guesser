@@ -2,7 +2,7 @@ import { loadEnvConfig } from "@next/env";
 import { PrismaClient } from "@prisma/client";
 
 import { promoteInitialAdmin } from "./seed-admin";
-import { config } from "@/lib/config";
+import { config } from "@/shared/config/runtime";
 
 loadEnvConfig(process.cwd());
 

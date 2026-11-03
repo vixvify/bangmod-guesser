@@ -1,7 +1,7 @@
-import { LoginSchema } from "@/core/schema/auth.schema";
-import { authService } from "@/infrastructure/container";
-import { errorResponse, successResponse } from "@/lib/api-response";
-import { parseSchema } from "@/lib/validation";
+import { LoginSchema } from "@/features/auth/schema/auth.schema";
+import { authService } from "@/container";
+import { errorResponse, successResponse } from "@/shared/lib/api-response";
+import { parseSchema } from "@/shared/lib/validation";
 
 export async function POST(request: Request) {
   try {

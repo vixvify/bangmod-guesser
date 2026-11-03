@@ -1,16 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { requireAuth } from "@/lib/auth-check";
+import { requireAuth } from "@/features/auth/lib/auth-check";
 
-vi.mock("@/lib/auth-check", () => ({ requireAuth: vi.fn().mockResolvedValue({ id: "player" }) }));
+vi.mock("@/features/auth/lib/auth-check", () => ({ requireAuth: vi.fn().mockResolvedValue({ id: "player" }) }));
 
-vi.mock("@/components/game/game-session", () => ({
+vi.mock("@/features/game/components/game-session", () => ({
   GameSession: () => <div data-testid="game-session" />,
 }));
-vi.mock("@/components/game/game-round-score", () => ({
+vi.mock("@/features/game/components/game-round-score", () => ({
   GameRoundScore: ({ gameId }: { gameId: string }) => <main data-game-id={gameId}>round score</main>,
 }));
-vi.mock("@/components/game/game-summary", () => ({
+vi.mock("@/features/game/components/game-summary", () => ({
   GameSummary: ({ gameId }: { gameId: string }) => <main data-game-id={gameId}>summary</main>,
 }));
 

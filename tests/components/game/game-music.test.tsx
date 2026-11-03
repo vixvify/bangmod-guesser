@@ -2,9 +2,9 @@
 
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { useGameMusic } from "@/hooks/use-game-music";
-import { useSettingsStore } from "@/store/settings-store";
-import { DEFAULT_SETTINGS } from "@/core/constants/settings";
+import { useGameMusic } from "@/features/game/hooks/use-game-music";
+import { useSettingsStore } from "@/features/settings/store/settings-store";
+import { DEFAULT_SETTINGS } from "@/features/settings/constants/settings";
 import { mockAudio } from "../../mocks/audio.mock";
 
 function GameMusicHarness() {

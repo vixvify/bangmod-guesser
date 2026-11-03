@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDateOnly, formatThaiCalendarDate, formatThaiClockTime, formatThaiDateRange, formatThaiDateTime, formatThaiNumericDate, formatTime, formatTimeForSpeech, shiftDateOnly, toBangkokStartOfDay } from "@/lib/utils";
+import { formatDateOnly, formatThaiCalendarDate, formatThaiClockTime, formatThaiDateRange, formatThaiDateTime, formatThaiNumericDate, formatTime, formatTimeForSpeech, shiftDateOnly, toBangkokStartOfDay } from "@/shared/lib/utils";
 
 describe("formatThaiDateTime", () => {
   it("uses Bangkok time across UTC midnight for consistent server and browser rendering", () => {

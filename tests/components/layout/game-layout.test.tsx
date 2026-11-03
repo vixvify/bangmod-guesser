@@ -2,17 +2,17 @@
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { GAME_MESSAGES } from "@/core/constants/game";
+import { GAME_MESSAGES } from "@/features/game/constants/game";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
 
-vi.mock("@/lib/auth-client", () => ({
+vi.mock("@/features/auth/lib/auth-client", () => ({
   authClient: { signOut: vi.fn() },
 }));
 
-import { GameLayout } from "@/layout/game-layout";
+import { GameLayout } from "@/features/game/components/game-layout";
 
 describe("GameLayout", () => {
   const onExit = vi.fn();

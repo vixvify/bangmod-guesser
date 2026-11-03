@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { AppRoutes } from "@/routes/app/routes";
+import { auth } from "@/features/auth/lib/auth";
+import { AppRoutes } from "@/shared/routes/routes";
 
 const PUBLIC_ROUTES: string[] = [AppRoutes.home];
 

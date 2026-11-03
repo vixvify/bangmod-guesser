@@ -1,0 +1,80 @@
+import MuiLink from "@mui/material/Link";
+import { ContentContainer } from "@/shared/components/layout/content-container";
+import { AppRoutes } from "@/shared/routes/routes";
+
+const footerLinks = [
+  { href: AppRoutes.home, label: "หน้าแรก" },
+  { href: "/#introduction", label: "ทำความรู้จักเกม" },
+  { href: "/#how-to-play", label: "วิธีเล่น" },
+  { href: "/#credits", label: "คณะผู้จัดทำ" },
+] as const;
+
+const footerLinkStyles = {
+  color: "inherit",
+  textDecorationLine: "underline",
+  textDecorationColor: "transparent",
+  textUnderlineOffset: "0.25em",
+  transition: "color 240ms ease, text-decoration-color 240ms ease",
+  "&:hover, &:focus-visible": {
+    color: "var(--color-primary-light)",
+    textDecorationColor: "currentColor",
+  },
+};
+
+export function Footer() {
+  return (
+    <footer
+      aria-label="Site footer"
+      className="mt-auto border-t border-secondary-light/10 bg-secondary-dark py-14 text-secondary-light/75 lg:py-16"
+    >
+      <ContentContainer>
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="space-y-4 lg:col-span-2">
+            <div>
+              <span className="font-display text-2xl tracking-tight text-secondary-light">
+                BANGMOD <span className="text-primary-main">GUESSER</span>
+              </span>
+            </div>
+            <p className="max-w-md text-sm leading-relaxed text-secondary-light/70">
+              เกมทายพิกัดสถานที่ในมหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี (บางมด)
+              ชวนคุณกลับมาสำรวจมุมโปรดและทางที่เดินผ่านทุกวันด้วยสายตาใหม่
+            </p>
+          </div>
+
+          <div>
+            <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-secondary-light">
+              ไปยังหน้าอื่น ๆ
+            </h2>
+            <ul className="mt-4 space-y-2.5 text-sm">
+              {footerLinks.map(({ href, label }) => (
+                <li key={href}>
+                  <MuiLink href={href} underline="none" sx={footerLinkStyles}>
+                    {label}
+                  </MuiLink>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-secondary-light">
+              เกี่ยวกับโครงการ
+            </h2>
+            <div className="mt-4 space-y-2 text-sm text-secondary-light/65">
+              <p>วิชา Web Programming 1</p>
+              <p>สาขาวิทยาการคอมพิวเตอร์ประยุกต์ (ACS)</p>
+              <p>ภาควิชาคณิตศาสตร์ คณะวิทยาศาสตร์</p>
+              <p>มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-12 border-t border-secondary-light/10 pt-8 text-center text-xs text-secondary-light/50 sm:text-left">
+          <p>
+            © {new Date().getFullYear()} Bangmod Guesser. All rights reserved.
+          </p>
+        </div>
+      </ContentContainer>
+    </footer>
+  );
+}

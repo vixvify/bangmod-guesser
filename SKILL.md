@@ -34,58 +34,44 @@ Use the simplest design that keeps responsibilities clear and testable.
 Follow this project structure:
 
 ```text
-.
-├── src/
+src/
+├── app/                     # Next.js routes, pages, layouts, API handlers
+├── features/
+│   ├── auth/
+│   ├── dashboard/
+│   ├── game/
+│   ├── home/
+│   ├── images/
+│   ├── leaderboard/
+│   ├── locations/
+│   ├── profile/
+│   ├── settings/
+│   └── users/               # Each feature owns its components, domain,
+│                            # schema, service, ports, repositories and routes
+├── shared/
+│   ├── components/          # Cross-feature UI and layouts
 │   ├── config/
-│   ├── app/
-│   │   ├── (auth)/
-│   │   ├── api/
-│   │   └── proxy.ts
-│   ├── components/
-│   ├── core/
-│   │   ├── constants/
-│   │   ├── domain/
-│   │   ├── errors/
-│   │   ├── ports/
-│   │   ├── schema/
-│   │   └── service/
-│   ├── infrastructure/
-│   │   ├── factories/
-│   │   ├── interface/
-│   │   ├── repositories/
-│   │   └── container.ts
+│   ├── errors/
+│   ├── hooks/
 │   ├── lib/
 │   ├── routes/
-│   ├── store/
-│   └── utils/
-│
-├── prisma/
-│   ├── schema.prisma
 │   └── types/
-├── tests/
-│   ├── unit/
-│   ├── components/
-│   ├── integration/
-│   ├── e2e/
-│   ├── fixtures/
-│   ├── mocks/
-│   └── helpers/
-│
-├── public/
-├── .env.example
-├── docker-compose.yml
-├── Dockerfile
-├── package.json
-└── tsconfig.json
+├── container.ts             # Server composition root
+└── proxy.ts
+prisma/types/                # Prisma-specific payload types
+tests/                       # Unit, component and integration tests
+e2e/                         # End-to-end tests
 ```
 
 Do not redesign the project architecture unless explicitly requested.
+
+Keep business and UI code together under the feature that owns it. A feature may have `components`, `constants`, `domain`, `schema`, `service`, `ports`, `repositories`, `factories`, `adapters`, `routes`, `hooks`, `store`, and `mock` directories when needed. Put cross-feature components, helpers, and configuration under `src/shared`. Keep URLs and route handlers in `src/app`, server wiring in `src/container.ts`, and Prisma payload types in `prisma/types`. Client components use `src/shared/lib/http.ts` to call the API; server routes and pages use services from the container.
 
 ---
 
 # App
 
-## `src/config`
+## `src/shared/config`
 
 Contains shared application configuration and server runtime environment parsing. Use the exported config instead of reading `process.env` directly in application code.
 
@@ -114,21 +100,20 @@ Avoid putting entire feature implementations into `page.tsx`.
 
 # Components
 
-## `src/components`
+## `src/features/<feature>/components`
 
-Contains UI components.
+Contains feature-owned UI components. Put cross-feature UI in `src/shared/components`.
 
 Components should have one responsibility.
 
 Prefer:
 
 ```text
-components/
-└── user/
-    ├── user-header.tsx
-    ├── user-profile.tsx
-    ├── user-form.tsx
-    └── user-actions.tsx
+features/users/components/
+├── user-header.tsx
+├── user-profile.tsx
+├── user-form.tsx
+└── user-actions.tsx
 ```
 
 instead of one giant:
@@ -186,7 +171,7 @@ Keep client boundaries small.
 
 # Domain
 
-## `src/core/domain`
+## `src/features/<feature>/domain`
 
 Contains domain models and business rules.
 
@@ -198,7 +183,7 @@ Keep it independent from React when practical.
 
 # Ports
 
-## `src/core/ports`
+## `src/features/<feature>/ports`
 
 Contains application contracts.
 
@@ -216,7 +201,7 @@ Use ports to separate core logic from implementation details when useful.
 
 # Services
 
-## `src/core/service`
+## `src/features/<feature>/service`
 
 Services are grouped by domain/module.
 
@@ -279,7 +264,7 @@ Avoid both extremes:
 
 # Schema
 
-## `src/core/schema`
+## `src/features/<feature>/schema`
 
 Contains validation schemas.
 
@@ -298,7 +283,7 @@ Prefer schema-derived TypeScript types.
 
 # Constants
 
-## `src/core/constants`
+## `src/features/<feature>/constants`
 
 Contains shared constants.
 
@@ -310,7 +295,7 @@ Do not create unnecessary constants for every literal.
 
 # Infrastructure
 
-## `src/infrastructure/repositories`
+## `src/features/<feature>/repositories`
 
 Contains persistence implementations.
 
@@ -330,7 +315,7 @@ Avoid ORM access from UI components.
 
 ---
 
-## `src/infrastructure/interface`
+## `src/shared/types`
 
 Contains types specific to infrastructure implementations.
 
@@ -338,7 +323,7 @@ Do not mix infrastructure types with domain types unnecessarily.
 
 ---
 
-## `src/infrastructure/factories`
+## `src/features/<feature>/factories`
 
 Contains mappings from infrastructure data to domain output models.
 
@@ -346,7 +331,7 @@ Repositories return Prisma records directly. Services use factories to decide wh
 
 ---
 
-## `src/infrastructure/container.ts`
+## `src/container.ts`
 
 The composition root for repository implementations and services. Route handlers and server-only helpers use its exported services instead of constructing dependencies directly.
 
@@ -354,30 +339,28 @@ The composition root for repository implementations and services. Route handlers
 
 ## `prisma/types`
 
-Contains Prisma-specific model and payload types, including relation data returned by repository queries. Keep them separate from `src/core/domain` output models.
+Contains Prisma-specific model and payload types, including relation data returned by repository queries. Keep them separate from `src/features/<feature>/domain` output models.
 
 ---
 
-## `src/routes`
+## `src/features/<feature>/routes`
 
-Contains shared app and API route constants. Reuse existing route constants instead of duplicating route strings.
+Contains API route constants owned by a feature. App-wide route constants live in `src/shared/routes`. Reuse existing route constants instead of duplicating route strings.
 
 ---
 
 # Lib
 
-## `src/lib`
+## `src/shared/lib`
 
-Contains library configuration and initialization.
+Contains cross-feature technical helpers. Put feature-specific integrations in that feature's `lib` directory and runtime configuration in `src/shared/config/runtime.ts`.
 
 Examples:
 
 ```text
-db.ts
-auth.ts
-env.ts
-redis.ts
-api-client.ts
+http.ts
+prisma.ts
+utils.ts
 ```
 
 Do not place business logic here.
@@ -386,7 +369,7 @@ Do not place business logic here.
 
 # Store
 
-## `src/store`
+## `src/features/<feature>/store`
 
 Contains global client state.
 
@@ -400,7 +383,7 @@ Avoid giant global stores.
 
 # Utils
 
-## `src/utils`
+## `src/shared/lib`
 
 Contains reusable helper functions.
 
@@ -581,7 +564,7 @@ Examples:
 
 ```text
 tests/unit/
-├── core/
+├── features/
 │   ├── service/
 │   │   ├── auth.service.test.ts
 │   │   ├── user.service.test.ts
@@ -706,7 +689,7 @@ Use real test infrastructure when it is important to what the test is verifying.
 Location:
 
 ```text
-tests/e2e/
+e2e/
 ```
 
 Use E2E tests for critical complete workflows.
@@ -714,7 +697,7 @@ Use E2E tests for critical complete workflows.
 Examples:
 
 ```text
-tests/e2e/
+e2e/
 ├── authentication.spec.ts
 ├── course-enrollment.spec.ts
 ├── profile.spec.ts

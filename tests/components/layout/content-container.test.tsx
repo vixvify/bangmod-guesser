@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { ContentContainer } from "@/components/layout/content-container";
+import { ContentContainer } from "@/shared/components/layout/content-container";
 
 describe("ContentContainer", () => {
   it("uses the same responsive gutters at every supported content width", () => {

@@ -1,17 +1,17 @@
-import { AppError } from "@/core/errors/app.error";
-import { LOCATION_MAX_IMAGES } from "@/core/constants/location";
-import { IMAGE_MAX_SIZE_BYTES, IMAGE_MESSAGES } from "@/core/constants/image";
-import { UserRole } from "@/core/domain/user";
-import { CreateLocationImagesSchema } from "@/core/schema/image.schema";
+import { AppError } from "@/shared/errors/app.error";
+import { LOCATION_MAX_IMAGES } from "@/features/locations/constants/location";
+import { IMAGE_MAX_SIZE_BYTES, IMAGE_MESSAGES } from "@/features/images/constants/image";
+import { UserRole } from "@/features/users/domain/user";
+import { CreateLocationImagesSchema } from "@/features/images/schema/image.schema";
 import {
   CreateLocationSchema,
   SearchLocationQuerySchema,
-} from "@/core/schema/location.schema";
-import { locationService } from "@/infrastructure/container";
-import { errorResponse, successResponse } from "@/lib/api-response";
-import { requireAuth } from "@/lib/auth-check";
-import { roleCheck } from "@/lib/role-check";
-import { parseSchema } from "@/lib/validation";
+} from "@/features/locations/schema/location.schema";
+import { locationService } from "@/container";
+import { errorResponse, successResponse } from "@/shared/lib/api-response";
+import { requireAuth } from "@/features/auth/lib/auth-check";
+import { roleCheck } from "@/shared/lib/role-check";
+import { parseSchema } from "@/shared/lib/validation";
 
 export async function GET(request: Request) {
   try {

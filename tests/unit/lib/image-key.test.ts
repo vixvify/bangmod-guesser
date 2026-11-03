@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { extractImageKey } from "@/lib/image-key";
+import { extractImageKey } from "@/features/images/lib/image-key";
 
 describe("extractImageKey", () => {
   it("returns the storage key from a public image URL", () => {

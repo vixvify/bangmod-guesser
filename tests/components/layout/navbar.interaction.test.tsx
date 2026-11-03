@@ -2,8 +2,8 @@
 
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { UserRole } from "@/core/domain/user";
-import { SETTINGS_MESSAGES } from "@/core/constants/settings";
+import { UserRole } from "@/features/users/domain/user";
+import { SETTINGS_MESSAGES } from "@/features/settings/constants/settings";
 
 const { signOut, routerRefresh, toastError, toastSuccess } = vi.hoisted(() => ({
   signOut: vi.fn(),
@@ -14,24 +14,24 @@ const { signOut, routerRefresh, toastError, toastSuccess } = vi.hoisted(() => ({
 
 const { playSoundEffect } = vi.hoisted(() => ({ playSoundEffect: vi.fn() }));
 
-vi.mock("@/lib/sound-effect", () => ({ playSoundEffect }));
+vi.mock("@/shared/lib/sound-effect", () => ({ playSoundEffect }));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: routerRefresh }),
   usePathname: () => "/",
 }));
 
-vi.mock("@/lib/http", () => ({
+vi.mock("@/shared/lib/http", () => ({
   default: { post: vi.fn(() => signOut()) },
 }));
 
-vi.mock("@/routes/api/session.routes", () => ({
+vi.mock("@/features/auth/routes/session.routes", () => ({
   SessionRoutes: { logout: "/session/logout" },
 }));
 
 vi.mock("sonner", () => ({ toast: { error: toastError, success: toastSuccess } }));
 
-import { Navbar } from "@/components/layout/navbar";
+import { Navbar } from "@/shared/components/layout/navbar";
 
 const user = {
   id: "user_1",

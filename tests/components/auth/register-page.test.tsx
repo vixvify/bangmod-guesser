@@ -16,11 +16,11 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace, refresh }),
 }));
 
-vi.mock("@/routes/api/session.routes", () => ({
+vi.mock("@/features/auth/routes/session.routes", () => ({
   SessionRoutes: { register: "/session/register" },
 }));
 
-vi.mock("@/lib/http", () => ({
+vi.mock("@/shared/lib/http", () => ({
   HttpError: class HttpError extends Error {
     status?: number;
     constructor(message: string, status?: number) {
@@ -34,7 +34,7 @@ vi.mock("@/lib/http", () => ({
 vi.mock("sonner", () => ({ toast: { success: toastSuccess, error: toastError } }));
 
 import RegisterPage from "@/app/(auth)/register/page";
-import { HttpError } from "@/lib/http";
+import { HttpError } from "@/shared/lib/http";
 
 async function renderPage(callbackUrl?: string) {
   await act(async () => {

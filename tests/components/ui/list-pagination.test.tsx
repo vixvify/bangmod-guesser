@@ -2,7 +2,7 @@
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ListPagination } from "@/components/ui/list-pagination";
+import { ListPagination } from "@/shared/components/ui/list-pagination";
 
 afterEach(cleanup);
 

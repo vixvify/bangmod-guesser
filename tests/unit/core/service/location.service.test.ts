@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { LocationService } from "@/core/service/location.service";
-import { LocationStatus } from "@/core/domain/location";
+import { LocationService } from "@/features/locations/service/location.service";
+import { LocationStatus } from "@/features/locations/domain/location";
 import { createLocationRepositoryMock } from "../../../mocks/location.repository.mock";
 import { createImageRepositoryMock } from "../../../mocks/image.repository.mock";
-import { ImageService } from "@/core/service/image.service";
-import { AppError } from "@/core/errors/app.error";
+import { ImageService } from "@/features/images/service/image.service";
+import { AppError } from "@/shared/errors/app.error";
 
 const sampleImageBuffer = new Uint8Array([1, 2, 3, 4]);
 

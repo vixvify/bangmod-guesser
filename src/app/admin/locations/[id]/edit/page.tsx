@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
-import { UpdateLocation } from "@/components/admin/update-location";
-import { AppError } from "@/core/errors/app.error";
-import { LocationIdSchema } from "@/core/schema/location.schema";
-import { locationService } from "@/infrastructure/container";
-import { parseSchema } from "@/lib/validation";
+import { UpdateLocation } from "@/features/locations/components/admin/update-location";
+import { AppError } from "@/shared/errors/app.error";
+import { LocationIdSchema } from "@/features/locations/schema/location.schema";
+import { locationService } from "@/container";
+import { parseSchema } from "@/shared/lib/validation";
 
 export default async function EditLocationPage({
   params,

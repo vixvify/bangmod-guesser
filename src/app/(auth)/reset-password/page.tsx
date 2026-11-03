@@ -5,10 +5,10 @@ import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { AUTH_MESSAGES } from "@/core/constants/auth";
-import { ResetPasswordSchema, type ResetPasswordInput } from "@/core/schema/auth.schema";
+import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
+import { AUTH_MESSAGES } from "@/features/auth/constants/auth";
+import { ResetPasswordSchema, type ResetPasswordInput } from "@/features/auth/schema/auth.schema";
 
 export default function ResetPasswordPage() {
   const {

@@ -2,7 +2,7 @@
 
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ConfirmModal } from "@/components/ui/confirm-modal";
+import { ConfirmModal } from "@/shared/components/ui/confirm-modal";
 
 afterEach(cleanup);
 

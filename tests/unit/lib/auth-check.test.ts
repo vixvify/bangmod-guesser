@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { UserRole } from "@/core/domain/user";
+import { UserRole } from "@/features/users/domain/user";
 
 const { getSession, headers } = vi.hoisted(() => ({
   getSession: vi.fn(),
@@ -10,7 +10,7 @@ vi.mock("server-only", () => ({}));
 
 vi.mock("next/headers", () => ({ headers }));
 
-vi.mock("@/lib/auth", () => ({
+vi.mock("@/features/auth/lib/auth", () => ({
   auth: {
     api: {
       getSession,
@@ -18,7 +18,7 @@ vi.mock("@/lib/auth", () => ({
   },
 }));
 
-import { authCheck, requireAuth } from "@/lib/auth-check";
+import { authCheck, requireAuth } from "@/features/auth/lib/auth-check";
 
 const domainUser = {
   id: "user_1",

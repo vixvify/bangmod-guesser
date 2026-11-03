@@ -7,52 +7,36 @@ This project is a fullstack web application built entirely with Next.js and Type
 The project follows this structure:
 
 ```text
-.
-├── src/
-│   ├── app/
-│   │   ├── (auth)/
-│   │   ├── api/
-│   │   └── proxy.ts
-│   ├── components/
-│   ├── core/
-│   │   ├── constants/
-│   │   ├── domain/
-│   │   ├── errors/
-│   │   ├── ports/
-│   │   ├── schema/
-│   │   └── service/
-│   ├── infrastructure/
-│   │   ├── factories/
-│   │   ├── interface/
-│   │   ├── repositories/
-│   │   └── container.ts
+src/
+├── app/                     # Next.js routes, pages, layouts, API handlers
+├── features/
+│   ├── auth/
+│   ├── dashboard/
+│   ├── game/
+│   ├── home/
+│   ├── images/
+│   ├── leaderboard/
+│   ├── locations/
+│   ├── profile/
+│   ├── settings/
+│   └── users/               # Each feature owns its components, domain,
+│                            # schema, service, ports, repositories and routes
+├── shared/
+│   ├── components/          # Cross-feature UI and layouts
+│   ├── config/
+│   ├── errors/
+│   ├── hooks/
 │   ├── lib/
-│   │   ├── config.ts
-│   │   └── utils.ts
 │   ├── routes/
-│   └── store/
-│
-├── prisma/
-│   ├── schema.prisma
 │   └── types/
-├── tests/
-│   ├── unit/
-│   ├── components/
-│   ├── integration/
-│   ├── e2e/
-│   ├── fixtures/
-│   ├── mocks/
-│   └── helpers/
-│
-├── public/
-├── .env.example
-├── docker-compose.yml
-├── Dockerfile
-├── package.json
-└── tsconfig.json
+├── container.ts             # Server composition root
+└── proxy.ts
+prisma/types/                # Prisma-specific payload types
+tests/                       # Unit, component and integration tests
+e2e/                         # End-to-end tests
 ```
 
-Always preserve this architecture unless explicitly instructed otherwise.
+Keep related code together under `src/features/<feature>`. Put code shared across features under `src/shared`. Preserve this structure unless explicitly instructed otherwise.
 
 Do not introduce a completely different architecture or reorganize the project without a strong technical reason.
 
@@ -107,7 +91,15 @@ Do not immediately create new abstractions or files before inspecting the existi
 
 # Source Structure
 
-## `src/lib/config.ts`
+## Feature ownership
+
+Choose the feature that owns a change before adding a file. Keep its components, constants, domain output, schemas, services, ports, repositories, factories, adapters, routes, hooks, store, and mocks under `src/features/<feature>` as needed. Create only the directories that the feature actually uses. Put cross-feature UI and technical helpers under `src/shared`; do not move business rules there merely because two features call them. `src/app` owns URLs and composes feature code, while `src/container.ts` wires server services. Keep Prisma payload types in `prisma/types`.
+
+Use a stable `@/features/<feature>/...` or `@/shared/...` import from another feature or route. Relative imports are suitable for files within one feature. Client components call the HTTP API through `src/shared/lib/http.ts`; server routes and pages use services from `src/container.ts`.
+
+---
+
+## `src/shared/config/runtime.ts`
 
 Contains shared application configuration and server runtime environment parsing. Application code must consume the exported config instead of reading `process.env` directly. Keep secrets and provider credentials inside the server runtime portion of this boundary.
 
@@ -146,38 +138,36 @@ route.ts
 
 Avoid putting reusable business logic directly inside route files.
 
-Extract meaningful UI into `src/components`.
+Extract meaningful UI into `src/features/<feature>/components`.
 
-Move reusable business logic into `src/core`.
+Move reusable business logic into `src/features/<feature>`.
 
 ---
 
 # Components
 
-## `src/components`
+## `src/features/<feature>/components`
 
-Contains UI components.
+Contains UI components owned by a feature. Reusable UI shared by multiple features belongs in `src/shared/components`.
 
 Components should have one clear responsibility.
 
 Prefer:
 
 ```text
-components/
-└── course/
-    ├── course-header.tsx
-    ├── course-filter.tsx
-    ├── course-list.tsx
-    ├── course-card.tsx
-    ├── course-pagination.tsx
-    └── course-form.tsx
+features/course/components/
+├── course-header.tsx
+├── course-filter.tsx
+├── course-list.tsx
+├── course-card.tsx
+├── course-pagination.tsx
+└── course-form.tsx
 ```
 
 instead of:
 
 ```text
-components/
-└── course-page.tsx
+app/course/page.tsx
 ```
 
 containing the entire feature.
@@ -250,7 +240,7 @@ Keep client boundaries as small as practical.
 
 # Core
 
-## `src/core`
+## `src/features/<feature>`
 
 Contains application and business logic.
 
@@ -258,7 +248,7 @@ Core code should remain separate from UI implementation details.
 
 ---
 
-## `src/core/domain`
+## `src/features/<feature>/domain`
 
 Contains domain models and business rules.
 
@@ -291,7 +281,7 @@ Domain code should not depend on:
 
 # Ports
 
-## `src/core/ports`
+## `src/features/<feature>/ports`
 
 Contains contracts required by the application.
 
@@ -323,7 +313,7 @@ They should not contain database-specific implementation details.
 
 # Services
 
-## `src/core/service`
+## `src/features/<feature>/service`
 
 Contains application services grouped by domain or feature.
 
@@ -395,7 +385,7 @@ only when token or password logic becomes complex enough to justify separation.
 
 # Schemas
 
-## `src/core/schema`
+## `src/features/<feature>/schema`
 
 Contains validation schemas.
 
@@ -428,7 +418,7 @@ Avoid manually duplicating types that can safely be inferred.
 
 # Constants
 
-## `src/core/constants`
+## `src/features/<feature>/constants`
 
 Contains shared application constants.
 
@@ -449,7 +439,7 @@ Do not create constants for trivial one-time values without a reason.
 
 # Infrastructure
 
-## `src/infrastructure`
+## `src/features/<feature>`
 
 Contains technical implementation details.
 
@@ -463,20 +453,16 @@ Examples:
 
 ---
 
-## `src/infrastructure/repositories`
+## `src/features/<feature>/repositories`
 
 Contains repository implementations.
 
 Example:
 
 ```text
-core/
-└── ports/
-    └── user.repository.ts
-
-infrastructure/
-└── repositories/
-    └── user.repository.ts
+features/users/
+├── ports/user.repository.ts
+└── repositories/user.repository.ts
 ```
 
 Prefer this dependency flow:
@@ -499,7 +485,7 @@ Do not access the ORM directly from reusable React components.
 
 ---
 
-## `src/infrastructure/interface`
+## `src/shared/types`
 
 Contains infrastructure-specific interfaces or types.
 
@@ -513,7 +499,7 @@ Do not place core business models here.
 
 ---
 
-## `src/infrastructure/factories`
+## `src/features/<feature>/factories`
 
 Contains mappings from infrastructure data to domain output models.
 
@@ -521,7 +507,7 @@ Repositories return their Prisma records directly. Services call factories to ch
 
 ---
 
-## `src/infrastructure/container.ts`
+## `src/container.ts`
 
 The composition root for repository implementations and services. Route handlers and server-only helpers use its exported services instead of instantiating dependencies themselves.
 
@@ -529,28 +515,26 @@ The composition root for repository implementations and services. Route handlers
 
 ## `prisma/types`
 
-Contains Prisma-specific model and payload types, including relations returned by repository queries. Keep these types separate from `src/core/domain`, which represents application output models.
+Contains Prisma-specific model and payload types, including relations returned by repository queries. Keep these types separate from `src/features/<feature>/domain`, which represents application output models.
 
 ---
 
-## `src/routes`
+## `src/features/<feature>/routes`
 
-Contains shared route constants for app and API paths. Keep route strings out of reusable components and services when a shared route constant already exists.
+Contains API route constants owned by a feature. App-wide route constants live in `src/shared/routes`. Keep route strings out of reusable components and services when a shared route constant already exists.
 
 ---
 
 # Lib
 
-## `src/lib`
+## `src/shared/lib`
 
-Contains library initialization and technical configuration.
+Contains technical helpers used by multiple features. Feature-specific integrations belong under that feature's `lib` directory; runtime configuration belongs in `src/shared/config/runtime.ts`.
 
 Examples:
 
 ```text
-lib/
-├── auth.ts
-├── config.ts
+shared/lib/
 ├── http.ts
 ├── prisma.ts
 └── utils.ts
@@ -562,7 +546,7 @@ Do not put application business logic inside `lib`.
 
 # Store
 
-## `src/store`
+## `src/features/<feature>/store`
 
 Contains global client-side state.
 
@@ -575,10 +559,8 @@ Do not put every piece of state into a global store.
 Prefer focused stores:
 
 ```text
-store/
-├── auth.store.ts
-├── ui.store.ts
-└── cart.store.ts
+features/settings/store/
+└── settings-store.ts
 ```
 
 Avoid one giant global store responsible for unrelated concerns.
@@ -587,7 +569,7 @@ Avoid one giant global store responsible for unrelated concerns.
 
 # Utils
 
-## `src/lib/utils.ts`
+## `src/shared/lib/utils.ts`
 
 Contains generic reusable utility functions.
 
@@ -842,7 +824,7 @@ They should coordinate UI requests with application services.
 
 Avoid large Server Action files containing substantial reusable business logic.
 
-Move reusable logic into `core/service`.
+Move reusable logic into the owning feature's `service` directory.
 
 ---
 
@@ -869,19 +851,19 @@ Avoid duplicated functionality.
 
 # Testing Architecture
 
-All tests belong under the root `tests/` directory.
+Unit, component, and integration tests belong under `tests/`; browser tests belong under the root `e2e/` directory.
 
 Use:
 
 ```text
 tests/
 ├── unit/
-├── component/
+├── components/
 ├── integration/
-├── e2e/
 ├── fixtures/
 ├── mocks/
 └── helpers/
+e2e/
 ```
 
 Do not place test files inside `src` unless the project explicitly changes its testing convention.
@@ -916,7 +898,7 @@ Example:
 ```text
 tests/
 └── unit/
-    ├── core/
+    ├── features/
     │   ├── service/
     │   │   ├── auth.service.test.ts
     │   │   ├── user.service.test.ts
@@ -1053,7 +1035,7 @@ Do not mock away the behavior that the integration test is supposed to verify.
 Location:
 
 ```text
-tests/e2e/
+e2e/
 ```
 
 E2E tests verify complete user workflows through the application.
@@ -1063,12 +1045,11 @@ Use E2E tests for critical flows.
 Examples:
 
 ```text
-tests/
-└── e2e/
-    ├── authentication.spec.ts
-    ├── course-enrollment.spec.ts
-    ├── user-profile.spec.ts
-    └── admin-course-management.spec.ts
+e2e/
+├── authentication.spec.ts
+├── course-enrollment.spec.ts
+├── user-profile.spec.ts
+└── admin-course-management.spec.ts
 ```
 
 Example scenarios:

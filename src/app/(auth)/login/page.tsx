@@ -9,14 +9,14 @@ import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { AUTH_MESSAGES } from "@/core/constants/auth";
-import { LoginSchema, type LoginInput } from "@/core/schema/auth.schema";
-import httpClient, { HttpError } from "@/lib/http";
-import { getAuthRedirect } from "@/lib/auth-redirect";
-import { SessionRoutes } from "@/routes/api/session.routes";
-import { AppRoutes } from "@/routes/app/routes";
+import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
+import { AUTH_MESSAGES } from "@/features/auth/constants/auth";
+import { LoginSchema, type LoginInput } from "@/features/auth/schema/auth.schema";
+import httpClient, { HttpError } from "@/shared/lib/http";
+import { getAuthRedirect } from "@/features/auth/lib/auth-redirect";
+import { SessionRoutes } from "@/features/auth/routes/session.routes";
+import { AppRoutes } from "@/shared/routes/routes";
 
 type LoginPageProps = {
   searchParams: Promise<{

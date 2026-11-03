@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { UserRole } from "@/core/domain/user";
-import { AppError } from "@/core/errors/app.error";
-import type { UserAdminPort } from "@/core/ports/user-admin.port";
-import type { UserRepository } from "@/core/ports/user.repository";
-import { UserService } from "@/core/service/user.service";
-import type { UserFormInput } from "@/core/schema/user.schema";
+import { UserRole } from "@/features/users/domain/user";
+import { AppError } from "@/shared/errors/app.error";
+import type { UserAdminPort } from "@/features/users/ports/user-admin.port";
+import type { UserRepository } from "@/features/users/ports/user.repository";
+import { UserService } from "@/features/users/service/user.service";
+import type { UserFormInput } from "@/features/users/schema/user.schema";
 import { createUserModel } from "../../../fixtures/users";
 
 const record = { ...createUserModel(), _count: { games: 5 } };

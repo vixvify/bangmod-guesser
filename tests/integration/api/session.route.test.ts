@@ -7,7 +7,7 @@ const { signIn, signUp, googleSignIn, signOut } = vi.hoisted(() => ({
   signOut: vi.fn(),
 }));
 
-vi.mock("@/infrastructure/container", () => ({
+vi.mock("@/container", () => ({
   authService: { signIn, signUp, googleSignIn, signOut },
 }));
 

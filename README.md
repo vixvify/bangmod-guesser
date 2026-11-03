@@ -49,12 +49,12 @@ second admin. Do not run it against an unintended database. Subsequent role
 changes use the authenticated admin endpoint; no admin service or UI is added
 here.
 
-For server-side service work, `auth` is exported from `src/lib/auth.ts`.
+For server-side service work, `auth` is exported from `src/features/auth/lib/auth.ts`.
 Call `auth.api.getUser`, `auth.api.adminUpdateUser`, `auth.api.banUser`,
 `auth.api.unbanUser`, or `auth.api.setRole` with the current request's `headers`
 so Better Auth checks the caller's session and role. Keep those Better Auth
 calls in an infrastructure adapter if a core service needs them; wire the
-adapter through `src/infrastructure/container.ts`. Client-side code may instead
+adapter through `src/container.ts`. Client-side code may instead
 call the matching `authClient.admin` methods. No separate admin route handler
 is needed because the existing Better Auth catch-all handler exposes them.
 

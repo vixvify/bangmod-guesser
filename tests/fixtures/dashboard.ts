@@ -10,7 +10,7 @@ export const dashboardGame = {
   startedAt: new Date("2026-10-27T04:00:00Z"), finishedAt: new Date("2026-10-27T04:05:00Z"),
   totalScore: 1300, rounds: [dashboardRound],
 };
-import type { DashboardSummary } from "@/core/domain/dashboard";
+import type { DashboardSummary } from "@/features/dashboard/domain/dashboard";
 
 export const dashboardSummary: DashboardSummary = {
   period: { startDate: "2026-10-01", endDate: "2026-10-30", previousStartDate: "2026-09-01", previousEndDate: "2026-09-30", timeZone: "Asia/Bangkok" },

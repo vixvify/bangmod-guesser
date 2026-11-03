@@ -1,11 +1,11 @@
-import { UserRole } from "@/core/domain/user";
-import { ImageNumberSchema } from "@/core/schema/image.schema";
-import { LocationIdSchema } from "@/core/schema/location.schema";
-import { locationService } from "@/infrastructure/container";
-import { errorResponse, successResponse } from "@/lib/api-response";
-import { requireAuth } from "@/lib/auth-check";
-import { roleCheck } from "@/lib/role-check";
-import { parseSchema } from "@/lib/validation";
+import { UserRole } from "@/features/users/domain/user";
+import { ImageNumberSchema } from "@/features/images/schema/image.schema";
+import { LocationIdSchema } from "@/features/locations/schema/location.schema";
+import { locationService } from "@/container";
+import { errorResponse, successResponse } from "@/shared/lib/api-response";
+import { requireAuth } from "@/features/auth/lib/auth-check";
+import { roleCheck } from "@/shared/lib/role-check";
+import { parseSchema } from "@/shared/lib/validation";
 
 interface RouteContext {
   params: Promise<{

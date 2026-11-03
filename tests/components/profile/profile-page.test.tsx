@@ -1,21 +1,21 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ProfilePage from "@/app/profile/page";
-import { UserRole } from "@/core/domain/user";
-import { leaderboardService } from "@/infrastructure/container";
-import { requireAuth } from "@/lib/auth-check";
+import { UserRole } from "@/features/users/domain/user";
+import { leaderboardService } from "@/container";
+import { requireAuth } from "@/features/auth/lib/auth-check";
 
-vi.mock("@/lib/auth-check", () => ({ requireAuth: vi.fn() }));
-vi.mock("@/infrastructure/container", () => ({
+vi.mock("@/features/auth/lib/auth-check", () => ({ requireAuth: vi.fn() }));
+vi.mock("@/container", () => ({
   leaderboardService: { getProfile: vi.fn() },
 }));
-vi.mock("@/lib/http", () => ({ default: { get: vi.fn() } }));
-vi.mock("@/routes/api/profile.routes", () => ({ ProfileRoutes: { history: "/api/profile" } }));
+vi.mock("@/shared/lib/http", () => ({ default: { get: vi.fn() } }));
+vi.mock("@/features/profile/routes/profile.routes", () => ({ ProfileRoutes: { history: "/api/profile" } }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
   usePathname: () => "/profile",
 }));
-vi.mock("@/lib/auth-client", () => ({
+vi.mock("@/features/auth/lib/auth-client", () => ({
   authClient: { signOut: vi.fn() },
 }));
 

@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { Footer } from "@/components/layout/footer";
+import { Footer } from "@/shared/components/layout/footer";
 
 describe("Footer", () => {
   it("renders the site footer with branding, navigation, and affiliation", () => {

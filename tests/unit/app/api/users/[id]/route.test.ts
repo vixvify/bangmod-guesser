@@ -9,19 +9,19 @@ import {
     DELETE,
     PATCH,
 } from "@/app/api/users/[id]/route";
-import { UserRole } from "@/core/domain/user";
-import { AppError } from "@/core/errors/app.error";
+import { UserRole } from "@/features/users/domain/user";
+import { AppError } from "@/shared/errors/app.error";
 const { updateUser, deleteUser } = vi.hoisted(() => ({ updateUser: vi.fn(), deleteUser: vi.fn() }));
-vi.mock("@/infrastructure/container", () => ({ userService: { updateUser, deleteUser } }));
-import { requireAuth } from "@/lib/auth-check";
+vi.mock("@/container", () => ({ userService: { updateUser, deleteUser } }));
+import { requireAuth } from "@/features/auth/lib/auth-check";
 
 vi.mock("next/headers", () => ({
     headers: vi.fn().mockResolvedValue(new Headers())
 }));
 
-vi.mock("@/lib/auth-check", () => ({requireAuth: vi.fn()}));
+vi.mock("@/features/auth/lib/auth-check", () => ({requireAuth: vi.fn()}));
 
-vi.mock("@/lib/role-check", () => ({roleCheck: vi.fn()}));
+vi.mock("@/shared/lib/role-check", () => ({roleCheck: vi.fn()}));
 
 const createContext = (id: string) => ({
     params: Promise.resolve({ id })

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { LeaderboardRepositoryImpl } from "@/infrastructure/repositories/leaderboard.repository";
+import { LeaderboardRepositoryImpl } from "@/features/leaderboard/repositories/leaderboard.repository";
 
 const mocks = vi.hoisted(() => ({
   queryRaw: vi.fn(),
@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
   gameCount: vi.fn(),
 }));
 
-vi.mock("@/lib/prisma", () => ({
+vi.mock("@/shared/lib/prisma", () => ({
   prisma: {
     $queryRaw: mocks.queryRaw,
     user: { findUnique: mocks.userFindUnique },

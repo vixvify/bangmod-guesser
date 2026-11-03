@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dashboardChangePercent, dashboardDistance, getDashboardDropOff, getDashboardScores } from "@/core/service/dashboard-metrics";
+import { dashboardChangePercent, dashboardDistance, getDashboardDropOff, getDashboardScores } from "@/features/dashboard/service/dashboard-metrics";
 
 describe("dashboardChangePercent", () => {
   it("reports growth, decline and an unavailable comparison when the baseline is zero", () => {

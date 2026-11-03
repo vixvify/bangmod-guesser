@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateScoreTier, formatScore } from "@/lib/utils";
+import { calculateScoreTier, formatScore } from "@/shared/lib/utils";
 
 describe("formatScore", () => {
   it("formats numbers with comma separators", () => {

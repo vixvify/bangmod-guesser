@@ -4,7 +4,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import ForgotPasswordPage from "@/app/(auth)/forgot-password/page";
 import ResetPasswordPage from "@/app/(auth)/reset-password/page";
-import { AUTH_MESSAGES } from "@/core/constants/auth";
+import { AUTH_MESSAGES } from "@/features/auth/constants/auth";
 
 const { toastInfo } = vi.hoisted(() => ({ toastInfo: vi.fn() }));
 

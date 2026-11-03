@@ -1,6 +1,6 @@
-import { leaderboardService } from "@/infrastructure/container";
-import { requireAuth } from "@/lib/auth-check";
-import { errorResponse, successResponse } from "@/lib/api-response";
+import { leaderboardService } from "@/container";
+import { requireAuth } from "@/features/auth/lib/auth-check";
+import { errorResponse, successResponse } from "@/shared/lib/api-response";
 
 export async function GET() {
   try {

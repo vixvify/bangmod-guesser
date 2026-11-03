@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { IntroSection } from "@/components/home/intro-section";
+import { IntroSection } from "@/features/home/components/intro-section";
 
 describe("IntroSection", () => {
   it("renders the introduction section with game description and mystery photo", () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_SETTINGS } from "@/core/constants/settings";
-import { GameSettingsSchema } from "@/core/schema/settings.schema";
+import { DEFAULT_SETTINGS } from "@/features/settings/constants/settings";
+import { GameSettingsSchema } from "@/features/settings/schema/settings.schema";
 
 describe("GameSettingsSchema", () => {
   it("accepts the default settings", () => {

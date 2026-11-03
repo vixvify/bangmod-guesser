@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { AppError } from "@/core/errors/app.error";
-import type { GameRepository } from "@/core/ports/game.repository";
-import { UserRole } from "@/core/domain/user";
+import { AppError } from "@/shared/errors/app.error";
+import type { GameRepository } from "@/features/game/ports/game.repository";
+import { UserRole } from "@/features/users/domain/user";
 
 const { requireAuth, repository } = vi.hoisted(() => ({
   requireAuth: vi.fn(),
@@ -10,9 +10,9 @@ const { requireAuth, repository } = vi.hoisted(() => ({
     exitPlayingGame: vi.fn<GameRepository["exitPlayingGame"]>(),
   },
 }));
-vi.mock("@/lib/auth-check", () => ({ requireAuth }));
-vi.mock("@/infrastructure/container", async () => {
-  const { GameService } = await import("@/core/service/game.service");
+vi.mock("@/features/auth/lib/auth-check", () => ({ requireAuth }));
+vi.mock("@/container", async () => {
+  const { GameService } = await import("@/features/game/service/game.service");
   return { gameService: new GameService(repository) };
 });
 import { POST } from "@/app/api/games/[id]/exit/route";

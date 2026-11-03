@@ -1,8 +1,8 @@
-import { AppError } from "@/core/errors/app.error";
-import { ProfileQuerySchema } from "@/core/schema/profile.schema";
-import { leaderboardService } from "@/infrastructure/container";
-import { requireAuth } from "@/lib/auth-check";
-import { errorResponse, successResponse } from "@/lib/api-response";
+import { AppError } from "@/shared/errors/app.error";
+import { ProfileQuerySchema } from "@/features/profile/schema/profile.schema";
+import { leaderboardService } from "@/container";
+import { requireAuth } from "@/features/auth/lib/auth-check";
+import { errorResponse, successResponse } from "@/shared/lib/api-response";
 
 export async function GET(request: Request) {
   try {

@@ -2,19 +2,19 @@
 
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { mockUsers } from "@/_mock/_users";
+import { mockUsers } from "@/features/users/mock/_users";
 import UsersPage from "@/app/admin/users/page";
-import { USER_MESSAGES } from "@/core/constants/user";
-import { AppRoutes } from "@/routes/app/routes";
+import { USER_MESSAGES } from "@/features/users/constants/user";
+import { AppRoutes } from "@/shared/routes/routes";
 
 const { getUsers, list, patch, remove, push, refresh, success, error } = vi.hoisted(() => ({
   getUsers: vi.fn(), list: vi.fn(), patch: vi.fn(), remove: vi.fn(),
   push: vi.fn(), refresh: vi.fn(), success: vi.fn(), error: vi.fn(),
 }));
 
-vi.mock("@/infrastructure/container", () => ({ userService: { getUsers } }));
-vi.mock("@/lib/http", () => ({ default: { get: list, patch, delete: remove } }));
-vi.mock("@/routes/api/user.routes", () => ({
+vi.mock("@/container", () => ({ userService: { getUsers } }));
+vi.mock("@/shared/lib/http", () => ({ default: { get: list, patch, delete: remove } }));
+vi.mock("@/features/users/routes/user.routes", () => ({
   UserRoutes: {
     list: "/api/users",
     update: (id: string) => `/api/users/${id}`,

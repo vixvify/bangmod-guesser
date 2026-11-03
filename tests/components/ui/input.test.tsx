@@ -2,7 +2,7 @@
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/shared/components/ui/input";
 
 afterEach(cleanup);
 
