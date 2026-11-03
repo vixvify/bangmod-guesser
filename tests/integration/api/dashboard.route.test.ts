@@ -4,7 +4,7 @@ import { UserRole } from "@/core/domain/user";
 
 const { requireAuth, summary, games } = vi.hoisted(() => ({ requireAuth: vi.fn(), summary: vi.fn(), games: vi.fn() }));
 vi.mock("@/lib/auth-check", () => ({ requireAuth }));
-vi.mock("@/lib/dashboard", () => ({ getDashboard: summary, getDashboardGames: games }));
+vi.mock("@/infrastructure/container", () => ({ dashboardService: { getDashboard: summary, getGames: games } }));
 import { GET as dashboard } from "@/app/api/dashboard/route";
 import { GET as gameLogs } from "@/app/api/dashboard/games/route";
 
@@ -27,7 +27,7 @@ describe.each([
     expect(operation).toHaveBeenCalledWith({ search: "", page: 1, pageSize: 10 });
   });
 
-  it("passes parsed date, search and pagination values to the dashboard library", async () => {
+  it("passes parsed date, search and pagination values to the dashboard service", async () => {
     await handler(new Request(`http://localhost${path}?startDate=2026-10-01&endDate=2026-10-27&search=Player&page=2&pageSize=20`));
     expect(operation).toHaveBeenCalledWith({ startDate: "2026-10-01", endDate: "2026-10-27", search: "Player", page: 2, pageSize: 20 });
   });

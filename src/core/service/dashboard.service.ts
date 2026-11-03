@@ -1,5 +1,5 @@
 import { DASHBOARD_QUERY_BATCH_SIZE, DASHBOARD_ROUND_MAX_SCORE } from "@/core/constants/dashboard";
-import type { DashboardDateRange, DashboardGameLogs, DashboardOverview } from "@/core/domain/dashboard";
+import type { DashboardDateRange, DashboardGameLogs, DashboardOverview, DashboardSummary } from "@/core/domain/dashboard";
 import { dashboardChangePercent, dashboardDistance, getDashboardDropOff, getDashboardScores, roundDashboardNumber } from "@/core/service/dashboard-metrics";
 import { getDashboardPeriod, getDashboardTodayPeriod } from "@/core/service/dashboard-period";
 import type { DashboardRepository } from "@/core/ports/dashboard.repository";
@@ -9,6 +9,14 @@ import { getPagination } from "@/lib/utils";
 
 export class DashboardService {
   constructor(private readonly dashboardRepository: DashboardRepository) {}
+
+  async getDashboard(query: DashboardQueryInput, now = new Date()): Promise<DashboardSummary> {
+    const [overview, games] = await Promise.all([
+      this.getOverview(query, now),
+      this.getGames(query, now),
+    ]);
+    return { ...overview, games };
+  }
 
   async getOverview(query: DashboardQueryInput, now = new Date()): Promise<DashboardOverview> {
     const period = getDashboardPeriod(query, now);

@@ -1,4 +1,5 @@
 import type { GameRoundResult, GameSummary } from "@/core/domain/game";
+import { GAME_MAX_SCORE } from "@/core/constants/game";
 import { mockLocations } from "./_locations";
 
 export const mockGameRounds: GameRoundResult[] = [
@@ -36,5 +37,5 @@ export const mockGameSummary: GameSummary = {
   baseScore,
   bonusScore,
   totalScore: baseScore + bonusScore,
-  maxScore: 6000,
+  maxScore: GAME_MAX_SCORE,
 };

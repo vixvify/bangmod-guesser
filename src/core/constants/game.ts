@@ -14,6 +14,8 @@ export const GAME_DEFAULTS = {
   roundDurationSeconds: 40,
 } as const;
 
+export const GAME_MAX_SCORE = 6000;
+
 export const MAP_CONFIG = {
   center: { lat: 13.6513, lng: 100.4943 },
   defaultZoom: 16,

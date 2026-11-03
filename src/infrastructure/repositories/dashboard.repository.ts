@@ -1,5 +1,6 @@
 import { GameStatus, Prisma, RoundStatus } from "@prisma/client";
-import { DASHBOARD_MAX_SCORE, DASHBOARD_QUERY_BATCH_SIZE, DASHBOARD_TIME_ZONE } from "@/core/constants/dashboard";
+import { DASHBOARD_QUERY_BATCH_SIZE, DASHBOARD_TIME_ZONE } from "@/core/constants/dashboard";
+import { GAME_MAX_SCORE } from "@/core/constants/game";
 import type { DashboardDateRange } from "@/core/domain/dashboard";
 import type { DashboardRepository } from "@/core/ports/dashboard.repository";
 import type { DashboardQueryInput } from "@/core/schema/dashboard.schema";
@@ -80,7 +81,7 @@ export class DashboardRepositoryImpl implements DashboardRepository {
   async groupScores(range: DashboardDateRange): Promise<DashboardScoreCount[]> {
     const groups = await prisma.game.groupBy({
       by: ["totalScore"],
-      where: { startedAt: startedAt(range), status: GameStatus.COMPLETED, totalScore: { gte: 0, lte: DASHBOARD_MAX_SCORE } },
+      where: { startedAt: startedAt(range), status: GameStatus.COMPLETED, totalScore: { gte: 0, lte: GAME_MAX_SCORE } },
       _count: { _all: true },
     });
     return groups;

@@ -1,8 +1,8 @@
 import {
   DASHBOARD_HIGH_ACCURACY_THRESHOLD,
-  DASHBOARD_MAX_SCORE,
   DASHBOARD_SCORE_BUCKET_SIZE,
 } from "@/core/constants/dashboard";
+import { GAME_MAX_SCORE } from "@/core/constants/game";
 import type {
   DashboardGameCounts,
   DashboardScoreBucket,
@@ -44,18 +44,18 @@ export function getDashboardScores(
       (group): group is typeof group & { score: number } =>
         group.score !== null &&
         group.score >= 0 &&
-        group.score <= DASHBOARD_MAX_SCORE,
+        group.score <= GAME_MAX_SCORE,
     )
     .sort((first, second) => first.score - second.score);
   const count = scored.reduce((sum, group) => sum + group.count, 0);
-  const bucketCount = DASHBOARD_MAX_SCORE / DASHBOARD_SCORE_BUCKET_SIZE + 1;
+  const bucketCount = GAME_MAX_SCORE / DASHBOARD_SCORE_BUCKET_SIZE + 1;
   const buckets: DashboardScoreBucket[] = Array.from(
     { length: bucketCount },
     (_, index) => ({
       min: index * DASHBOARD_SCORE_BUCKET_SIZE,
       max: Math.min(
         (index + 1) * DASHBOARD_SCORE_BUCKET_SIZE,
-        DASHBOARD_MAX_SCORE,
+        GAME_MAX_SCORE,
       ),
       maxInclusive: index === bucketCount - 1,
       count: 0,
@@ -94,7 +94,7 @@ export function getDashboardScores(
           bucket.count > best.count ? bucket : best,
         );
   return {
-    maxScore: DASHBOARD_MAX_SCORE,
+    maxScore: GAME_MAX_SCORE,
     count,
     median: count === 0 ? null : (lower + upper) / 2,
     mean: count === 0 ? null : roundDashboardNumber(scoreTotal / count),
