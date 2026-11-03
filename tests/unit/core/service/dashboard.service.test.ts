@@ -120,3 +120,27 @@ describe("DashboardService.getGames", () => {
     expect(result.items[0]).toMatchObject({ totalScore: null, finishedAt: null, bonusScore: null });
   });
 });
+
+describe("DashboardService.getDashboard", () => {
+  it("combines overview and games using the same reference time", async () => {
+    repository.findGames.mockResolvedValue({ total: 1, items: [dashboardGame] });
+    const query = DashboardQuerySchema.parse({ pageSize: 5 });
+
+    const result = await service.getDashboard(query, dashboardNow);
+
+    expect(result.generatedAt).toBe(dashboardNow.toISOString());
+    expect(result.games).toMatchObject({ total: 1, pageSize: 5 });
+    expect(result.games.items[0].id).toBe(dashboardGame.id);
+    expect(repository.findGames).toHaveBeenCalledWith(query, expect.objectContaining({
+      start: new Date("2026-09-27T17:00:00Z"),
+      endExclusive: new Date("2026-10-27T17:00:00Z"),
+    }));
+  });
+
+  it("propagates a failed read instead of returning partial analytics", async () => {
+    repository.groupGames.mockRejectedValue(new Error("Read failed"));
+
+    await expect(service.getDashboard(DashboardQuerySchema.parse({}), dashboardNow))
+      .rejects.toThrow("Read failed");
+  });
+});

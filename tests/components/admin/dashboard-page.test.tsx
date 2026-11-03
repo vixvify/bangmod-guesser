@@ -7,7 +7,7 @@ import { dashboardSummary } from "../../fixtures/dashboard";
 import { AppRoutes } from "@/routes/app/routes";
 
 const { getDashboard, getGames, push, refresh } = vi.hoisted(() => ({ getDashboard: vi.fn(), getGames: vi.fn(), push: vi.fn(), refresh: vi.fn() }));
-vi.mock("@/lib/dashboard", () => ({ getDashboard }));
+vi.mock("@/infrastructure/container", () => ({ dashboardService: { getDashboard } }));
 vi.mock("@/lib/http", () => ({ default: { get: getGames } }));
 vi.mock("@/routes/api/dashboard.routes", () => ({ DashboardRoutes: { games: "/api/dashboard/games" } }));
 vi.mock("next/navigation", async (importOriginal) => ({

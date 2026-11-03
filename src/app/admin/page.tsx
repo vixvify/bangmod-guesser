@@ -4,7 +4,7 @@ import { DashboardRecentGames } from "@/components/admin/dashboard-recent-games"
 import { DashboardStats } from "@/components/admin/dashboard-stats";
 import { Button } from "@/components/ui/button";
 import { DashboardQuerySchema } from "@/core/schema/dashboard.schema";
-import { getDashboard } from "@/lib/dashboard";
+import { dashboardService } from "@/infrastructure/container";
 import { parseSchema } from "@/lib/validation";
 import { AppRoutes } from "@/routes/app/routes";
 
@@ -14,7 +14,7 @@ type AdminPageProps = {
 
 export default async function AdminPage({ searchParams }: AdminPageProps) {
   const query = parseSchema(DashboardQuerySchema, { pageSize: 5, ...await searchParams });
-  const dashboard = await getDashboard(query);
+  const dashboard = await dashboardService.getDashboard(query);
 
   return (
     <div className="mx-auto w-full max-w-6xl pb-8">

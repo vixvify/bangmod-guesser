@@ -63,11 +63,11 @@ describe("DashboardRepositoryImpl", () => {
     expect(mocks.daily.mock.calls[0][0].values).toEqual([DASHBOARD_TIME_ZONE, range.start, range.endExclusive]);
   });
 
-  it("groups final scores only for completed games with valid totals up to 5000", async () => {
+  it("groups final scores only for completed games with valid totals up to 6000", async () => {
     mocks.gameGroupBy.mockResolvedValue([]);
     await repository.groupScores(range);
     expect(mocks.gameGroupBy).toHaveBeenCalledWith({
-      by: ["totalScore"], where: { startedAt: dateFilter, status: "COMPLETED", totalScore: { gte: 0, lte: 5000 } }, _count: { _all: true },
+      by: ["totalScore"], where: { startedAt: dateFilter, status: "COMPLETED", totalScore: { gte: 0, lte: 6000 } }, _count: { _all: true },
     });
   });
 
