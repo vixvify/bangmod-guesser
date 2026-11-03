@@ -1,15 +1,21 @@
-import { mockGameHistory } from "@/_mock/_profile";
-import { GameHistory } from "@/components/profile/game-history";
 import { ProfileCard } from "@/components/profile/profile-card";
-import { DateRangePicker } from "@/components/ui/date-range-picker";
-import { ListPagination } from "@/components/ui/list-pagination";
+import { ProfileHistory } from "@/components/profile/profile-history";
 import { UserRole } from "@/core/domain/user";
+import { ProfileQuerySchema } from "@/core/schema/profile.schema";
+import { leaderboardService } from "@/infrastructure/container";
 import { MainLayout } from "@/layout/main-layout";
 import { requireAuth } from "@/lib/auth-check";
 import { hasRole } from "@/lib/role-check";
+import { parseSchema } from "@/lib/validation";
 
-export default async function ProfilePage() {
+export default async function ProfilePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string; to?: string; page?: string }>;
+}) {
   const user = await requireAuth();
+  const query = parseSchema(ProfileQuerySchema, await searchParams);
+  const profile = await leaderboardService.getProfile(user.id, query);
 
   return (
     <MainLayout
@@ -22,31 +28,11 @@ export default async function ProfilePage() {
         profile={user}
         canManageSystem={hasRole(user, [UserRole.ADMIN])}
       />
-      <section
-        aria-labelledby="game-history-title"
-        className="mt-5 rounded-3xl border border-surface-border bg-surface-overlay p-4 shadow-2xl shadow-black/20 sm:p-6"
-      >
-          <div className="flex flex-col gap-5 rounded-2xl border border-surface-border bg-surface-overlay p-5 sm:flex-row sm:items-end sm:justify-between sm:p-6">
-          <div>
-            <h2 id="game-history-title" className="text-xl font-bold text-surface-text">
-              ประวัติการเล่นเกม
-            </h2>
-            <p className="text-sm text-primary-light">Game History</p>
-          </div>
-          <DateRangePicker
-            label="เลือกช่วงเวลา"
-            defaultValue={{ startDate: "2026-09-02", endDate: "2026-09-04" }}
-            theme="dark"
-          />
-        </div>
-        <GameHistory games={mockGameHistory} />
-        <ListPagination
-          totalItems={mockGameHistory.length}
-          pageSize={4}
-          itemLabel="เกม"
-          theme="dark"
-        />
-      </section>
+      <ProfileHistory
+        key={`${query.from ?? ""}:${query.to ?? ""}:${query.page}`}
+        initialProfile={profile}
+        initialQuery={query}
+      />
     </MainLayout>
   );
 }

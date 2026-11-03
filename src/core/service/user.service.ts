@@ -7,6 +7,7 @@ import type {
   UserFormInput,
 } from "@/core/schema/user.schema";
 import { UserFactory } from "@/infrastructure/factories/user.factory";
+import { formatDateOnly } from "@/lib/utils";
 
 export class UserService {
   constructor(
@@ -38,8 +39,9 @@ export class UserService {
     const existing = await this.userRepository.findById(id);
     if (!existing) throw new AppError("User not found", 404);
 
-    const existingEndDate =
-      existing.banExpires?.toISOString().slice(0, 10) ?? null;
+    const existingEndDate = existing.banExpires
+      ? formatDateOnly(existing.banExpires)
+      : null;
     const nextEndDate =
       input.status === "SUSPENDED" ? input.suspension.endDate : null;
     const statusChanged = input.status !== existing.status;

@@ -11,7 +11,7 @@ import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import dayjs, { type Dayjs } from "dayjs";
 import { useId, useState } from "react";
-import { formatThaiDateRange } from "@/lib/utils";
+import { formatThaiCalendarDate, formatThaiDateRange } from "@/lib/utils";
 import "dayjs/locale/th";
 
 type DateRange = {
@@ -41,12 +41,9 @@ export function DateRangePicker({
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const displayValue =
     range.startDate && range.endDate
-      ? formatThaiDateRange(
-          dayjs(range.startDate).toDate(),
-          dayjs(range.endDate).toDate(),
-        )
+      ? formatThaiDateRange(range.startDate, range.endDate)
       : range.startDate
-        ? dayjs(range.startDate).locale("th").format("D MMMM YYYY")
+        ? formatThaiCalendarDate(range.startDate)
         : "เลือกช่วงวันที่";
 
   function selectDate(date: Dayjs | null) {
@@ -164,7 +161,7 @@ export function DateRangePicker({
             <p className={`text-xs ${isDark ? "text-surface-muted" : "text-neutral-500"}`}>วันเริ่มต้น</p>
             <p>
               {range.startDate
-                ? dayjs(range.startDate).locale("th").format("D MMM YYYY")
+                ? formatThaiCalendarDate(range.startDate, "short")
                 : "ยังไม่เลือก"}
             </p>
           </div>
@@ -172,7 +169,7 @@ export function DateRangePicker({
             <p className={`text-xs ${isDark ? "text-surface-muted" : "text-neutral-500"}`}>วันสิ้นสุด</p>
             <p>
               {range.endDate
-                ? dayjs(range.endDate).locale("th").format("D MMM YYYY")
+                ? formatThaiCalendarDate(range.endDate, "short")
                 : "ยังไม่เลือก"}
             </p>
           </div>
@@ -218,7 +215,7 @@ export function DateRangePicker({
                         : undefined;
 
                 return {
-                  "aria-label": `${day.locale("th").format("D MMMM YYYY")}${isStart ? " วันเริ่มต้น" : isEnd ? " วันสิ้นสุด" : isBetween ? " อยู่ในช่วงที่เลือก" : ""}`,
+                  "aria-label": `${formatThaiCalendarDate(day.format("YYYY-MM-DD"))}${isStart ? " วันเริ่มต้น" : isEnd ? " วันสิ้นสุด" : isBetween ? " อยู่ในช่วงที่เลือก" : ""}`,
                   sx: {
                     "--range-endpoint-color": "var(--color-primary-main)",
                     marginLeft: 0,

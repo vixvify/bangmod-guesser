@@ -10,6 +10,7 @@ import type {
   ProfileUserRecord,
 } from "../../../prisma/types/leaderboard";
 import { haversineDistanceMeters } from "@/lib/calculate-distance";
+import { calculateScoreTier } from "@/lib/utils";
 
 export const LeaderboardFactory = {
   toResult(
@@ -48,6 +49,11 @@ export const LeaderboardFactory = {
     let bestRoundNumber: number | undefined;
 
     for (const round of game.rounds) {
+      if (bestRoundScore === undefined || round.score > bestRoundScore) {
+        bestRoundScore = round.score;
+        bestRoundNumber = round.questionNumber;
+      }
+
       if (
         round.guessedLatitude === null ||
         round.guessedLongitude === null
@@ -71,8 +77,6 @@ export const LeaderboardFactory = {
         distance < bestDistanceMeters
       ) {
         bestDistanceMeters = distance;
-        bestRoundScore = round.score;
-        bestRoundNumber = round.questionNumber;
       }
     }
 
@@ -82,7 +86,7 @@ export const LeaderboardFactory = {
       id: game.id,
       status: game.status,
       totalScore,
-      grade: this.getGrade(totalScore),
+      grade: calculateScoreTier(totalScore),
       playedAt: game.startedAt.toISOString(),
       ...(bestDistanceMeters !== undefined
         ? { bestDistanceMeters }
@@ -96,12 +100,4 @@ export const LeaderboardFactory = {
     };
   },
 
-  getGrade(score: number): GameHistoryItem["grade"] {
-    if (score >= 4750) return "SSS";
-    if (score >= 4200) return "S";
-    if (score >= 3350) return "A";
-    if (score >= 2500) return "B";
-    if (score >= 1650) return "C";
-    return "D";
-  },
 };

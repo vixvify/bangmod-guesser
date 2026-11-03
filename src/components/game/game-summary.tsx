@@ -13,7 +13,7 @@ import { Countdown } from "@/components/ui/countdown";
 import { AppRoutes } from "@/routes/app/routes";
 import { GAME_RESULT_MESSAGES as MESSAGES } from "@/core/constants/game-result";
 import type { GameSummary as GameSummaryData } from "@/core/domain/game";
-import { formatScore, formatTime } from "@/lib/utils";
+import { formatScore, formatTime, formatTimeForSpeech } from "@/lib/utils";
 import styles from "./game-results.module.css";
 
 export function GameSummary({
@@ -57,7 +57,7 @@ export function GameSummary({
                 <AccessTimeRoundedIcon fontSize="small" /> {MESSAGES.time}
               </dt>
               <dd
-                aria-label={`${Math.floor(totalSeconds / 60)} นาที ${totalSeconds % 60} วินาที`}
+                aria-label={formatTimeForSpeech(totalSeconds)}
                 className="mt-2 text-2xl font-bold text-surface-text"
               >
                 {formatTime(totalSeconds)}

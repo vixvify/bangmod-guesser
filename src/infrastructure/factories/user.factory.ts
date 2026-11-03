@@ -5,6 +5,7 @@ import {
   type UserAccount,
 } from "@/core/domain/user";
 import type { UserModel, UserModelWithGameCount } from "../../../prisma/types/user";
+import { formatDateOnly } from "@/lib/utils";
 
 const roleMap: Record<PrismaRole, UserRole> = {
   [PrismaRole.USER]: UserRole.USER,
@@ -34,7 +35,7 @@ export const UserFactory = {
         startDate: null,
         endDate:
           user.status === "SUSPENDED" &&
-          user.banExpires ? user.banExpires.toISOString().slice(0, 10) : null,
+          user.banExpires ? formatDateOnly(user.banExpires) : null,
       },
       reason: user.banReason ?? "",
     };

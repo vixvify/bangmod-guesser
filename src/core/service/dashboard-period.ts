@@ -2,27 +2,12 @@ import {
   DASHBOARD_DAY_MS,
   DASHBOARD_DEFAULT_DAYS,
   DASHBOARD_TIME_ZONE,
-  DASHBOARD_UTC_OFFSET,
 } from "@/core/constants/dashboard";
 import type { DashboardQueryInput } from "@/core/schema/dashboard.schema";
-
-function shiftDate(date: string, days: number): string {
-  return new Date(Date.parse(date) + days * DASHBOARD_DAY_MS)
-    .toISOString()
-    .split("T")[0];
-}
-
-function todayDate(now: Date): string {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: DASHBOARD_TIME_ZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(now);
-}
+import { formatDateOnly, shiftDateOnly, toBangkokStartOfDay } from "@/lib/utils";
 
 export function getDashboardTodayPeriod(now = new Date()) {
-  const today = todayDate(now);
+  const today = formatDateOnly(now, DASHBOARD_TIME_ZONE);
   return getDashboardPeriod({ startDate: today, endDate: today }, now);
 }
 
@@ -30,28 +15,24 @@ export function getDashboardPeriod(
   query: Pick<DashboardQueryInput, "startDate" | "endDate">,
   now = new Date(),
 ) {
-  const today = todayDate(now);
+  const today = formatDateOnly(now, DASHBOARD_TIME_ZONE);
   const endDate = query.endDate ?? today;
   const startDate =
-    query.startDate ?? shiftDate(endDate, 1 - DASHBOARD_DEFAULT_DAYS);
+    query.startDate ?? shiftDateOnly(endDate, 1 - DASHBOARD_DEFAULT_DAYS);
   const days =
     (Date.parse(endDate) - Date.parse(startDate)) / DASHBOARD_DAY_MS + 1;
-  const start = new Date(`${startDate}T00:00:00${DASHBOARD_UTC_OFFSET}`);
-  const endExclusive = new Date(
-    `${shiftDate(endDate, 1)}T00:00:00${DASHBOARD_UTC_OFFSET}`,
-  );
-  const previousStartDate = shiftDate(startDate, -days);
-  const previousEndDate = shiftDate(startDate, -1);
+  const start = toBangkokStartOfDay(startDate);
+  const endExclusive = toBangkokStartOfDay(shiftDateOnly(endDate, 1));
+  const previousStartDate = shiftDateOnly(startDate, -days);
+  const previousEndDate = shiftDateOnly(startDate, -1);
 
   return {
     start,
     endExclusive,
-    previousStart: new Date(
-      `${previousStartDate}T00:00:00${DASHBOARD_UTC_OFFSET}`,
-    ),
+    previousStart: toBangkokStartOfDay(previousStartDate),
     previousEndExclusive: start,
     dates: Array.from({ length: days }, (_, index) =>
-      shiftDate(startDate, index),
+      shiftDateOnly(startDate, index),
     ),
     output: {
       startDate,

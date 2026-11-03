@@ -9,6 +9,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import type { DashboardGameLog } from "@/core/domain/dashboard";
+import { formatThaiClockTime, formatThaiNumericDate } from "@/lib/utils";
 
 const format = (value: number) => new Intl.NumberFormat("th-TH").format(value);
 const statusLabel: Record<DashboardGameLog["status"], string> = {
@@ -39,9 +40,7 @@ export function DashboardGamesTable({
           </TableRow>
         </TableHead>
         <TableBody>
-          {games.map((game) => {
-            const started = new Date(game.startedAt);
-            return (
+          {games.map((game) => (
               <TableRow key={game.id} hover>
                 <TableCell>
                   <span
@@ -63,21 +62,10 @@ export function DashboardGamesTable({
                   {game.totalScore === null ? "—" : format(game.totalScore)}
                 </TableCell>
                 <TableCell>
-                  {new Intl.DateTimeFormat("th-TH", {
-                    timeZone: "Asia/Bangkok",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit",
-                    hour12: false,
-                  }).format(started)}
+                  {formatThaiClockTime(game.startedAt)}
                 </TableCell>
                 <TableCell>
-                  {new Intl.DateTimeFormat("th-TH", {
-                    timeZone: "Asia/Bangkok",
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "2-digit",
-                  }).format(started)}
+                  {formatThaiNumericDate(game.startedAt)}
                 </TableCell>
                 <TableCell align="center">
                   <IconButton
@@ -89,8 +77,7 @@ export function DashboardGamesTable({
                   </IconButton>
                 </TableCell>
               </TableRow>
-            );
-          })}
+          ))}
         </TableBody>
       </Table>
     </TableContainer>

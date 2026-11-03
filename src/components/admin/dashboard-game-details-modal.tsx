@@ -11,6 +11,7 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import { useId } from "react";
 import type { DashboardGameLog } from "@/core/domain/dashboard";
+import { formatTime } from "@/lib/utils";
 
 const format = (value: number) => new Intl.NumberFormat("th-TH").format(value);
 
@@ -83,7 +84,7 @@ export function DashboardGameDetailsModal({
                   <TableCell align="right">
                     {round.playTimeSeconds === null
                       ? "—"
-                      : `${Math.floor(round.playTimeSeconds / 60)}:${String(round.playTimeSeconds % 60).padStart(2, "0")}`}
+                      : formatTime(round.playTimeSeconds)}
                   </TableCell>
                 </TableRow>
               ))}

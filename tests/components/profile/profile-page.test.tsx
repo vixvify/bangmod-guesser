@@ -1,10 +1,16 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import ProfilePage from "@/app/profile/page";
 import { UserRole } from "@/core/domain/user";
+import { leaderboardService } from "@/infrastructure/container";
 import { requireAuth } from "@/lib/auth-check";
 
 vi.mock("@/lib/auth-check", () => ({ requireAuth: vi.fn() }));
+vi.mock("@/infrastructure/container", () => ({
+  leaderboardService: { getProfile: vi.fn() },
+}));
+vi.mock("@/lib/http", () => ({ default: { get: vi.fn() } }));
+vi.mock("@/routes/api/profile.routes", () => ({ ProfileRoutes: { history: "/api/profile" } }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
   usePathname: () => "/profile",
@@ -14,7 +20,19 @@ vi.mock("@/lib/auth-client", () => ({
 }));
 
 describe("ProfilePage", () => {
-  it("renders the authenticated user profile and mock history in the game theme", async () => {
+  const searchParams = Promise.resolve({});
+
+  beforeEach(() => {
+    vi.mocked(leaderboardService.getProfile).mockResolvedValue({
+      id: "user_1",
+      name: "KMUTT Student",
+      email: "student@example.com",
+      games: [{ id: "persisted-game", status: "COMPLETED", totalScore: 4200, grade: "S", playedAt: "2026-10-20T10:00:00.000Z" }],
+      pagination: { page: 1, pageSize: 4, totalGames: 1, totalPages: 1 },
+    });
+  });
+
+  it("renders the authenticated user and persisted history in the game theme", async () => {
     vi.mocked(requireAuth).mockResolvedValue({
       id: "user_1",
       name: "KMUTT Student",
@@ -23,7 +41,7 @@ describe("ProfilePage", () => {
       role: UserRole.USER,
     });
 
-    const markup = renderToStaticMarkup(await ProfilePage());
+    const markup = renderToStaticMarkup(await ProfilePage({ searchParams }));
 
     expect(requireAuth).toHaveBeenCalledOnce();
     expect(markup).toContain("KMUTT Student");
@@ -32,9 +50,10 @@ describe("ProfilePage", () => {
     expect(markup).not.toContain("example@gmail.com");
     expect(markup).toContain("ประวัติการเล่นเกม");
     expect(markup).toContain("เลือกช่วงเวลา");
-    expect(markup).toContain("2 กันยายน 2026 - 4 กันยายน 2026");
+    expect(leaderboardService.getProfile).toHaveBeenCalledWith("user_1", { page: 1 });
     expect(markup).not.toContain("ตั้งแต่วันที่");
-    expect(markup).toContain("#GAME-0001");
+    expect(markup).toContain("#persisted-game");
+    expect(markup).not.toContain("#GAME-0001");
     expect(markup).toContain("bg-secondary-main text-surface-text");
     expect(markup).not.toContain("data-game-backdrop");
     expect(markup).toContain('data-layout-content="contained"');
@@ -53,7 +72,7 @@ describe("ProfilePage", () => {
       role: UserRole.ADMIN,
     });
 
-    const markup = renderToStaticMarkup(await ProfilePage());
+    const markup = renderToStaticMarkup(await ProfilePage({ searchParams }));
 
     expect(markup).toContain("จัดการระบบ");
     expect(markup).toContain('href="/admin"');
@@ -69,8 +88,24 @@ describe("ProfilePage", () => {
       role: UserRole.USER,
     });
 
-    const markup = renderToStaticMarkup(await ProfilePage());
+    const markup = renderToStaticMarkup(await ProfilePage({ searchParams }));
 
     expect(markup).toContain("No Photo");
+  });
+
+  it("passes validated date and page query to the profile service", async () => {
+    vi.mocked(requireAuth).mockResolvedValue({ id: "user_1", name: "Student", email: "student@example.com", role: UserRole.USER });
+
+    await ProfilePage({ searchParams: Promise.resolve({ from: "2026-10-01", to: "2026-10-31", page: "2" }) });
+
+    expect(leaderboardService.getProfile).toHaveBeenCalledWith("user_1", { from: "2026-10-01", to: "2026-10-31", page: 2 });
+  });
+
+  it("rejects invalid history filters before reading the profile", async () => {
+    vi.mocked(leaderboardService.getProfile).mockClear();
+    vi.mocked(requireAuth).mockResolvedValue({ id: "user_1", name: "Student", email: "student@example.com", role: UserRole.USER });
+
+    await expect(ProfilePage({ searchParams: Promise.resolve({ page: "0" }) })).rejects.toMatchObject({ status: 400 });
+    expect(leaderboardService.getProfile).not.toHaveBeenCalled();
   });
 });

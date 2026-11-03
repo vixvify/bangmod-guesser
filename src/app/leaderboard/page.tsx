@@ -1,11 +1,12 @@
-import { currentPlayerRank, leaderboardEntries } from "@/_mock/_leaderboard";
 import { LeaderboardPodium } from "@/components/leaderboard/leaderboard-podium";
 import { LeaderboardRow } from "@/components/leaderboard/leaderboard-row";
+import { leaderboardService } from "@/infrastructure/container";
 import { MainLayout } from "@/layout/main-layout";
 import { requireAuth } from "@/lib/auth-check";
 
 export default async function LeaderboardPage() {
   const user = await requireAuth();
+  const { entries, myRank } = await leaderboardService.getLeaderboard(user.id);
 
   return (
     <MainLayout
@@ -33,24 +34,37 @@ export default async function LeaderboardPage() {
           </p>
         </header>
 
-        <LeaderboardPodium entries={leaderboardEntries.slice(0, 3)} />
+        {entries.length === 0 ? (
+          <p role="status" className="mt-8 rounded-2xl border border-surface-border bg-surface-overlay px-5 py-12 text-center text-surface-muted">
+            ยังไม่มีผู้เล่นในอันดับ เล่นเกมให้จบเพื่อเริ่มสะสมคะแนน
+          </p>
+        ) : (
+          <>
+            <LeaderboardPodium entries={entries.slice(0, 3)} />
 
-        <ol start={4} aria-label="อันดับ 4 ถึง 10" className="mt-5 space-y-2">
-          {leaderboardEntries.slice(3).map((entry) => (
-            <li key={entry.rank}>
-              <LeaderboardRow entry={entry} />
-            </li>
-          ))}
-        </ol>
+            {entries.length > 3 && (
+              <ol start={4} aria-label={`อันดับ 4 ถึง ${entries.length}`} className="mt-5 space-y-2">
+                {entries.slice(3).map((entry) => (
+                  <li key={entry.rank}>
+                    <LeaderboardRow entry={entry} />
+                  </li>
+                ))}
+              </ol>
+            )}
+          </>
+        )}
 
         <aside
           aria-label="อันดับของคุณ"
           className="sticky bottom-4 z-20 mt-auto pt-5"
         >
-          <LeaderboardRow
-            entry={{ ...currentPlayerRank, name: user.name }}
-            current
-          />
+          {myRank ? (
+            <LeaderboardRow entry={myRank} current />
+          ) : (
+            <p className="rounded-xl border border-primary-main bg-leaderboard-self px-5 py-4 text-center text-surface-text shadow-xl shadow-black/50">
+              {user.name} ยังไม่มีอันดับ เล่นเกมให้จบเพื่อเริ่มสะสมคะแนน
+            </p>
+          )}
         </aside>
       </section>
     </MainLayout>

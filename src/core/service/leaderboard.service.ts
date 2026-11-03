@@ -4,14 +4,9 @@ import type { ProfileResult } from "@/core/domain/profile";
 import type { LeaderboardRepository } from "@/core/ports/leaderboard.repository";
 import type { ProfileQueryInput } from "@/core/schema/profile.schema";
 import { LeaderboardFactory } from "@/infrastructure/factories/leaderboard.factory";
+import { shiftDateOnly, toBangkokStartOfDay } from "@/lib/utils";
 
 const PROFILE_PAGE_SIZE = 4;
-const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
-const BANGKOK_UTC_OFFSET = "+07:00";
-
-function toBangkokStartOfDay(date: string): Date {
-  return new Date(`${date}T00:00:00.000${BANGKOK_UTC_OFFSET}`);
-}
 
 export class LeaderboardService {
   constructor(
@@ -37,10 +32,7 @@ export class LeaderboardService {
       : undefined;
 
     const toExclusive = options.to
-      ? new Date(
-          toBangkokStartOfDay(options.to).getTime() +
-            MILLISECONDS_PER_DAY,
-        )
+      ? toBangkokStartOfDay(shiftDateOnly(options.to, 1))
       : undefined;
 
     const result = await this.leaderboardRepository.findProfile(
