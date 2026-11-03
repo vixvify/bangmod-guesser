@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { CreditsSection } from "@/components/home/credits-section";
+import { CreditsSection } from "@/features/home/components/credits-section";
 
 describe("CreditsSection", () => {
   it("renders the contributors section with the list of creators", () => {

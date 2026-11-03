@@ -2,7 +2,7 @@
 
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { DatePicker } from "@/components/ui/date-picker";
+import { DatePicker } from "@/shared/components/ui/date-picker";
 
 afterEach(cleanup);
 

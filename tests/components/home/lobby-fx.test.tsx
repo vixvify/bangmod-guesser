@@ -2,7 +2,7 @@
 
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { LobbyFx } from "@/components/home/lobby-fx";
+import { LobbyFx } from "@/features/home/components/lobby-fx";
 
 const fillRect = vi.fn();
 const clearRect = vi.fn();

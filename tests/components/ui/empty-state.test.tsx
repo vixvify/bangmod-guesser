@@ -2,7 +2,7 @@
 
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { EmptyState } from "@/components/ui/empty-state";
+import { EmptyState } from "@/shared/components/ui/empty-state";
 
 afterEach(cleanup);
 

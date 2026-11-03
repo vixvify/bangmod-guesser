@@ -2,8 +2,8 @@
 
 import { act, cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { BackgroundSlideshow } from "@/components/home/slideshow";
-import { HomeBackgroundImages } from "@/core/constants/home";
+import { BackgroundSlideshow } from "@/features/home/components/slideshow";
+import { HomeBackgroundImages } from "@/features/home/constants/home";
 
 function getActiveImageSource(container: HTMLElement) {
   const source = container.querySelector("img.opacity-75")?.getAttribute("src");

@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { HomeBackdrop } from "@/components/home/home-backdrop";
+import { HomeBackdrop } from "@/features/home/components/home-backdrop";
 
 describe("HomeBackdrop", () => {
   it("renders the campus slideshow and pixel layers outside page layout", () => {

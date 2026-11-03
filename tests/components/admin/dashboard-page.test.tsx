@@ -4,12 +4,12 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import AdminPage from "@/app/admin/page";
 import { dashboardSummary } from "../../fixtures/dashboard";
-import { AppRoutes } from "@/routes/app/routes";
+import { AppRoutes } from "@/shared/routes/routes";
 
 const { getDashboard, getGames, push, refresh } = vi.hoisted(() => ({ getDashboard: vi.fn(), getGames: vi.fn(), push: vi.fn(), refresh: vi.fn() }));
-vi.mock("@/infrastructure/container", () => ({ dashboardService: { getDashboard } }));
-vi.mock("@/lib/http", () => ({ default: { get: getGames } }));
-vi.mock("@/routes/api/dashboard.routes", () => ({ DashboardRoutes: { games: "/api/dashboard/games" } }));
+vi.mock("@/container", () => ({ dashboardService: { getDashboard } }));
+vi.mock("@/shared/lib/http", () => ({ default: { get: getGames } }));
+vi.mock("@/features/dashboard/routes/dashboard.routes", () => ({ DashboardRoutes: { games: "/api/dashboard/games" } }));
 vi.mock("next/navigation", async (importOriginal) => ({
   ...await importOriginal<typeof import("next/navigation")>(),
   useRouter: () => ({ push, refresh }),

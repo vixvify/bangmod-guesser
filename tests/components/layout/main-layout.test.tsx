@@ -6,11 +6,11 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/",
 }));
 
-vi.mock("@/lib/auth-client", () => ({
+vi.mock("@/features/auth/lib/auth-client", () => ({
   authClient: { signOut: vi.fn() },
 }));
 
-import { MainLayout } from "@/layout/main-layout";
+import { MainLayout } from "@/shared/components/layout/main-layout";
 
 describe("MainLayout", () => {
   it.each(["fullBleed", "contained"] as const)(

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getDashboardPeriod, getDashboardTodayPeriod } from "@/core/service/dashboard-period";
+import { getDashboardPeriod, getDashboardTodayPeriod } from "@/features/dashboard/service/dashboard-period";
 
 describe("getDashboardPeriod", () => {
   it("provides a separate one-day period for players today", () => {

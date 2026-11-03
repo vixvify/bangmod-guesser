@@ -7,11 +7,11 @@ const { signInEmail, signUpEmail, signInSocial, signOut } = vi.hoisted(() => ({
   signOut: vi.fn(),
 }));
 
-vi.mock("@/lib/auth", () => ({
+vi.mock("@/features/auth/lib/auth", () => ({
   auth: { api: { signInEmail, signUpEmail, signInSocial, signOut } },
 }));
 
-import { AuthAdapter } from "@/infrastructure/adapters/auth.adapter";
+import { AuthAdapter } from "@/features/auth/adapters/auth.adapter";
 
 describe("AuthAdapter", () => {
   const adapter = new AuthAdapter();

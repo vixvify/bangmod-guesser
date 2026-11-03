@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/ui/button";
 
 describe("Button", () => {
   it("renders a disabled primary button with native button semantics", () => {
@@ -11,7 +11,7 @@ describe("Button", () => {
     expect(markup).toContain("background-color:var(--color-primary-main)");
     expect(markup).toContain(".Mui-disabled");
     expect(markup).toContain('type="button"');
-    expect(markup).toContain("color:#fff");
+    expect(markup).toContain("color:var(--color-secondary-dark)");
   });
 
   it("supports reusable outline icon buttons", () => {

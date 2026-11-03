@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { config } from "@/lib/config";
+import { config } from "@/shared/config/runtime";
 
 afterEach(() => vi.unstubAllEnvs());
 

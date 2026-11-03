@@ -1,10 +1,10 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import Page from "@/app/page";
-import { UserRole } from "@/core/domain/user";
-import { authCheck } from "@/lib/auth-check";
+import { UserRole } from "@/features/users/domain/user";
+import { authCheck } from "@/features/auth/lib/auth-check";
 
-vi.mock("@/lib/auth-check", () => ({
+vi.mock("@/features/auth/lib/auth-check", () => ({
   authCheck: vi.fn(),
 }));
 
@@ -13,7 +13,7 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/",
 }));
 
-vi.mock("@/lib/auth-client", () => ({
+vi.mock("@/features/auth/lib/auth-client", () => ({
   authClient: { signOut: vi.fn() },
 }));
 

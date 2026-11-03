@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/features/auth/lib/auth-client";
 
 describe("Better Auth admin client", () => {
   it("exposes the five user-management methods for client services", () => {

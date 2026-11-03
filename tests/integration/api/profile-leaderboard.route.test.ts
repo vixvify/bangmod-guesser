@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AppError } from "@/core/errors/app.error";
+import { AppError } from "@/shared/errors/app.error";
 
 const { requireAuth, getProfile, getLeaderboard } = vi.hoisted(() => ({
   requireAuth: vi.fn(),
@@ -7,9 +7,10 @@ const { requireAuth, getProfile, getLeaderboard } = vi.hoisted(() => ({
   getLeaderboard: vi.fn(),
 }));
 
-vi.mock("@/lib/auth-check", () => ({ requireAuth }));
-vi.mock("@/infrastructure/container", () => ({
-  leaderboardService: { getProfile, getLeaderboard },
+vi.mock("@/features/auth/lib/auth-check", () => ({ requireAuth }));
+vi.mock("@/container", () => ({
+  profileService: { getProfile },
+  leaderboardService: { getLeaderboard },
 }));
 
 import { GET as profile } from "@/app/api/profile/route";

@@ -1,12 +1,12 @@
-import { ProfileCard } from "@/components/profile/profile-card";
-import { ProfileHistory } from "@/components/profile/profile-history";
-import { UserRole } from "@/core/domain/user";
-import { ProfileQuerySchema } from "@/core/schema/profile.schema";
-import { leaderboardService } from "@/infrastructure/container";
-import { MainLayout } from "@/layout/main-layout";
-import { requireAuth } from "@/lib/auth-check";
-import { hasRole } from "@/lib/role-check";
-import { parseSchema } from "@/lib/validation";
+import { ProfileCard } from "@/features/profile/components/profile-card";
+import { ProfileHistory } from "@/features/profile/components/profile-history";
+import { UserRole } from "@/features/users/domain/user";
+import { ProfileQuerySchema } from "@/features/profile/schema/profile.schema";
+import { profileService } from "@/container";
+import { MainLayout } from "@/shared/components/layout/main-layout";
+import { requireAuth } from "@/features/auth/lib/auth-check";
+import { hasRole } from "@/shared/lib/role-check";
+import { parseSchema } from "@/shared/lib/validation";
 
 export default async function ProfilePage({
   searchParams,
@@ -15,7 +15,7 @@ export default async function ProfilePage({
 }) {
   const user = await requireAuth();
   const query = parseSchema(ProfileQuerySchema, await searchParams);
-  const profile = await leaderboardService.getProfile(user.id, query);
+  const profile = await profileService.getProfile(user.id, query);
 
   return (
     <MainLayout

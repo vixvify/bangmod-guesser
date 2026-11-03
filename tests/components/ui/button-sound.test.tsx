@@ -4,9 +4,9 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const { playSoundEffect } = vi.hoisted(() => ({ playSoundEffect: vi.fn() }));
-vi.mock("@/lib/sound-effect", () => ({ playSoundEffect }));
+vi.mock("@/shared/lib/sound-effect", () => ({ playSoundEffect }));
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/ui/button";
 
 afterEach(() => {
   cleanup();

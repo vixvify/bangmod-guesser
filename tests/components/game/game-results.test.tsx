@@ -3,12 +3,12 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { GameRoundScore } from "@/components/game/game-round-score";
-import { GameSummary } from "@/components/game/game-summary";
-import { mockRoundResult, mockGameSummary } from "@/_mock/_game";
+import { GameRoundScore } from "@/features/game/components/game-round-score";
+import { GameSummary } from "@/features/game/components/game-summary";
+import { mockRoundResult, mockGameSummary } from "@/features/game/mock/_game";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
-vi.mock("@/components/game/game-result-map", () => ({ GameResultMap: () => <div>Map</div> }));
+vi.mock("@/features/game/components/game-result-map", () => ({ GameResultMap: () => <div>Map</div> }));
 vi.mock("next/image", () => ({ default: ({ fill, sizes, ...props }: Record<string, unknown>) => {
   void fill; void sizes;
   // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text

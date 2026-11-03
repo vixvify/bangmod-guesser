@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   ProfileQuerySchema,
   UpdateUsernameFormSchema,
-  UpdateUsernameSchema,
-} from "@/core/schema/profile.schema";
+} from "@/features/profile/schema/profile.schema";
+import { UpdateUsernameSchema } from "@/features/users/schema/username.schema";
 
 describe("UpdateUsernameSchema", () => {
   it("trims a valid username before saving", () => {

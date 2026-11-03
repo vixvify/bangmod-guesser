@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { GameRepository } from "@/core/ports/game.repository";
-import { GameService } from "@/core/service/game.service";
+import type { GameRepository } from "@/features/game/ports/game.repository";
+import { GameService } from "@/features/game/service/game.service";
 
 const repository = {
   findById: vi.fn<GameRepository["findById"]>(),

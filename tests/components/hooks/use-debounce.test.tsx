@@ -2,7 +2,7 @@
 
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { useDebounce } from "@/hooks/use-debounce";
+import { useDebounce } from "@/shared/hooks/use-debounce";
 
 function Example({ value }: { value: string }) {
   return <output>{useDebounce(value, 200)}</output>;

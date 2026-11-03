@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { AUTH_MESSAGES } from "../src/core/constants/auth";
+import { AUTH_MESSAGES } from "../src/features/auth/constants/auth";
 
 const player = {
   name: "New Player",

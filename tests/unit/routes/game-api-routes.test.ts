@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@/lib/config", () => ({ config: { apiUrl: "http://localhost/api" } }));
-import { GameRoutes } from "@/routes/api/game.routes";
+vi.mock("@/shared/config/runtime", () => ({ config: { apiUrl: "http://localhost/api" } }));
+import { GameRoutes } from "@/features/game/routes/game.routes";
 
 describe("GameRoutes", () => {
   it("builds the exit endpoint and encodes the ID as one path segment", () => {

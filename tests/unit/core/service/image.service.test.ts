@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ImageService } from "@/core/service/image.service";
+import { ImageService } from "@/features/images/service/image.service";
 import { createImageRepositoryMock } from "../../../mocks/image.repository.mock";
 
 const pngContent = new Uint8Array([

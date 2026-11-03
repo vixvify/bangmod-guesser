@@ -1,12 +1,12 @@
-import { DashboardCharts } from "@/components/admin/dashboard-charts";
-import { DashboardFilters } from "@/components/admin/dashboard-filters";
-import { DashboardRecentGames } from "@/components/admin/dashboard-recent-games";
-import { DashboardStats } from "@/components/admin/dashboard-stats";
-import { Button } from "@/components/ui/button";
-import { DashboardQuerySchema } from "@/core/schema/dashboard.schema";
-import { dashboardService } from "@/infrastructure/container";
-import { parseSchema } from "@/lib/validation";
-import { AppRoutes } from "@/routes/app/routes";
+import { DashboardCharts } from "@/features/dashboard/components/admin/dashboard-charts";
+import { DashboardFilters } from "@/features/dashboard/components/admin/dashboard-filters";
+import { DashboardRecentGames } from "@/features/dashboard/components/admin/dashboard-recent-games";
+import { DashboardStats } from "@/features/dashboard/components/admin/dashboard-stats";
+import { Button } from "@/shared/components/ui/button";
+import { DashboardQuerySchema } from "@/features/dashboard/schema/dashboard.schema";
+import { dashboardService } from "@/container";
+import { parseSchema } from "@/shared/lib/validation";
+import { AppRoutes } from "@/shared/routes/routes";
 
 type AdminPageProps = {
   searchParams: Promise<{ startDate?: string; endDate?: string }>;

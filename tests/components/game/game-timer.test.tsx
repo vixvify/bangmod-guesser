@@ -2,16 +2,16 @@
 
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { GameTimer } from "@/components/game/game-timer";
+import { GameTimer } from "@/features/game/components/game-timer";
 
-vi.mock("@/hooks/use-countdown", () => ({
+vi.mock("@/features/game/hooks/use-countdown", () => ({
   useCountdown: vi.fn(({ initialSeconds }: { initialSeconds: number }) => ({
     secondsLeft: initialSeconds,
     isUrgent: initialSeconds <= 10,
   })),
 }));
 
-import { useCountdown } from "@/hooks/use-countdown";
+import { useCountdown } from "@/features/game/hooks/use-countdown";
 
 const mockedUseCountdown = vi.mocked(useCountdown);
 

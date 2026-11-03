@@ -11,7 +11,7 @@ vi.mock("next/image", () => ({
   },
 }));
 
-vi.mock("@/components/game/game-map", () => ({
+vi.mock("@/features/game/components/game-map", () => ({
   GameMap: () => <div data-testid="game-map">Map</div>,
 }));
 
@@ -26,7 +26,7 @@ vi.mock("next/dynamic", () => ({
   },
 }));
 
-import { GameImageViewer } from "@/components/game/game-image-viewer";
+import { GameImageViewer } from "@/features/game/components/game-image-viewer";
 
 const defaultProps = {
   imageSrc: "/images/kmutt-bangmod-1.jpg",

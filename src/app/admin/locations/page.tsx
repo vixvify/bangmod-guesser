@@ -1,10 +1,10 @@
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import Link from "next/link";
-import { LocationsList } from "@/components/admin/locations-list";
-import { SearchLocationQuerySchema } from "@/core/schema/location.schema";
-import { locationService } from "@/infrastructure/container";
-import { parseSchema } from "@/lib/validation";
-import { AppRoutes } from "@/routes/app/routes";
+import { LocationsList } from "@/features/locations/components/admin/locations-list";
+import { SearchLocationQuerySchema } from "@/features/locations/schema/location.schema";
+import { locationService } from "@/container";
+import { parseSchema } from "@/shared/lib/validation";
+import { AppRoutes } from "@/shared/routes/routes";
 
 type ManageLocationProps = {
   searchParams: Promise<{ search?: string; page?: string }>;

@@ -1,10 +1,10 @@
-import { UserRole } from "@/core/domain/user";
-import { SearchUserQuerySchema } from "@/core/schema/user.schema";
-import { userService } from "@/infrastructure/container";
-import { errorResponse, successResponse } from "@/lib/api-response";
-import { requireAuth } from "@/lib/auth-check";
-import { roleCheck } from "@/lib/role-check";
-import { parseSchema } from "@/lib/validation";
+import { UserRole } from "@/features/users/domain/user";
+import { SearchUserQuerySchema } from "@/features/users/schema/user.schema";
+import { userService } from "@/container";
+import { errorResponse, successResponse } from "@/shared/lib/api-response";
+import { requireAuth } from "@/features/auth/lib/auth-check";
+import { roleCheck } from "@/shared/lib/role-check";
+import { parseSchema } from "@/shared/lib/validation";
 
 export async function GET(request: Request) {
     try {

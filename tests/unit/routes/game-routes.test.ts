@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AppRoutes } from "@/routes/app/routes";
+import { AppRoutes } from "@/shared/routes/routes";
 
 describe("game routes", () => {
   it("builds game-specific paths", () => {

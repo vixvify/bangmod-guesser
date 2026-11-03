@@ -1,5 +1,5 @@
-import { authService } from "@/infrastructure/container";
-import { errorResponse, successResponse } from "@/lib/api-response";
+import { authService } from "@/container";
+import { errorResponse, successResponse } from "@/shared/lib/api-response";
 
 export async function POST(request: Request) {
   try {

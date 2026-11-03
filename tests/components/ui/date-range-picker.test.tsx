@@ -3,8 +3,8 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import dayjs from "dayjs";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { DateRangePicker } from "@/components/ui/date-range-picker";
-import { Input } from "@/components/ui/input";
+import { DateRangePicker } from "@/shared/components/ui/date-range-picker";
+import { Input } from "@/shared/components/ui/input";
 
 vi.mock("@mui/material/Popover", () => ({
   default: ({ open, children }: { open: boolean; children: React.ReactNode }) =>

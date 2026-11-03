@@ -3,7 +3,7 @@ import {
     SearchUserQuerySchema,
     UserFormSchema,
     UserIdSchema,
-} from "@/core/schema/user.schema";
+} from "@/features/users/schema/user.schema";
 
 describe("UserFormSchema", () => {
   it("should accept ACTIVE user", () => {

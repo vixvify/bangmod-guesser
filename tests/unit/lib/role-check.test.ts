@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { UserRole, type User } from "@/core/domain/user";
-import { hasRole, roleCheck } from "@/lib/role-check";
+import { UserRole, type User } from "@/features/users/domain/user";
+import { hasRole, roleCheck } from "@/shared/lib/role-check";
 
 const user: User = {
   id: "user_1",

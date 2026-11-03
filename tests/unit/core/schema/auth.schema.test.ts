@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { AUTH_MESSAGES } from "@/core/constants/auth";
+import { AUTH_MESSAGES } from "@/features/auth/constants/auth";
 import {
   LoginSchema,
   RegisterSchema,
   RequestPasswordResetSchema,
   ResetPasswordSchema,
-} from "@/core/schema/auth.schema";
+} from "@/features/auth/schema/auth.schema";
 import { validLogin, validRegistration } from "../../../fixtures/users";
 
 describe("RegisterSchema", () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getProfileImageUrl } from "@/lib/profile-image";
+import { getProfileImageUrl } from "@/shared/lib/profile-image";
 
 describe("getProfileImageUrl", () => {
   it("routes a Google avatar through the Next image cache", () => {

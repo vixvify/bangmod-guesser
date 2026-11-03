@@ -1,8 +1,8 @@
-import { GameIdSchema } from "@/core/schema/game.schema";
-import { gameService } from "@/infrastructure/container";
-import { errorResponse, successResponse } from "@/lib/api-response";
-import { requireAuth } from "@/lib/auth-check";
-import { parseSchema } from "@/lib/validation";
+import { GameIdSchema } from "@/features/game/schema/game.schema";
+import { gameService } from "@/container";
+import { errorResponse, successResponse } from "@/shared/lib/api-response";
+import { requireAuth } from "@/features/auth/lib/auth-check";
+import { parseSchema } from "@/shared/lib/validation";
 
 interface RouteContext {
   params: Promise<{ id: string }>;

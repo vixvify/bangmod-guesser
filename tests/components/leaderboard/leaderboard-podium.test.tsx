@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { leaderboardEntries } from "@/_mock/_leaderboard";
-import { LeaderboardPodium } from "@/components/leaderboard/leaderboard-podium";
+import { leaderboardEntries } from "@/features/leaderboard/mock/_leaderboard";
+import { LeaderboardPodium } from "@/features/leaderboard/components/leaderboard-podium";
 
 describe("LeaderboardPodium", () => {
   it("distinguishes first, second, and third with gold, silver, and bronze", () => {

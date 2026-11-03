@@ -2,11 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { proxy, config } from "@/proxy";
 import { unstable_doesMiddlewareMatch } from "next/experimental/testing/server";
-import { AppRoutes } from "@/routes/app/routes";
+import { AppRoutes } from "@/shared/routes/routes";
 
 const { getSession } = vi.hoisted(() => ({ getSession: vi.fn() }));
 
-vi.mock("@/lib/auth", () => ({ auth: { api: { getSession } } }));
+vi.mock("@/features/auth/lib/auth", () => ({ auth: { api: { getSession } } }));
 
 function createRequest(url: string, cookies: Record<string, string> = {}) {
   const request = new NextRequest(new URL(url, "http://localhost:3000"));

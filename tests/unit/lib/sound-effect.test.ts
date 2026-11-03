@@ -13,8 +13,8 @@ afterEach(() => {
 describe("playSoundEffect", () => {
   it("uses the selected sound and the saved system volume", async () => {
     const { audio, play } = mockAudio();
-    const { useSettingsStore } = await import("@/store/settings-store");
-    const { playSoundEffect } = await import("@/lib/sound-effect");
+    const { useSettingsStore } = await import("@/features/settings/store/settings-store");
+    const { playSoundEffect } = await import("@/shared/lib/sound-effect");
     useSettingsStore.getState().setSettings({
       imageQuality: "ultra",
       systemSound: 35,
@@ -43,7 +43,7 @@ describe("playSoundEffect", () => {
     const { play } = mockAudio();
     play.mockRejectedValueOnce(new DOMException("Blocked", "NotAllowedError"));
     const warning = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const { playSoundEffect } = await import("@/lib/sound-effect");
+    const { playSoundEffect } = await import("@/shared/lib/sound-effect");
 
     expect(() => playSoundEffect("accept")).not.toThrow();
     expect(Audio).toHaveBeenCalledWith("/audio/accept.MP3");

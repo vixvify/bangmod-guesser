@@ -1,10 +1,10 @@
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import Link from "next/link";
-import { UsersList } from "@/components/admin/users-list";
-import { SearchUserQuerySchema } from "@/core/schema/user.schema";
-import { userService } from "@/infrastructure/container";
-import { parseSchema } from "@/lib/validation";
-import { AppRoutes } from "@/routes/app/routes";
+import { UsersList } from "@/features/users/components/admin/users-list";
+import { SearchUserQuerySchema } from "@/features/users/schema/user.schema";
+import { userService } from "@/container";
+import { parseSchema } from "@/shared/lib/validation";
+import { AppRoutes } from "@/shared/routes/routes";
 
 type UsersPageProps = {
   searchParams: Promise<{ page?: string; role?: string; status?: string }>;

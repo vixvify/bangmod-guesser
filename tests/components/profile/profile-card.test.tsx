@@ -2,8 +2,8 @@
 
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ProfileCard } from "@/components/profile/profile-card";
-import { UserRole, type User } from "@/core/domain/user";
+import { ProfileCard } from "@/features/profile/components/profile-card";
+import { UserRole, type User } from "@/features/users/domain/user";
 
 const { updateUserMock, refreshMock, toastSuccessMock, toastErrorMock } = vi.hoisted(() => ({
   updateUserMock: vi.fn(),
@@ -12,7 +12,7 @@ const { updateUserMock, refreshMock, toastSuccessMock, toastErrorMock } = vi.hoi
   toastErrorMock: vi.fn(),
 }));
 
-vi.mock("@/lib/auth-client", () => ({ authClient: { updateUser: updateUserMock } }));
+vi.mock("@/features/auth/lib/auth-client", () => ({ authClient: { updateUser: updateUserMock } }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: refreshMock }) }));
 vi.mock("sonner", () => ({
   toast: { success: toastSuccessMock, error: toastErrorMock },

@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { HowToPlaySection } from "@/components/home/how-to-play-section";
+import { HowToPlaySection } from "@/features/home/components/how-to-play-section";
 
 describe("HowToPlaySection", () => {
   it("renders the how-to-play section with all three gameplay steps", () => {

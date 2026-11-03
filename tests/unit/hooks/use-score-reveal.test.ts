@@ -2,7 +2,7 @@
 
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useScoreReveal } from "@/hooks/use-score-reveal";
+import { useScoreReveal } from "@/features/game/hooks/use-score-reveal";
 
 beforeEach(() => {
   vi.useFakeTimers();

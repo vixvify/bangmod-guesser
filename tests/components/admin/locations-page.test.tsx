@@ -2,9 +2,9 @@
 
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { mockLocations } from "@/_mock/_locations";
+import { mockLocations } from "@/features/locations/mock/_locations";
 import LocationsPage from "@/app/admin/locations/page";
-import { AppRoutes } from "@/routes/app/routes";
+import { AppRoutes } from "@/shared/routes/routes";
 
 const { getLocations, list, remove, push, refresh, success, error } = vi.hoisted(() => ({
   getLocations: vi.fn(),
@@ -16,14 +16,14 @@ const { getLocations, list, remove, push, refresh, success, error } = vi.hoisted
   error: vi.fn(),
 }));
 
-vi.mock("@/infrastructure/container", () => ({ locationService: { getLocations } }));
-vi.mock("@/lib/http", () => ({ default: { get: list, delete: remove } }));
+vi.mock("@/container", () => ({ locationService: { getLocations } }));
+vi.mock("@/shared/lib/http", () => ({ default: { get: list, delete: remove } }));
 vi.mock("sonner", () => ({ toast: { success, error } }));
 vi.mock("next/navigation", async (importOriginal) => ({
   ...await importOriginal<typeof import("next/navigation")>(),
   useRouter: () => ({ push, refresh }),
 }));
-vi.mock("@/routes/api/location.routes", () => ({
+vi.mock("@/features/locations/routes/location.routes", () => ({
   LocationRoutes: {
     list: "/api/locations",
     delete: (id: string) => `/api/locations/${id}`,

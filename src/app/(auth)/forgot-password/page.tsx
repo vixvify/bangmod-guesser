@@ -5,14 +5,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { AUTH_MESSAGES } from "@/core/constants/auth";
+import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
+import { AUTH_MESSAGES } from "@/features/auth/constants/auth";
 import {
   RequestPasswordResetSchema,
   type RequestPasswordResetInput,
-} from "@/core/schema/auth.schema";
-import { AppRoutes } from "@/routes/app/routes";
+} from "@/features/auth/schema/auth.schema";
+import { AppRoutes } from "@/shared/routes/routes";
 
 export default function ForgotPasswordPage() {
   const {

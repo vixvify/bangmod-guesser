@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EARTH_RADIUS_METERS, haversineDistanceMeters } from "@/lib/calculate-distance";
+import { EARTH_RADIUS_METERS, haversineDistanceMeters } from "@/shared/lib/calculate-distance";
 
 describe("haversineDistanceMeters", () => {
     it("returns 0 for the same points", () => {

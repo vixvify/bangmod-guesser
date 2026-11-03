@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { DEFAULT_SETTINGS } from "@/core/constants/settings";
-import { useSettingsStore } from "@/store/settings-store";
+import { DEFAULT_SETTINGS } from "@/features/settings/constants/settings";
+import { useSettingsStore } from "@/features/settings/store/settings-store";
 
 describe("settingsStore", () => {
   afterEach(() => {
@@ -38,7 +38,7 @@ describe("settingsStore", () => {
     useSettingsStore.getState().setSettings(saved);
 
     vi.resetModules();
-    const { useSettingsStore: reloadedStore } = await import("@/store/settings-store");
+    const { useSettingsStore: reloadedStore } = await import("@/features/settings/store/settings-store");
     await reloadedStore.persist.rehydrate();
 
     expect(reloadedStore.getState()).toMatchObject(saved);
@@ -51,7 +51,7 @@ describe("settingsStore", () => {
     );
 
     vi.resetModules();
-    const { useSettingsStore: reloadedStore } = await import("@/store/settings-store");
+    const { useSettingsStore: reloadedStore } = await import("@/features/settings/store/settings-store");
     await reloadedStore.persist.rehydrate();
 
     expect(reloadedStore.getState()).toMatchObject(DEFAULT_SETTINGS);
