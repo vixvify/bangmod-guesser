@@ -1,12 +1,5 @@
 import { z } from "zod";
-import { PROFILE_MESSAGES } from "@/features/profile/constants/profile";
-
-export const UpdateUsernameSchema = z
-  .string()
-  .trim()
-  .min(1, PROFILE_MESSAGES.usernameRequired)
-  .min(2, PROFILE_MESSAGES.usernameMin)
-  .max(50, PROFILE_MESSAGES.usernameMax);
+import { UpdateUsernameSchema } from "@/features/users/schema/username.schema";
 
 export const UpdateUsernameFormSchema = z.object({ username: UpdateUsernameSchema });
 

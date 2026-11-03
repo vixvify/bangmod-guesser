@@ -1,6 +1,6 @@
 import { AppError } from "@/shared/errors/app.error";
 import { ProfileQuerySchema } from "@/features/profile/schema/profile.schema";
-import { leaderboardService } from "@/container";
+import { profileService } from "@/container";
 import { requireAuth } from "@/features/auth/lib/auth-check";
 import { errorResponse, successResponse } from "@/shared/lib/api-response";
 
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const result = await leaderboardService.getProfile(
+    const result = await profileService.getProfile(
       currentUser.id,
       queryResult.data,
     );

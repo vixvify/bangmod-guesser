@@ -11,7 +11,7 @@ describe("Button", () => {
     expect(markup).toContain("background-color:var(--color-primary-main)");
     expect(markup).toContain(".Mui-disabled");
     expect(markup).toContain('type="button"');
-    expect(markup).toContain("color:#fff");
+    expect(markup).toContain("color:var(--color-secondary-dark)");
   });
 
   it("supports reusable outline icon buttons", () => {

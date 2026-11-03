@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { UserRole } from "@/features/users/domain/user";
-import { UpdateUsernameSchema } from "@/features/profile/schema/profile.schema";
+import { UpdateUsernameSchema } from "@/features/users/schema/username.schema";
 import { UserIdSchema } from "@/features/users/schema/user.schema";
 import { USER_MESSAGES } from "@/features/users/constants/user";
 

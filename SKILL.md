@@ -67,6 +67,8 @@ Do not redesign the project architecture unless explicitly requested.
 
 Keep business and UI code together under the feature that owns it. A feature may have `components`, `constants`, `domain`, `schema`, `service`, `ports`, `repositories`, `factories`, `adapters`, `routes`, `hooks`, `store`, and `mock` directories when needed. Put cross-feature components, helpers, and configuration under `src/shared`. Keep URLs and route handlers in `src/app`, server wiring in `src/container.ts`, and Prisma payload types in `prisma/types`. Client components use `src/shared/lib/http.ts` to call the API; server routes and pages use services from the container.
 
+Keep a feature's workflow in its owning feature. Port files declare repository contracts only; put reusable filters and results in that feature's domain and Prisma query payload definitions in `prisma/types`.
+
 ---
 
 # App

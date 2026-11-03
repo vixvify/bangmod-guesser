@@ -94,7 +94,7 @@ Server Components and server-only code may call a service from `src/container.ts
 ## Image storage
 
 - `ImageService` owns generated keys and public domain output; `UploadImageSchema` and `DeleteImageSchema` validate route input before the service is called.
-- `ImageRepository` is the core contract; `ImageRepositoryImpl` sends put/delete operations to Cloudflare R2 and builds the public object URL.
+- `ImageRepository` is the image feature's port; `ImageRepositoryImpl` sends put/delete operations to Cloudflare R2 and builds the public object URL.
 - `/api/images` accepts `POST` multipart form data with a `file` field and `DELETE` JSON with an object `key`. Both require an admin session.
 - Uploads are limited to verified JPEG, PNG, or WebP content up to 5 MB and are stored under the `images/` namespace. The service returns `{ key, url }` so a future domain module can persist either value.
 - R2 credentials remain server-only in `.env`. Configuration is resolved lazily, so missing R2 values do not fail build or tests; image requests return a safe configuration error instead.

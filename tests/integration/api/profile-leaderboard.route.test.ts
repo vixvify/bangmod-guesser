@@ -9,7 +9,8 @@ const { requireAuth, getProfile, getLeaderboard } = vi.hoisted(() => ({
 
 vi.mock("@/features/auth/lib/auth-check", () => ({ requireAuth }));
 vi.mock("@/container", () => ({
-  leaderboardService: { getProfile, getLeaderboard },
+  profileService: { getProfile },
+  leaderboardService: { getLeaderboard },
 }));
 
 import { GET as profile } from "@/app/api/profile/route";

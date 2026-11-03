@@ -146,7 +146,7 @@ describe("admin users", () => {
 
   it("navigates to the requested page", async () => {
     await renderUsers();
-    fireEvent.click(screen.getByRole("button", { name: "Go to page 2" }));
+    fireEvent.click(screen.getByRole("button", { name: "ไปหน้า 2" }));
     expect(push).toHaveBeenCalledWith(`${AppRoutes.adminUsers}?page=2`, { scroll: false });
   });
 });

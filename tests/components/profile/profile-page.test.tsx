@@ -2,12 +2,12 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ProfilePage from "@/app/profile/page";
 import { UserRole } from "@/features/users/domain/user";
-import { leaderboardService } from "@/container";
+import { profileService } from "@/container";
 import { requireAuth } from "@/features/auth/lib/auth-check";
 
 vi.mock("@/features/auth/lib/auth-check", () => ({ requireAuth: vi.fn() }));
 vi.mock("@/container", () => ({
-  leaderboardService: { getProfile: vi.fn() },
+  profileService: { getProfile: vi.fn() },
 }));
 vi.mock("@/shared/lib/http", () => ({ default: { get: vi.fn() } }));
 vi.mock("@/features/profile/routes/profile.routes", () => ({ ProfileRoutes: { history: "/api/profile" } }));
@@ -23,7 +23,7 @@ describe("ProfilePage", () => {
   const searchParams = Promise.resolve({});
 
   beforeEach(() => {
-    vi.mocked(leaderboardService.getProfile).mockResolvedValue({
+    vi.mocked(profileService.getProfile).mockResolvedValue({
       id: "user_1",
       name: "KMUTT Student",
       email: "student@example.com",
@@ -50,7 +50,7 @@ describe("ProfilePage", () => {
     expect(markup).not.toContain("example@gmail.com");
     expect(markup).toContain("ประวัติการเล่นเกม");
     expect(markup).toContain("เลือกช่วงเวลา");
-    expect(leaderboardService.getProfile).toHaveBeenCalledWith("user_1", { page: 1 });
+    expect(profileService.getProfile).toHaveBeenCalledWith("user_1", { page: 1 });
     expect(markup).not.toContain("ตั้งแต่วันที่");
     expect(markup).toContain("#persisted-game");
     expect(markup).not.toContain("#GAME-0001");
@@ -98,14 +98,14 @@ describe("ProfilePage", () => {
 
     await ProfilePage({ searchParams: Promise.resolve({ from: "2026-10-01", to: "2026-10-31", page: "2" }) });
 
-    expect(leaderboardService.getProfile).toHaveBeenCalledWith("user_1", { from: "2026-10-01", to: "2026-10-31", page: 2 });
+    expect(profileService.getProfile).toHaveBeenCalledWith("user_1", { from: "2026-10-01", to: "2026-10-31", page: 2 });
   });
 
   it("rejects invalid history filters before reading the profile", async () => {
-    vi.mocked(leaderboardService.getProfile).mockClear();
+    vi.mocked(profileService.getProfile).mockClear();
     vi.mocked(requireAuth).mockResolvedValue({ id: "user_1", name: "Student", email: "student@example.com", role: UserRole.USER });
 
     await expect(ProfilePage({ searchParams: Promise.resolve({ page: "0" }) })).rejects.toMatchObject({ status: 400 });
-    expect(leaderboardService.getProfile).not.toHaveBeenCalled();
+    expect(profileService.getProfile).not.toHaveBeenCalled();
   });
 });

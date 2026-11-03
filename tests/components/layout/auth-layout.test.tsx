@@ -14,7 +14,7 @@ describe("AuthLayout", () => {
     expect(markup).toContain("Auth form");
     expect(markup).toContain('href="/"');
     expect(markup).not.toContain('aria-label="เมนูหลัก"');
-    expect(markup).toContain("grid min-h-svh bg-secondary-light md:grid-cols-[3fr_2fr]");
+    expect(markup).toContain("grid min-h-svh bg-secondary-light outline-none md:grid-cols-[3fr_2fr]");
     expect(markup).toContain("from-secondary-main/85 via-secondary-main/20 to-secondary-main/10");
     expect(markup).toContain("text-secondary-dark");
     expect(markup).toContain('sizes="(min-width: 48rem) 60vw, 100vw"');

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { UserStatus } from "@/features/users/domain/user";
 import { UserRole } from "@/features/users/domain/user";
-import { UpdateUsernameSchema } from "@/features/profile/schema/profile.schema";
+import { UpdateUsernameSchema } from "@/features/users/schema/username.schema";
 import { USER_MESSAGES } from "@/features/users/constants/user";
 
 export const UserIdSchema = z

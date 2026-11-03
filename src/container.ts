@@ -13,6 +13,8 @@ import { GameRepositoryImpl } from "./features/game/repositories/game.repository
 import { GameService } from "@/features/game/service/game.service";
 import { LeaderboardRepositoryImpl } from "./features/leaderboard/repositories/leaderboard.repository";
 import { LeaderboardService } from "@/features/leaderboard/service/leaderboard.service";
+import { ProfileRepositoryImpl } from "./features/profile/repositories/profile.repository";
+import { ProfileService } from "@/features/profile/service/profile.service";
 
 const imageRepository = new ImageRepositoryImpl();
 export const imageService = new ImageService(imageRepository);
@@ -33,3 +35,4 @@ const leaderboardRepository = new LeaderboardRepositoryImpl();
 export const leaderboardService = new LeaderboardService(
   leaderboardRepository,
 );
+export const profileService = new ProfileService(new ProfileRepositoryImpl());

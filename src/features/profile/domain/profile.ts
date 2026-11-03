@@ -21,3 +21,10 @@ export interface ProfileResult {
     totalPages: number;
   };
 }
+
+export interface ProfileHistoryFilter {
+  from?: Date;
+  toExclusive?: Date;
+  page: number;
+  pageSize: number;
+}

@@ -95,6 +95,8 @@ Do not immediately create new abstractions or files before inspecting the existi
 
 Choose the feature that owns a change before adding a file. Keep its components, constants, domain output, schemas, services, ports, repositories, factories, adapters, routes, hooks, store, and mocks under `src/features/<feature>` as needed. Create only the directories that the feature actually uses. Put cross-feature UI and technical helpers under `src/shared`; do not move business rules there merely because two features call them. `src/app` owns URLs and composes feature code, while `src/container.ts` wires server services. Keep Prisma payload types in `prisma/types`.
 
+Keep each feature's workflow in its owning feature even when another feature displays related data. A port file declares its repository contract; reusable filters and results belong to the owning feature's domain, while Prisma query payload definitions belong in `prisma/types`.
+
 Use a stable `@/features/<feature>/...` or `@/shared/...` import from another feature or route. Relative imports are suitable for files within one feature. Client components call the HTTP API through `src/shared/lib/http.ts`; server routes and pages use services from `src/container.ts`.
 
 ---

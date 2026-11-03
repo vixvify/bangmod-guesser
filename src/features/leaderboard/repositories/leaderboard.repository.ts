@@ -1,26 +1,12 @@
-import type { Prisma } from "@prisma/client";
-import type {
-  LeaderboardRepository,
-  LeaderboardRecordsResult,
-  ProfileDateFilter,
-  ProfileRecordsResult,
-} from "@/features/leaderboard/ports/leaderboard.repository";
-import {
-  profileGameSelect,
-  profileUserSelect,
-  type LeaderboardQueryRecord,
-} from "../../../../prisma/types/leaderboard";
+import type { LeaderboardResult } from "@/features/leaderboard/domain/leaderboard";
+import type { LeaderboardRepository } from "@/features/leaderboard/ports/leaderboard.repository";
+import type { LeaderboardQueryRecord } from "../../../../prisma/types/leaderboard";
 import { prisma } from "@/shared/lib/prisma";
-
-const completedGameWhere = {
-  status: "COMPLETED",
-  totalScore: { not: null },
-} satisfies Prisma.GameWhereInput;
 
 export class LeaderboardRepositoryImpl implements LeaderboardRepository {
   async findLeaderboard(
     userId: string,
-  ): Promise<LeaderboardRecordsResult> {
+  ): Promise<LeaderboardResult> {
     const records = await prisma.$queryRaw<LeaderboardQueryRecord[]>`
       WITH leaderboard AS (
         SELECT
@@ -83,52 +69,6 @@ export class LeaderboardRepositoryImpl implements LeaderboardRepository {
         .filter((record) => record.rank <= 10)
         .map(toEntry),
       myRank: currentUser ? toEntry(currentUser) : null,
-    };
-  }
-
-  async findProfile(
-    userId: string,
-    filter: ProfileDateFilter,
-  ): Promise<ProfileRecordsResult> {
-    const dateFilter: Prisma.GameWhereInput = {
-      ...completedGameWhere,
-      ...(filter.from || filter.toExclusive
-        ? {
-            startedAt: {
-              ...(filter.from ? { gte: filter.from } : {}),
-              ...(filter.toExclusive
-                ? { lt: filter.toExclusive }
-                : {}),
-            },
-          }
-        : {}),
-    };
-
-    const [user, totalGames] = await Promise.all([
-      prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          ...profileUserSelect,
-          games: {
-            where: dateFilter,
-            orderBy: [{ startedAt: "desc" }, { id: "desc" }],
-            skip: (filter.page - 1) * filter.pageSize,
-            take: filter.pageSize,
-            select: profileGameSelect,
-          },
-        },
-      }),
-      prisma.game.count({
-        where: {
-          userId,
-          ...dateFilter,
-        },
-      }),
-    ]);
-
-    return {
-      user,
-      totalGames,
     };
   }
 }

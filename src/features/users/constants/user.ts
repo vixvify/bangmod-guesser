@@ -1,4 +1,7 @@
 export const USER_MESSAGES = {
+  usernameRequired: "กรุณากรอกชื่อผู้ใช้",
+  usernameMin: "ชื่อผู้ใช้ต้องมีอย่างน้อย 2 ตัวอักษร",
+  usernameMax: "ชื่อผู้ใช้ต้องไม่เกิน 50 ตัวอักษร",
   empty: "ไม่พบผู้ใช้",
   loadFailed: "โหลดรายชื่อผู้ใช้ไม่สำเร็จ กรุณาลองอีกครั้ง",
   updateSuccess: "แก้ไขผู้ใช้สำเร็จ",

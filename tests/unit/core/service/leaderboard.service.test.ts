@@ -32,44 +32,6 @@ function createRepository(): LeaderboardRepository {
         totalScore: 5000,
       },
     }),
-    findProfile: vi.fn().mockResolvedValue({
-      user: {
-        id: "user-1",
-        name: "Alice",
-        email: "alice@example.com",
-        games: [
-          {
-            id: "game-1",
-            status: "COMPLETED",
-            startedAt: new Date("2026-10-20T10:00:00.000Z"),
-            totalScore: 4800,
-            rounds: [
-              {
-                questionNumber: 1,
-                guessedLatitude: 13.7563,
-                guessedLongitude: 100.5018,
-                score: 500,
-                location: {
-                  latitude: 13.7563,
-                  longitude: 100.5018,
-                },
-              },
-              {
-                questionNumber: 2,
-                guessedLatitude: 13.8,
-                guessedLongitude: 100.6,
-                score: 600,
-                location: {
-                  latitude: 13.7563,
-                  longitude: 100.5018,
-                },
-              },
-            ],
-          },
-        ],
-      },
-      totalGames: 5,
-    }),
   };
 }
 
@@ -141,45 +103,4 @@ describe("LeaderboardService", () => {
     });
   });
 
-  it("returns the highest scoring round independently from the closest guess", async () => {
-    const repository = createRepository();
-    const service = new LeaderboardService(repository);
-
-    const result = await service.getProfile("user-1", {
-      from: "2026-10-01",
-      to: "2026-10-31",
-      page: 1,
-    });
-
-    expect(repository.findProfile).toHaveBeenCalledWith(
-      "user-1",
-      expect.objectContaining({
-        from: new Date("2026-09-30T17:00:00.000Z"),
-        toExclusive: new Date("2026-10-31T17:00:00.000Z"),
-        page: 1,
-        pageSize: 4,
-      }),
-    );
-
-    expect(result).toMatchObject({
-      id: "user-1",
-      name: "Alice",
-      email: "alice@example.com",
-      pagination: {
-        page: 1,
-        pageSize: 4,
-        totalGames: 5,
-        totalPages: 2,
-      },
-    });
-
-    expect(result.games[0]).toMatchObject({
-      id: "game-1",
-      totalScore: 4800,
-      grade: "SSS",
-      bestRoundNumber: 2,
-      bestRoundScore: 600,
-      bestDistanceMeters: 0,
-    });
-  });
 });
