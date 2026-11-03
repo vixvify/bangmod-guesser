@@ -58,7 +58,7 @@ function createRepository(): LeaderboardRepository {
                 questionNumber: 2,
                 guessedLatitude: 13.8,
                 guessedLongitude: 100.6,
-                score: 400,
+                score: 600,
                 location: {
                   latitude: 13.7563,
                   longitude: 100.5018,
@@ -141,7 +141,7 @@ describe("LeaderboardService", () => {
     });
   });
 
-  it("returns profile and closest guess information", async () => {
+  it("returns the highest scoring round independently from the closest guess", async () => {
     const repository = createRepository();
     const service = new LeaderboardService(repository);
 
@@ -177,8 +177,8 @@ describe("LeaderboardService", () => {
       id: "game-1",
       totalScore: 4800,
       grade: "SSS",
-      bestRoundNumber: 1,
-      bestRoundScore: 500,
+      bestRoundNumber: 2,
+      bestRoundScore: 600,
       bestDistanceMeters: 0,
     });
   });

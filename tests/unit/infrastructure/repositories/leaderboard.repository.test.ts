@@ -22,6 +22,23 @@ beforeEach(() => {
 });
 
 describe("LeaderboardRepositoryImpl", () => {
+  it("uses a stable tie breaker when paginating games with the same start time", async () => {
+    mocks.userFindUnique.mockResolvedValue(null);
+    mocks.gameCount.mockResolvedValue(0);
+
+    await repository.findProfile("user-1", { page: 2, pageSize: 4 });
+
+    expect(mocks.userFindUnique).toHaveBeenCalledWith(expect.objectContaining({
+      select: expect.objectContaining({
+        games: expect.objectContaining({
+          orderBy: [{ startedAt: "desc" }, { id: "desc" }],
+          skip: 4,
+          take: 4,
+        }),
+      }),
+    }));
+  });
+
   it("calculates leaderboard ranking in the database and returns only the top 10 plus current user's rank", async () => {
     mocks.queryRaw.mockResolvedValue([
       {

@@ -24,10 +24,12 @@ test("guests are sent to login and return to their game after signing in", async
   });
   expect(registration.ok()).toBe(true);
 
-  await page.goto("/game/demo?mode=practice", { waitUntil: "domcontentloaded" });
+  await page.goto("/game/demo?mode=practice", { waitUntil: "networkidle" });
   await page.getByRole("textbox", { name: "อีเมล" }).fill(account.email);
   await page.getByLabel("รหัสผ่าน", { exact: true }).fill(account.password);
-  await page.getByRole("button", { name: "เข้าสู่ระบบ", exact: true }).click();
+  const loginButton = page.getByRole("button", { name: "เข้าสู่ระบบ", exact: true });
+  await expect(loginButton).toBeEnabled();
+  await loginButton.click();
   await expect(page).toHaveURL(/\/game\/demo\?mode=practice$/);
   await expect(page.getByRole("heading", { name: "ทายสถานที่" })).toBeVisible();
 

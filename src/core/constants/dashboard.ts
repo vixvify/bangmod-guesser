@@ -1,5 +1,4 @@
 export const DASHBOARD_TIME_ZONE = "Asia/Bangkok";
-export const DASHBOARD_UTC_OFFSET = "+07:00";
 export const DASHBOARD_DAY_MS = 24 * 60 * 60 * 1000;
 export const DASHBOARD_ROUND_MAX_SCORE = 1000;
 export const DASHBOARD_SCORE_BUCKET_SIZE = 1000;

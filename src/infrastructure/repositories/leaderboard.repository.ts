@@ -111,9 +111,7 @@ export class LeaderboardRepositoryImpl implements LeaderboardRepository {
           ...profileUserSelect,
           games: {
             where: dateFilter,
-            orderBy: {
-              startedAt: "desc",
-            },
+            orderBy: [{ startedAt: "desc" }, { id: "desc" }],
             skip: (filter.page - 1) * filter.pageSize,
             take: filter.pageSize,
             select: profileGameSelect,

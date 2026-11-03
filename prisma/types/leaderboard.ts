@@ -20,6 +20,7 @@ export const profileGameSelect = {
   startedAt: true,
   totalScore: true,
   rounds: {
+    orderBy: { questionNumber: "asc" },
     where: {
       guessedLatitude: { not: null },
       guessedLongitude: { not: null },
