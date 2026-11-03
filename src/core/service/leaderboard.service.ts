@@ -19,41 +19,12 @@ export class LeaderboardService {
   ) {}
 
   async getLeaderboard(userId: string): Promise<LeaderboardResult> {
-    const users =
-      await this.leaderboardRepository.findLeaderboardUsers();
-
-    const sortedUsers = users
-      .map((user) => ({
-        user,
-        totalScore: user.games.reduce(
-          (sum, game) => sum + (game.totalScore ?? 0),
-          0,
-        ),
-        gamesPlayed: user.games.length,
-      }))
-      .sort((first, second) => {
-        if (first.totalScore !== second.totalScore) {
-          return second.totalScore - first.totalScore;
-        }
-
-        if (first.gamesPlayed !== second.gamesPlayed) {
-          return first.gamesPlayed - second.gamesPlayed;
-        }
-
-        return first.user.name.localeCompare(second.user.name);
-      });
-
-    const rankedUsers = sortedUsers.map((item, index) => ({
-      userId: item.user.id,
-      entry: LeaderboardFactory.toEntry(item.user, index + 1),
-    }));
-
-    const myRank =
-      rankedUsers.find((item) => item.userId === userId)?.entry ?? null;
+    const result =
+      await this.leaderboardRepository.findLeaderboard(userId);
 
     return LeaderboardFactory.toResult(
-      rankedUsers.slice(0, 10).map((item) => item.entry),
-      myRank,
+      result.entries,
+      result.myRank,
     );
   }
 

@@ -1,7 +1,10 @@
-import type {
-  LeaderboardUserRecord,
-  ProfileUserRecord,
-} from "../../../prisma/types/leaderboard";
+import type { LeaderboardEntry } from "@/core/domain/leaderboard";
+import type { ProfileUserRecord } from "../../../prisma/types/leaderboard";
+
+export interface LeaderboardRecordsResult {
+  entries: LeaderboardEntry[];
+  myRank: LeaderboardEntry | null;
+}
 
 export interface ProfileDateFilter {
   from?: Date;
@@ -16,7 +19,8 @@ export interface ProfileRecordsResult {
 }
 
 export interface LeaderboardRepository {
-  findLeaderboardUsers(): Promise<LeaderboardUserRecord[]>;
+  findLeaderboard(userId: string): Promise<LeaderboardRecordsResult>;
+
   findProfile(
     userId: string,
     filter: ProfileDateFilter,

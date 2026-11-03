@@ -64,3 +64,11 @@ export type ProfileGameRecord =
 
 export type ProfileRoundRecord =
   ProfileGameRecord["rounds"][number];
+
+export type LeaderboardQueryRecord = {
+  userId: string;
+  rank: number;
+  name: string;
+  gamesPlayed: number;
+  totalScore: number;
+};

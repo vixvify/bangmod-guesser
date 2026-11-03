@@ -1,5 +1,4 @@
 import type {
-  LeaderboardEntry,
   LeaderboardResult,
 } from "@/core/domain/leaderboard";
 import type {
@@ -7,31 +6,15 @@ import type {
   ProfileResult,
 } from "@/core/domain/profile";
 import type {
-  LeaderboardUserRecord,
   ProfileGameRecord,
   ProfileUserRecord,
 } from "../../../prisma/types/leaderboard";
 import { haversineDistanceMeters } from "@/lib/calculate-distance";
 
 export const LeaderboardFactory = {
-  toEntry(
-    user: LeaderboardUserRecord,
-    rank: number,
-  ): LeaderboardEntry {
-    return {
-      rank,
-      name: user.name,
-      gamesPlayed: user.games.length,
-      totalScore: user.games.reduce(
-        (sum, game) => sum + (game.totalScore ?? 0),
-        0,
-      ),
-    };
-  },
-
   toResult(
-    entries: LeaderboardEntry[],
-    myRank: LeaderboardEntry | null,
+    entries: LeaderboardResult["entries"],
+    myRank: LeaderboardResult["myRank"],
   ): LeaderboardResult {
     return {
       entries,

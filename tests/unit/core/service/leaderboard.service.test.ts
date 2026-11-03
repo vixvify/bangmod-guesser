@@ -4,29 +4,34 @@ import type { LeaderboardRepository } from "@/core/ports/leaderboard.repository"
 
 function createRepository(): LeaderboardRepository {
   return {
-    findLeaderboardUsers: vi.fn().mockResolvedValue([
-      {
-        id: "user-1",
+    findLeaderboard: vi.fn().mockResolvedValue({
+      entries: [
+        {
+          rank: 1,
+          name: "Bob",
+          gamesPlayed: 1,
+          totalScore: 5000,
+        },
+        {
+          rank: 2,
+          name: "Alice",
+          gamesPlayed: 2,
+          totalScore: 5000,
+        },
+        {
+          rank: 3,
+          name: "Charlie",
+          gamesPlayed: 2,
+          totalScore: 5000,
+        },
+      ],
+      myRank: {
+        rank: 2,
         name: "Alice",
-        games: [
-          { totalScore: 2000 },
-          { totalScore: 3000 },
-        ],
+        gamesPlayed: 2,
+        totalScore: 5000,
       },
-      {
-        id: "user-2",
-        name: "Bob",
-        games: [{ totalScore: 5000 }],
-      },
-      {
-        id: "user-3",
-        name: "Charlie",
-        games: [
-          { totalScore: 2500 },
-          { totalScore: 2500 },
-        ],
-      },
-    ]),
+    }),
     findProfile: vi.fn().mockResolvedValue({
       user: {
         id: "user-1",
@@ -69,22 +74,39 @@ function createRepository(): LeaderboardRepository {
 }
 
 describe("LeaderboardService", () => {
-  it("sorts by score, games played and name", async () => {
+  it("returns leaderboard entries and current user's rank", async () => {
     const repository = createRepository();
     const service = new LeaderboardService(repository);
 
     const result = await service.getLeaderboard("user-1");
 
-    expect(result.entries.map((entry) => entry.name)).toEqual([
-      "Bob",
-      "Alice",
-      "Charlie",
+    expect(repository.findLeaderboard).toHaveBeenCalledWith("user-1");
+
+    expect(result.entries).toEqual([
+      {
+        rank: 1,
+        name: "Bob",
+        gamesPlayed: 1,
+        totalScore: 5000,
+      },
+      {
+        rank: 2,
+        name: "Alice",
+        gamesPlayed: 2,
+        totalScore: 5000,
+      },
+      {
+        rank: 3,
+        name: "Charlie",
+        gamesPlayed: 2,
+        totalScore: 5000,
+      },
     ]);
 
-    expect(result.entries[0]).toEqual({
-      rank: 1,
-      name: "Bob",
-      gamesPlayed: 1,
+    expect(result.myRank).toEqual({
+      rank: 2,
+      name: "Alice",
+      gamesPlayed: 2,
       totalScore: 5000,
     });
   });
@@ -92,13 +114,20 @@ describe("LeaderboardService", () => {
   it("returns the current user's rank outside the top 10", async () => {
     const repository = createRepository();
 
-    vi.mocked(repository.findLeaderboardUsers).mockResolvedValue(
-      Array.from({ length: 12 }, (_, index) => ({
-        id: `user-${index + 1}`,
+    vi.mocked(repository.findLeaderboard).mockResolvedValue({
+      entries: Array.from({ length: 10 }, (_, index) => ({
+        rank: index + 1,
         name: `Player ${index + 1}`,
-        games: [{ totalScore: 5000 - index * 100 }],
+        gamesPlayed: 1,
+        totalScore: 5000 - index * 100,
       })),
-    );
+      myRank: {
+        rank: 12,
+        name: "Player 12",
+        gamesPlayed: 1,
+        totalScore: 3900,
+      },
+    });
 
     const service = new LeaderboardService(repository);
     const result = await service.getLeaderboard("user-12");
