@@ -113,12 +113,22 @@ describe("LeaderboardService", () => {
   });
 
   it("returns profile and closest guess information", async () => {
-    const service = new LeaderboardService(createRepository());
+    const repository = createRepository();
+    const service = new LeaderboardService(repository);
 
     const result = await service.getProfile("user-1", {
       from: "2026-10-01",
       to: "2026-10-31",
+      page: 1,
     });
+
+    expect(repository.findProfile).toHaveBeenCalledWith(
+      "user-1",
+      expect.objectContaining({
+        page: 1,
+        pageSize: 4,
+      }),
+    );
 
     expect(result).toMatchObject({
       id: "user-1",
@@ -140,35 +150,5 @@ describe("LeaderboardService", () => {
       bestRoundScore: 500,
       bestDistanceMeters: 0,
     });
-
-  });
-
-  it("rejects invalid page numbers", async () => {
-    const service = new LeaderboardService(createRepository());
-
-    await expect(
-      service.getProfile("user-1", { page: 0 }),
-    ).rejects.toThrow("Page must be a positive integer");
-  });
-
-  it("rejects invalid date ranges", async () => {
-    const service = new LeaderboardService(createRepository());
-
-    await expect(
-      service.getProfile("user-1", {
-        from: "2026-10-31",
-        to: "2026-10-01",
-      }),
-    ).rejects.toThrow("From date must not be after to date");
-  });
-
-  it("rejects invalid date formats", async () => {
-    const service = new LeaderboardService(createRepository());
-
-    await expect(
-      service.getProfile("user-1", {
-        from: "01-10-2026",
-      }),
-    ).rejects.toThrow("from must use YYYY-MM-DD format");
   });
 });

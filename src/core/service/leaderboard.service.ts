@@ -55,18 +55,13 @@ export class LeaderboardService {
     userId: string,
     options: ProfileQueryInput,
   ): Promise<ProfileResult> {
-    const page = options.page ?? 1;
+    const from = options.from
+      ? new Date(`${options.from}T00:00:00.000Z`)
+      : undefined;
 
-    if (!Number.isInteger(page) || page < 1) {
-      throw new AppError("Page must be a positive integer", 400);
-    }
-
-    const from = this.parseDate(options.from, "from");
-    const to = this.parseDate(options.to, "to");
-
-    if (from && to && from.getTime() > to.getTime()) {
-      throw new AppError("From date must not be after to date", 400);
-    }
+    const to = options.to
+      ? new Date(`${options.to}T00:00:00.000Z`)
+      : undefined;
 
     const toExclusive = to
       ? new Date(
@@ -92,32 +87,8 @@ export class LeaderboardService {
     return LeaderboardFactory.toProfile(
       result.user,
       result.totalGames,
-      page,
+      options.page,
       PROFILE_PAGE_SIZE,
     );
-  }
-
-  private parseDate(
-    value: string | undefined,
-    field: string,
-  ): Date | undefined {
-    if (value === undefined) {
-      return undefined;
-    }
-
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-      throw new AppError(`${field} must use YYYY-MM-DD format`, 400);
-    }
-
-    const date = new Date(`${value}T00:00:00.000Z`);
-
-    if (
-      Number.isNaN(date.getTime()) ||
-      date.toISOString().slice(0, 10) !== value
-    ) {
-      throw new AppError(`${field} is not a valid date`, 400);
-    }
-
-    return date;
   }
 }
