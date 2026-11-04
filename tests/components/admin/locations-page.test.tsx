@@ -2,7 +2,7 @@
 
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { mockLocations } from "@/features/locations/mock/_locations";
+import { mockLocations } from "@/features/locations/locations.mock";
 import LocationsPage from "@/app/admin/locations/page";
 import { AppRoutes } from "@/shared/routes/routes";
 
@@ -23,7 +23,7 @@ vi.mock("next/navigation", async (importOriginal) => ({
   ...await importOriginal<typeof import("next/navigation")>(),
   useRouter: () => ({ push, refresh }),
 }));
-vi.mock("@/features/locations/routes/location.routes", () => ({
+vi.mock("@/features/locations/location.routes", () => ({
   LocationRoutes: {
     list: "/api/locations",
     delete: (id: string) => `/api/locations/${id}`,

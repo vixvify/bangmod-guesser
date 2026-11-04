@@ -3,9 +3,9 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import type { GameRoundResult } from "@/features/game/domain/game";
-import { MAP_CONFIG } from "@/features/game/constants/game";
-import { GAME_RESULT_MESSAGES as MESSAGES } from "@/features/game/constants/game-result";
+import type { GameRoundResult } from "@/features/game/game";
+import { MAP_CONFIG } from "@/features/game/game.constants";
+import { GAME_RESULT_MESSAGES as MESSAGES } from "@/features/game/game-result.constants";
 import styles from "./game-results.module.css";
 
 export function ResultMap({ rounds, showGuesses = true }: { rounds: GameRoundResult[]; showGuesses?: boolean }) {

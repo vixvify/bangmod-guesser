@@ -1,15 +1,15 @@
 import { AppError } from "@/shared/errors/app.error";
-import { LOCATION_MAX_IMAGES } from "@/features/locations/constants/location";
-import { IMAGE_MAX_SIZE_BYTES, IMAGE_MESSAGES } from "@/features/images/constants/image";
-import { UserRole } from "@/features/users/domain/user";
-import { CreateLocationImagesSchema } from "@/features/images/schema/image.schema";
+import { LOCATION_MAX_IMAGES } from "@/features/locations/location.constants";
+import { IMAGE_MAX_SIZE_BYTES, IMAGE_MESSAGES } from "@/features/images/image.constants";
+import { UserRole } from "@/features/users/user";
+import { CreateLocationImagesSchema } from "@/features/images/image.schema";
 import {
   CreateLocationSchema,
   SearchLocationQuerySchema,
-} from "@/features/locations/schema/location.schema";
+} from "@/features/locations/location.schema";
 import { locationService } from "@/container";
 import { errorResponse, successResponse } from "@/shared/lib/api-response";
-import { requireAuth } from "@/features/auth/lib/auth-check";
+import { requireAuth } from "@/features/auth/server/auth-check";
 import { roleCheck } from "@/shared/lib/role-check";
 import { parseSchema } from "@/shared/lib/validation";
 

@@ -2,13 +2,13 @@
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { GAME_MESSAGES } from "@/features/game/constants/game";
+import { GAME_MESSAGES } from "@/features/game/game.constants";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
 
-vi.mock("@/features/auth/lib/auth-client", () => ({
+vi.mock("@/features/auth/auth-client", () => ({
   authClient: { signOut: vi.fn() },
 }));
 

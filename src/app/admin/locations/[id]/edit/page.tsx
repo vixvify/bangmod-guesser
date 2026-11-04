@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
-import { UpdateLocation } from "@/features/locations/components/admin/update-location";
+import { UpdateLocation } from "@/features/locations/components/update-location";
 import { AppError } from "@/shared/errors/app.error";
-import { LocationIdSchema } from "@/features/locations/schema/location.schema";
+import { LocationIdSchema } from "@/features/locations/location.schema";
 import { locationService } from "@/container";
 import { parseSchema } from "@/shared/lib/validation";
 

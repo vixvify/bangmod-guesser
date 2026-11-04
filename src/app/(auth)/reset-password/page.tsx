@@ -7,8 +7,8 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
-import { AUTH_MESSAGES } from "@/features/auth/constants/auth";
-import { ResetPasswordSchema, type ResetPasswordInput } from "@/features/auth/schema/auth.schema";
+import { AUTH_MESSAGES } from "@/features/auth/auth.constants";
+import { ResetPasswordSchema, type ResetPasswordInput } from "@/features/auth/auth.schema";
 
 export default function ResetPasswordPage() {
   const {

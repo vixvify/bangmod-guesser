@@ -1,6 +1,6 @@
 import Avatar from "@mui/material/Avatar";
 import { Button } from "@/shared/components/ui/button";
-import type { LeaderboardEntry } from "@/features/leaderboard/domain/leaderboard";
+import type { LeaderboardEntry } from "@/features/leaderboard/leaderboard";
 
 type LeaderboardRowProps = {
   entry: LeaderboardEntry;

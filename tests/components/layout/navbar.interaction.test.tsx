@@ -2,8 +2,8 @@
 
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { UserRole } from "@/features/users/domain/user";
-import { SETTINGS_MESSAGES } from "@/features/settings/constants/settings";
+import { UserRole } from "@/features/users/user";
+import { SETTINGS_MESSAGES } from "@/features/settings/settings.constants";
 
 const { signOut, routerRefresh, toastError, toastSuccess } = vi.hoisted(() => ({
   signOut: vi.fn(),
@@ -25,7 +25,7 @@ vi.mock("@/shared/lib/http", () => ({
   default: { post: vi.fn(() => signOut()) },
 }));
 
-vi.mock("@/features/auth/routes/session.routes", () => ({
+vi.mock("@/features/auth/session.routes", () => ({
   SessionRoutes: { logout: "/session/logout" },
 }));
 

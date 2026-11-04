@@ -2,9 +2,9 @@
 
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { mockUsers } from "@/features/users/mock/_users";
+import { mockUsers } from "@/features/users/users.mock";
 import UsersPage from "@/app/admin/users/page";
-import { USER_MESSAGES } from "@/features/users/constants/user";
+import { USER_MESSAGES } from "@/features/users/user.constants";
 import { AppRoutes } from "@/shared/routes/routes";
 
 const { getUsers, list, patch, remove, push, refresh, success, error } = vi.hoisted(() => ({
@@ -14,7 +14,7 @@ const { getUsers, list, patch, remove, push, refresh, success, error } = vi.hois
 
 vi.mock("@/container", () => ({ userService: { getUsers } }));
 vi.mock("@/shared/lib/http", () => ({ default: { get: list, patch, delete: remove } }));
-vi.mock("@/features/users/routes/user.routes", () => ({
+vi.mock("@/features/users/user.routes", () => ({
   UserRoutes: {
     list: "/api/users",
     update: (id: string) => `/api/users/${id}`,

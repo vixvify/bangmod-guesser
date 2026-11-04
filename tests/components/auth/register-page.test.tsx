@@ -16,7 +16,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace, refresh }),
 }));
 
-vi.mock("@/features/auth/routes/session.routes", () => ({
+vi.mock("@/features/auth/session.routes", () => ({
   SessionRoutes: { register: "/session/register" },
 }));
 

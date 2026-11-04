@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import { UserRole } from "@/features/users/domain/user";
+import { UserRole } from "@/features/users/user";
 import { MainLayout } from "@/shared/components/layout/main-layout";
-import { requireAuth } from "@/features/auth/lib/auth-check";
+import { requireAuth } from "@/features/auth/server/auth-check";
 import { roleCheck } from "@/shared/lib/role-check";
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {

@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { leaderboardEntries } from "@/features/leaderboard/mock/_leaderboard";
+import { leaderboardEntries } from "@/features/leaderboard/leaderboard.mock";
 import { LeaderboardPodium } from "@/features/leaderboard/components/leaderboard-podium";
 
 describe("LeaderboardPodium", () => {

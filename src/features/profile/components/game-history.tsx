@@ -1,4 +1,4 @@
-import type { GameHistoryItem } from "@/features/profile/domain/profile";
+import type { GameHistoryItem } from "@/features/profile/profile";
 import { HistoryRow } from "@/features/profile/components/history-row";
 
 export function GameHistory({ games }: { games: GameHistoryItem[] }) {

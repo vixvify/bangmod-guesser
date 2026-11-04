@@ -1,21 +1,21 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ProfilePage from "@/app/profile/page";
-import { UserRole } from "@/features/users/domain/user";
+import { UserRole } from "@/features/users/user";
 import { profileService } from "@/container";
-import { requireAuth } from "@/features/auth/lib/auth-check";
+import { requireAuth } from "@/features/auth/server/auth-check";
 
-vi.mock("@/features/auth/lib/auth-check", () => ({ requireAuth: vi.fn() }));
+vi.mock("@/features/auth/server/auth-check", () => ({ requireAuth: vi.fn() }));
 vi.mock("@/container", () => ({
   profileService: { getProfile: vi.fn() },
 }));
 vi.mock("@/shared/lib/http", () => ({ default: { get: vi.fn() } }));
-vi.mock("@/features/profile/routes/profile.routes", () => ({ ProfileRoutes: { history: "/api/profile" } }));
+vi.mock("@/features/profile/profile.routes", () => ({ ProfileRoutes: { history: "/api/profile" } }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
   usePathname: () => "/profile",
 }));
-vi.mock("@/features/auth/lib/auth-client", () => ({
+vi.mock("@/features/auth/auth-client", () => ({
   authClient: { signOut: vi.fn() },
 }));
 

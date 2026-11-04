@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import type { AuthPort } from "@/features/auth/ports/auth.port";
-import { AuthService } from "@/features/auth/service/auth.service";
+import type { AuthPort } from "@/features/auth/server/auth.port";
+import { AuthService } from "@/features/auth/server/auth.service";
 
 describe("AuthService", () => {
   it("keeps Google callbacks on local paths", async () => {

@@ -2,7 +2,7 @@
 
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { mockGameHistory } from "@/features/profile/mock/_profile";
+import { mockGameHistory } from "@/features/profile/profile.mock";
 import { GameHistory } from "@/features/profile/components/game-history";
 
 afterEach(cleanup);

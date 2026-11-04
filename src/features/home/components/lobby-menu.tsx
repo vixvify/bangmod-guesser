@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 import { Button } from "@/shared/components/ui/button";
 import { Countdown } from "@/shared/components/ui/countdown";
-import { getSession } from "@/features/auth/lib/auth-client";
+import { getSession } from "@/features/auth/auth-client";
 import { AppRoutes } from "@/shared/routes/routes";
-import { GAME_DEFAULTS } from "@/features/game/constants/game";
+import { GAME_DEFAULTS } from "@/features/game/game.constants";
 
 export function LobbyMenu() {
   const [isStarting, setIsStarting] = useState(false);

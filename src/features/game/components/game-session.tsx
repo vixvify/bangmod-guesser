@@ -7,7 +7,7 @@ import { GameTimer } from "@/features/game/components/game-timer";
 import { GameRound } from "@/features/game/components/game-round";
 import { GameImageViewer } from "@/features/game/components/game-image-viewer";
 import { ConfirmModal } from "@/shared/components/ui/confirm-modal";
-import { GAME_DEFAULTS, GAME_MESSAGES } from "@/features/game/constants/game";
+import { GAME_DEFAULTS, GAME_MESSAGES } from "@/features/game/game.constants";
 import { useUnsavedChangesGuard } from "@/shared/hooks/use-unsaved-changes-guard";
 import { useGameMusic } from "@/features/game/hooks/use-game-music";
 import { AppRoutes } from "@/shared/routes/routes";

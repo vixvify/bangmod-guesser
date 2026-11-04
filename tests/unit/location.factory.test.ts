@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LocationFactory } from "@/features/locations/factories/location.factory";
+import { LocationFactory } from "@/features/locations/server/location.factory";
 
 describe("LocationFactory", () => {
   it("orders images without adding a name that is not stored", () => {

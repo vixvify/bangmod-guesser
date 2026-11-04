@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { GAME_MESSAGES } from "@/features/game/constants/game";
+import { GAME_MESSAGES } from "@/features/game/game.constants";
 import { signInGamePlayer } from "../tests/helpers/sign-in-game-player";
 
 test.beforeEach(async ({ page }, testInfo) => {

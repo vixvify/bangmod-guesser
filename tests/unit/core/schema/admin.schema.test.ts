@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { UserRole } from "@/features/users/domain/user";
+import { UserRole } from "@/features/users/user";
 import {
   AdminBanUserBodySchema,
   AdminRoleSchema,
@@ -7,7 +7,7 @@ import {
   AdminUpdateUserBodySchema,
   AdminUserIdBodySchema,
   AdminUserUpdateSchema,
-} from "@/features/users/schema/admin.schema";
+} from "@/features/users/admin.schema";
 
 describe("admin request schemas", () => {
   it("accepts only one existing role", () => {

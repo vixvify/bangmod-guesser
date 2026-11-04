@@ -1,24 +1,24 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
-import { UserRole } from "@/features/users/domain/user";
+import { UserRole } from "@/features/users/user";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
   usePathname: () => "/leaderboard",
 }));
 
-vi.mock("@/features/auth/lib/auth-client", () => ({
+vi.mock("@/features/auth/auth-client", () => ({
   authClient: { signOut: vi.fn() },
 }));
 
-vi.mock("@/features/auth/lib/auth-check", () => ({ requireAuth: vi.fn() }));
+vi.mock("@/features/auth/server/auth-check", () => ({ requireAuth: vi.fn() }));
 vi.mock("@/container", () => ({
   leaderboardService: { getLeaderboard: vi.fn() },
 }));
 
 import LeaderboardPage from "@/app/leaderboard/page";
 import { leaderboardService } from "@/container";
-import { requireAuth } from "@/features/auth/lib/auth-check";
+import { requireAuth } from "@/features/auth/server/auth-check";
 
 describe("LeaderboardPage", () => {
   it("shows ten persisted ranks and the signed-in player's actual rank at the bottom", async () => {

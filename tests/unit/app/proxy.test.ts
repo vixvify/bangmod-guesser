@@ -6,7 +6,7 @@ import { AppRoutes } from "@/shared/routes/routes";
 
 const { getSession } = vi.hoisted(() => ({ getSession: vi.fn() }));
 
-vi.mock("@/features/auth/lib/auth", () => ({ auth: { api: { getSession } } }));
+vi.mock("@/features/auth/server/auth", () => ({ auth: { api: { getSession } } }));
 
 function createRequest(url: string, cookies: Record<string, string> = {}) {
   const request = new NextRequest(new URL(url, "http://localhost:3000"));

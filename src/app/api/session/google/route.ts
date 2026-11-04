@@ -1,4 +1,4 @@
-import { GoogleSignInSchema } from "@/features/auth/schema/auth.schema";
+import { GoogleSignInSchema } from "@/features/auth/auth.schema";
 import { authService } from "@/container";
 import { errorResponse, successResponse } from "@/shared/lib/api-response";
 import { parseSchema } from "@/shared/lib/validation";

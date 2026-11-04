@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { createAudio } from "@/shared/lib/audio";
-import { useSettingsStore } from "@/features/settings/store/settings-store";
+import { useSettingsStore } from "@/features/settings/settings.store";
 
 export function useGameMusic() {
   useEffect(() => {

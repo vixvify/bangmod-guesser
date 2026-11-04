@@ -7,7 +7,7 @@ import {
 } from "vitest";
 
 import { GET } from "@/app/api/users/route";
-import { UserRole } from "@/features/users/domain/user";
+import { UserRole } from "@/features/users/user";
 import { AppError } from "@/shared/errors/app.error";
 const { getUsers } = vi.hoisted(() => ({ getUsers: vi.fn() }));
 vi.mock("@/container", () => ({ userService: { getUsers } }));
@@ -18,7 +18,7 @@ vi.mock("next/headers", () => ({
     ),
 }));
 
-vi.mock("@/features/auth/lib/auth-check", () => ({
+vi.mock("@/features/auth/server/auth-check", () => ({
     requireAuth: vi.fn(),
 }));
 
@@ -26,7 +26,7 @@ vi.mock("@/shared/lib/role-check", () => ({
     roleCheck: vi.fn(),
 }));
 
-import { requireAuth } from "@/features/auth/lib/auth-check";
+import { requireAuth } from "@/features/auth/server/auth-check";
 
 describe("GET /api/users", () => {
     beforeEach(() => {

@@ -9,17 +9,17 @@ import {
     DELETE,
     PATCH,
 } from "@/app/api/users/[id]/route";
-import { UserRole } from "@/features/users/domain/user";
+import { UserRole } from "@/features/users/user";
 import { AppError } from "@/shared/errors/app.error";
 const { updateUser, deleteUser } = vi.hoisted(() => ({ updateUser: vi.fn(), deleteUser: vi.fn() }));
 vi.mock("@/container", () => ({ userService: { updateUser, deleteUser } }));
-import { requireAuth } from "@/features/auth/lib/auth-check";
+import { requireAuth } from "@/features/auth/server/auth-check";
 
 vi.mock("next/headers", () => ({
     headers: vi.fn().mockResolvedValue(new Headers())
 }));
 
-vi.mock("@/features/auth/lib/auth-check", () => ({requireAuth: vi.fn()}));
+vi.mock("@/features/auth/server/auth-check", () => ({requireAuth: vi.fn()}));
 
 vi.mock("@/shared/lib/role-check", () => ({roleCheck: vi.fn()}));
 

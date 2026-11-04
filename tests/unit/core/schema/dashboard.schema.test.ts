@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DashboardQuerySchema } from "@/features/dashboard/schema/dashboard.schema";
+import { DashboardQuerySchema } from "@/features/dashboard/dashboard.schema";
 
 describe("DashboardQuerySchema", () => {
   it("defaults pagination and trims search text", () => {

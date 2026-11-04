@@ -1,6 +1,6 @@
 import { vi } from "vitest";
 
-import type { ImageRepository } from "@/features/images/ports/image.repository";
+import type { ImageRepository } from "@/features/images/server/image.repository.port";
 
 export function createImageRepositoryMock() {
   return {

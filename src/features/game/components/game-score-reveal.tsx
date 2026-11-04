@@ -2,7 +2,7 @@
 
 import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
 import { Button } from "@/shared/components/ui/button";
-import { GAME_RESULT_MESSAGES as MESSAGES } from "@/features/game/constants/game-result";
+import { GAME_RESULT_MESSAGES as MESSAGES } from "@/features/game/game-result.constants";
 import { useScoreReveal } from "@/features/game/hooks/use-score-reveal";
 import { formatScore } from "@/shared/lib/utils";
 import styles from "./game-results.module.css";

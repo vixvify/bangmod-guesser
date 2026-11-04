@@ -6,7 +6,7 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/",
 }));
 
-vi.mock("@/features/auth/lib/auth-client", () => ({
+vi.mock("@/features/auth/auth-client", () => ({
   authClient: { signOut: vi.fn() },
 }));
 

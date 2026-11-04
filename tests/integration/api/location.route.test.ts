@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AppError } from "@/shared/errors/app.error";
-import { UserRole } from "@/features/users/domain/user";
+import { UserRole } from "@/features/users/user";
 
 const sampleJpeg = new Uint8Array([0xff, 0xd8, 0xff]);
 
@@ -22,7 +22,7 @@ vi.mock("@/container", () => ({
   locationService: mockLocationService,
 }));
 
-vi.mock("@/features/auth/lib/auth-check", () => ({ requireAuth: mockRequireAuth }));
+vi.mock("@/features/auth/server/auth-check", () => ({ requireAuth: mockRequireAuth }));
 
 import { GET as getLocations, POST as createLocation } from "@/app/api/locations/route";
 import {

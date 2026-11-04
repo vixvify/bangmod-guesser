@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DashboardQuerySchema } from "@/features/dashboard/schema/dashboard.schema";
-import { DASHBOARD_TIME_ZONE } from "@/features/dashboard/constants/dashboard";
+import { DashboardQuerySchema } from "@/features/dashboard/dashboard.schema";
+import { DASHBOARD_TIME_ZONE } from "@/features/dashboard/dashboard.constants";
 import { dashboardGame, dashboardRound } from "../../../fixtures/dashboard";
 
 const mocks = vi.hoisted(() => ({
@@ -12,7 +12,7 @@ vi.mock("@/shared/lib/prisma", () => ({ prisma: {
   user: { count: mocks.userCount }, gameRound: { aggregate: mocks.roundAggregate, findMany: mocks.roundFindMany },
   $queryRaw: mocks.daily,
 } }));
-import { DashboardRepositoryImpl } from "@/features/dashboard/repositories/dashboard.repository";
+import { DashboardRepositoryImpl } from "@/features/dashboard/server/dashboard.repository";
 
 const repository = new DashboardRepositoryImpl();
 const range = { start: new Date("2026-10-26T17:00:00Z"), endExclusive: new Date("2026-10-27T17:00:00Z") };

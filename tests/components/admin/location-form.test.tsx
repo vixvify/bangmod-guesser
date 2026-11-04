@@ -4,12 +4,12 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import CreateLocationPage from "@/app/admin/locations/create/page";
 import EditLocationPage from "@/app/admin/locations/[id]/edit/page";
-import { LocationForm } from "@/features/locations/components/admin/location-form";
+import { LocationForm } from "@/features/locations/components/location-form";
 import { Navbar } from "@/shared/components/layout/navbar";
 import { NavigationGuardProvider } from "@/shared/hooks/use-navigation-guard";
-import { mockLocations } from "@/features/locations/mock/_locations";
+import { mockLocations } from "@/features/locations/locations.mock";
 import { AppError } from "@/shared/errors/app.error";
-import { UserRole } from "@/features/users/domain/user";
+import { UserRole } from "@/features/users/user";
 
 const { getLocationById, post, put, push, refresh, success, error } = vi.hoisted(() => ({
   getLocationById: vi.fn(),
@@ -24,12 +24,12 @@ const { getLocationById, post, put, push, refresh, success, error } = vi.hoisted
 vi.mock("@/container", () => ({ locationService: { getLocationById } }));
 vi.mock("@/shared/lib/http", () => ({ default: { post, put } }));
 vi.mock("sonner", () => ({ toast: { success, error } }));
-vi.mock("@/features/auth/lib/auth-client", () => ({ authClient: { signOut: vi.fn() } }));
+vi.mock("@/features/auth/auth-client", () => ({ authClient: { signOut: vi.fn() } }));
 vi.mock("next/navigation", async (importOriginal) => ({
   ...await importOriginal<typeof import("next/navigation")>(),
   useRouter: () => ({ push, refresh }),
 }));
-vi.mock("@/features/locations/routes/location.routes", () => ({
+vi.mock("@/features/locations/location.routes", () => ({
   LocationRoutes: {
     create: "/api/locations",
     update: (id: string) => `/api/locations/${id}`,

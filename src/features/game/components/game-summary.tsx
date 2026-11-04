@@ -11,8 +11,8 @@ import { GameScoreReveal } from "./game-score-reveal";
 import { Button } from "@/shared/components/ui/button";
 import { Countdown } from "@/shared/components/ui/countdown";
 import { AppRoutes } from "@/shared/routes/routes";
-import { GAME_RESULT_MESSAGES as MESSAGES } from "@/features/game/constants/game-result";
-import type { GameSummary as GameSummaryData } from "@/features/game/domain/game";
+import { GAME_RESULT_MESSAGES as MESSAGES } from "@/features/game/game-result.constants";
+import type { GameSummary as GameSummaryData } from "@/features/game/game";
 import { formatScore, formatTime, formatTimeForSpeech } from "@/shared/lib/utils";
 import styles from "./game-results.module.css";
 

@@ -1,15 +1,15 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import AdminLayout from "@/app/admin/layout";
-import { UserRole } from "@/features/users/domain/user";
-import { requireAuth } from "@/features/auth/lib/auth-check";
+import { UserRole } from "@/features/users/user";
+import { requireAuth } from "@/features/auth/server/auth-check";
 
-vi.mock("@/features/auth/lib/auth-check", () => ({ requireAuth: vi.fn() }));
+vi.mock("@/features/auth/server/auth-check", () => ({ requireAuth: vi.fn() }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
   usePathname: () => "/admin",
 }));
-vi.mock("@/features/auth/lib/auth-client", () => ({ authClient: { signOut: vi.fn() } }));
+vi.mock("@/features/auth/auth-client", () => ({ authClient: { signOut: vi.fn() } }));
 
 describe("AdminLayout", () => {
   it("allows an admin to view the management page in MainLayout", async () => {

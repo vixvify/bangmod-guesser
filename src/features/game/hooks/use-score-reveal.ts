@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SCORE_REVEAL_TIMING } from "@/features/game/constants/game-result";
+import { SCORE_REVEAL_TIMING } from "@/features/game/game-result.constants";
 
 export function useScoreReveal(baseScore: number, bonusScore: number) {
   const [skipped, setSkipped] = useState(false);

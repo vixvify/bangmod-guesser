@@ -3,7 +3,7 @@ import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import { ContentContainer } from "@/shared/components/layout/content-container";
 import { ScrollReveal } from "@/shared/components/ui/scroll-reveal";
-import { Steps } from "@/features/home/constants/home";
+import { Steps } from "@/features/home/home.constants";
 
 const StepIcons = {
   LOOK: ImageOutlinedIcon,

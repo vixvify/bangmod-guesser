@@ -13,7 +13,7 @@ afterEach(() => {
 describe("playSoundEffect", () => {
   it("uses the selected sound and the saved system volume", async () => {
     const { audio, play } = mockAudio();
-    const { useSettingsStore } = await import("@/features/settings/store/settings-store");
+    const { useSettingsStore } = await import("@/features/settings/settings.store");
     const { playSoundEffect } = await import("@/shared/lib/sound-effect");
     useSettingsStore.getState().setSettings({
       imageQuality: "ultra",

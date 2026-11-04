@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { UserRole } from "@/features/users/domain/user";
-import { UserFactory } from "@/features/users/factories/user.factory";
+import { UserRole } from "@/features/users/user";
+import { UserFactory } from "@/features/users/server/user.factory";
 import { createUserModel } from "../fixtures/users";
 
 describe("UserFactory.toAccount", () => {

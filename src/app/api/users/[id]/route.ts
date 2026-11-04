@@ -1,9 +1,9 @@
 import { headers } from "next/headers";
 
-import { UserRole } from "@/features/users/domain/user";
-import { UserFormSchema, UserIdSchema } from "@/features/users/schema/user.schema";
+import { UserRole } from "@/features/users/user";
+import { UserFormSchema, UserIdSchema } from "@/features/users/user.schema";
 import { userService } from "@/container";
-import { requireAuth } from "@/features/auth/lib/auth-check";
+import { requireAuth } from "@/features/auth/server/auth-check";
 import { roleCheck } from "@/shared/lib/role-check";
 import { errorResponse, successResponse } from "@/shared/lib/api-response";
 import { parseSchema } from "@/shared/lib/validation";

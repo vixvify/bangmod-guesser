@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { LeaderboardService } from "@/features/leaderboard/service/leaderboard.service";
-import type { LeaderboardRepository } from "@/features/leaderboard/ports/leaderboard.repository";
+import { LeaderboardService } from "@/features/leaderboard/server/leaderboard.service";
+import type { LeaderboardRepository } from "@/features/leaderboard/server/leaderboard.repository.port";
 
 function createRepository(): LeaderboardRepository {
   return {

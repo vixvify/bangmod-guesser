@@ -1,7 +1,7 @@
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import Link from "next/link";
-import { UsersList } from "@/features/users/components/admin/users-list";
-import { SearchUserQuerySchema } from "@/features/users/schema/user.schema";
+import { UsersList } from "@/features/users/components/users-list";
+import { SearchUserQuerySchema } from "@/features/users/user.schema";
 import { userService } from "@/container";
 import { parseSchema } from "@/shared/lib/validation";
 import { AppRoutes } from "@/shared/routes/routes";

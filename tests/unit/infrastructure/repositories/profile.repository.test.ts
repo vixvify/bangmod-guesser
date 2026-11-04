@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ProfileRepositoryImpl } from "@/features/profile/repositories/profile.repository";
+import { ProfileRepositoryImpl } from "@/features/profile/server/profile.repository";
 
 const mocks = vi.hoisted(() => ({ userFindUnique: vi.fn(), gameCount: vi.fn() }));
 

@@ -1,7 +1,7 @@
 import { AppError } from "@/shared/errors/app.error";
-import { ProfileQuerySchema } from "@/features/profile/schema/profile.schema";
+import { ProfileQuerySchema } from "@/features/profile/profile.schema";
 import { profileService } from "@/container";
-import { requireAuth } from "@/features/auth/lib/auth-check";
+import { requireAuth } from "@/features/auth/server/auth-check";
 import { errorResponse, successResponse } from "@/shared/lib/api-response";
 
 export async function GET(request: Request) {

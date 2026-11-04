@@ -65,9 +65,9 @@ e2e/                         # End-to-end tests
 
 Do not redesign the project architecture unless explicitly requested.
 
-Keep business and UI code together under the feature that owns it. A feature may have `components`, `constants`, `domain`, `schema`, `service`, `ports`, `repositories`, `factories`, `adapters`, `routes`, `hooks`, `store`, and `mock` directories when needed. Put cross-feature components, helpers, and configuration under `src/shared`. Keep URLs and route handlers in `src/app`, server wiring in `src/container.ts`, and Prisma payload types in `prisma/types`. Client components use `src/shared/lib/http.ts` to call the API; server routes and pages use services from the container.
+Keep business and UI code together under the feature that owns it. Put public types, schemas, constants, route constants, mocks, and a single store at the feature root. Use `components/` for UI, `server/` for services, ports, repositories, adapters, factories, and server integrations, and `hooks/` when there are multiple hooks. Create only directories the feature uses. Put cross-feature components, helpers, and configuration under `src/shared`. Keep URLs and route handlers in `src/app`, server wiring in `src/container.ts`, and Prisma payload types in `prisma/types`. Client components use `src/shared/lib/http.ts` to call the API; server routes and pages use services from the container.
 
-Keep a feature's workflow in its owning feature. Port files declare repository contracts only; put reusable filters and results in that feature's domain and Prisma query payload definitions in `prisma/types`.
+Keep a feature's workflow in its owning feature. `server/*.repository.port.ts` files declare repository contracts only; put reusable filters and results in the feature's root domain file and Prisma query payload definitions in `prisma/types`.
 
 ---
 
@@ -173,7 +173,7 @@ Keep client boundaries small.
 
 # Domain
 
-## `src/features/<feature>/domain`
+## `src/features/<feature>/<feature>.ts`
 
 Contains domain models and business rules.
 
@@ -185,14 +185,14 @@ Keep it independent from React when practical.
 
 # Ports
 
-## `src/features/<feature>/ports`
+## `src/features/<feature>/server/*.port.ts`
 
 Contains application contracts.
 
 Examples:
 
 ```text
-user.repository.ts
+user.repository.port.ts
 course.repository.ts
 storage.port.ts
 ```
@@ -203,19 +203,15 @@ Use ports to separate core logic from implementation details when useful.
 
 # Services
 
-## `src/features/<feature>/service`
+## `src/features/<feature>/server/*.service.ts`
 
 Services are grouped by domain/module.
 
 Prefer:
 
 ```text
-service/
-├── auth.service.ts
-├── user.service.ts
-├── course.service.ts
-├── enrollment.service.ts
-└── project.service.ts
+features/auth/server/auth.service.ts
+features/users/server/user.service.ts
 ```
 
 A service may contain multiple operations related to the same domain.
@@ -266,7 +262,7 @@ Avoid both extremes:
 
 # Schema
 
-## `src/features/<feature>/schema`
+## `src/features/<feature>/*.schema.ts`
 
 Contains validation schemas.
 
@@ -285,7 +281,7 @@ Prefer schema-derived TypeScript types.
 
 # Constants
 
-## `src/features/<feature>/constants`
+## `src/features/<feature>/*.constants.ts`
 
 Contains shared constants.
 
@@ -297,7 +293,7 @@ Do not create unnecessary constants for every literal.
 
 # Infrastructure
 
-## `src/features/<feature>/repositories`
+## `src/features/<feature>/server/*.repository.ts`
 
 Contains persistence implementations.
 
@@ -325,7 +321,7 @@ Do not mix infrastructure types with domain types unnecessarily.
 
 ---
 
-## `src/features/<feature>/factories`
+## `src/features/<feature>/server/*.factory.ts`
 
 Contains mappings from infrastructure data to domain output models.
 
@@ -341,11 +337,11 @@ The composition root for repository implementations and services. Route handlers
 
 ## `prisma/types`
 
-Contains Prisma-specific model and payload types, including relation data returned by repository queries. Keep them separate from `src/features/<feature>/domain` output models.
+Contains Prisma-specific model and payload types, including relation data returned by repository queries. Keep them separate from feature root domain output models.
 
 ---
 
-## `src/features/<feature>/routes`
+## `src/features/<feature>/*.routes.ts`
 
 Contains API route constants owned by a feature. App-wide route constants live in `src/shared/routes`. Reuse existing route constants instead of duplicating route strings.
 
@@ -355,7 +351,7 @@ Contains API route constants owned by a feature. App-wide route constants live i
 
 ## `src/shared/lib`
 
-Contains cross-feature technical helpers. Put feature-specific integrations in that feature's `lib` directory and runtime configuration in `src/shared/config/runtime.ts`.
+Contains cross-feature technical helpers. Put feature-specific server integrations in that feature's `server/` directory and runtime configuration in `src/shared/config/runtime.ts`.
 
 Examples:
 
@@ -371,7 +367,7 @@ Do not place business logic here.
 
 # Store
 
-## `src/features/<feature>/store`
+## `src/features/<feature>/*.store.ts`
 
 Contains global client state.
 

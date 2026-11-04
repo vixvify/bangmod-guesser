@@ -6,11 +6,11 @@ import { useEffect, useId } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
-import { PROFILE_MESSAGES } from "@/features/profile/constants/profile";
+import { PROFILE_MESSAGES } from "@/features/profile/profile.constants";
 import {
   UpdateUsernameFormSchema,
   type UpdateUsernameFormInput,
-} from "@/features/profile/schema/profile.schema";
+} from "@/features/profile/profile.schema";
 
 type EditNameModalProps = {
   open: boolean;

@@ -4,8 +4,8 @@ import {
   LocationIdSchema,
   SearchLocationQuerySchema,
   UpdateLocationSchema,
-} from "@/features/locations/schema/location.schema";
-import { LocationStatus } from "@/features/locations/domain/location";
+} from "@/features/locations/location.schema";
+import { LocationStatus } from "@/features/locations/location";
 
 const validLocation = {
   name: "อาคารเรียนรวม 2 (CB2)",

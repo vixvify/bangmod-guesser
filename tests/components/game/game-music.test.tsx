@@ -3,8 +3,8 @@
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useGameMusic } from "@/features/game/hooks/use-game-music";
-import { useSettingsStore } from "@/features/settings/store/settings-store";
-import { DEFAULT_SETTINGS } from "@/features/settings/constants/settings";
+import { useSettingsStore } from "@/features/settings/settings.store";
+import { DEFAULT_SETTINGS } from "@/features/settings/settings.constants";
 import { mockAudio } from "../../mocks/audio.mock";
 
 function GameMusicHarness() {

@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { MAP_CONFIG } from "@/features/game/constants/game";
+import { MAP_CONFIG } from "@/features/game/game.constants";
 
 type GameMapProps = {
   latitude: number;
