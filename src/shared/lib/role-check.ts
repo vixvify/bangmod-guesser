@@ -1,4 +1,4 @@
-import { UserRole, type User } from "@/features/users/domain/user";
+import { UserRole, type User } from "@/features/users/user";
 import { AppError } from "@/shared/errors/app.error";
 
 export function hasRole(

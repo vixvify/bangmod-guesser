@@ -7,11 +7,11 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
-import { AUTH_MESSAGES } from "@/features/auth/constants/auth";
+import { AUTH_MESSAGES } from "@/features/auth/auth.constants";
 import {
   RequestPasswordResetSchema,
   type RequestPasswordResetInput,
-} from "@/features/auth/schema/auth.schema";
+} from "@/features/auth/auth.schema";
 import { AppRoutes } from "@/shared/routes/routes";
 
 export default function ForgotPasswordPage() {

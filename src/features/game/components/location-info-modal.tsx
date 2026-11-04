@@ -5,8 +5,8 @@ import Image from "next/image";
 import Modal from "@mui/material/Modal";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import { Button } from "@/shared/components/ui/button";
-import type { Location } from "@/features/locations/domain/location";
-import { GAME_RESULT_MESSAGES as MESSAGES } from "@/features/game/constants/game-result";
+import type { Location } from "@/features/locations/location";
+import { GAME_RESULT_MESSAGES as MESSAGES } from "@/features/game/game-result.constants";
 
 type LocationInfoModalProps = {
   location: Location;

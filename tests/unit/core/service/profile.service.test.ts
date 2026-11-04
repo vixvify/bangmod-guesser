@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { ProfileService } from "@/features/profile/service/profile.service";
-import type { ProfileRepository } from "@/features/profile/ports/profile.repository";
+import { ProfileService } from "@/features/profile/server/profile.service";
+import type { ProfileRepository } from "@/features/profile/server/profile.repository.port";
 
 function createRepository(): ProfileRepository {
   return {

@@ -3,8 +3,8 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SettingsModal } from "@/features/settings/components/settings-modal";
-import { DEFAULT_SETTINGS, SETTINGS_MESSAGES } from "@/features/settings/constants/settings";
-import { useSettingsStore } from "@/features/settings/store/settings-store";
+import { DEFAULT_SETTINGS, SETTINGS_MESSAGES } from "@/features/settings/settings.constants";
+import { useSettingsStore } from "@/features/settings/settings.store";
 import userEvent from "@testing-library/user-event";
 
 describe("SettingsModal", () => {

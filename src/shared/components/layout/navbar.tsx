@@ -13,14 +13,14 @@ import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import { toast } from "sonner";
 import { ConfirmModal } from "@/shared/components/ui/confirm-modal";
 import { SettingsModal } from "@/features/settings/components/settings-modal";
-import { AUTH_MESSAGES } from "@/features/auth/constants/auth";
-import type { User } from "@/features/users/domain/user";
+import { AUTH_MESSAGES } from "@/features/auth/auth.constants";
+import type { User } from "@/features/users/user";
 import { AppRoutes } from "@/shared/routes/routes";
 import { Button } from "@/shared/components/ui/button";
 import { playSoundEffect } from "@/shared/lib/sound-effect";
 import styles from "./navbar.module.css";
 import httpClient from "@/shared/lib/http";
-import { SessionRoutes } from "@/features/auth/routes/session.routes";
+import { SessionRoutes } from "@/features/auth/session.routes";
 
 type NavbarProps = {
   user: User | null;

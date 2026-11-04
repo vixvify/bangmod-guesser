@@ -15,7 +15,7 @@ const { push, router, getSession } = vi.hoisted(() => {
   return { push, router: { push }, getSession: vi.fn() };
 });
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
-vi.mock("@/features/auth/lib/auth-client", () => ({ getSession }));
+vi.mock("@/features/auth/auth-client", () => ({ getSession }));
 
 beforeEach(() => {
   push.mockReset();

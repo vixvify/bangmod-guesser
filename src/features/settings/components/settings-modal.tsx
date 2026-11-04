@@ -11,8 +11,8 @@ import {
   type GameSettings,
   type ImageQuality,
   SETTINGS_MESSAGES,
-} from "@/features/settings/constants/settings";
-import { useSettingsStore } from "@/features/settings/store/settings-store";
+} from "@/features/settings/settings.constants";
+import { useSettingsStore } from "@/features/settings/settings.store";
 import { playSoundEffect } from "@/shared/lib/sound-effect";
 
 type SettingsModalProps = {

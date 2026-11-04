@@ -2,7 +2,7 @@ import InstagramIcon from "@mui/icons-material/Instagram";
 import { ContentContainer } from "@/shared/components/layout/content-container";
 import MuiLink from "@mui/material/Link";
 import { ScrollReveal } from "@/shared/components/ui/scroll-reveal";
-import { Contributors } from "@/features/home/constants/home";
+import { Contributors } from "@/features/home/home.constants";
 
 const instagramLinkStyles = {
   color: "color-mix(in srgb, var(--color-secondary-light) 60%, transparent)",

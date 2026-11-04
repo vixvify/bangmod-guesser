@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { UserRole } from "@/features/users/domain/user";
-import { UserAdapter } from "@/features/users/adapters/user.adapter";
-import { auth } from "@/features/auth/lib/auth";
+import { UserRole } from "@/features/users/user";
+import { UserAdapter } from "@/features/users/server/user.adapter";
+import { auth } from "@/features/auth/server/auth";
 
 afterEach(() => vi.restoreAllMocks());
 

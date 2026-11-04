@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { UserRole } from "@/features/users/domain/user";
-import { UserRepositoryImpl } from "@/features/users/repositories/user.repository";
+import { UserRole } from "@/features/users/user";
+import { UserRepositoryImpl } from "@/features/users/server/user.repository";
 
 const { findMany, count, findUnique, update } = vi.hoisted(() => ({
   findMany: vi.fn(), count: vi.fn(), findUnique: vi.fn(), update: vi.fn(),

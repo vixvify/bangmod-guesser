@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AppError } from "@/shared/errors/app.error";
-import { UserRole } from "@/features/users/domain/user";
+import { UserRole } from "@/features/users/user";
 
 const { requireAuth, summary, games } = vi.hoisted(() => ({ requireAuth: vi.fn(), summary: vi.fn(), games: vi.fn() }));
-vi.mock("@/features/auth/lib/auth-check", () => ({ requireAuth }));
+vi.mock("@/features/auth/server/auth-check", () => ({ requireAuth }));
 vi.mock("@/container", () => ({ dashboardService: { getDashboard: summary, getGames: games } }));
 import { GET as dashboard } from "@/app/api/dashboard/route";
 import { GET as gameLogs } from "@/app/api/dashboard/games/route";

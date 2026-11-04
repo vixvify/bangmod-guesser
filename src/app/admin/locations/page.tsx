@@ -1,7 +1,7 @@
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import Link from "next/link";
-import { LocationsList } from "@/features/locations/components/admin/locations-list";
-import { SearchLocationQuerySchema } from "@/features/locations/schema/location.schema";
+import { LocationsList } from "@/features/locations/components/locations-list";
+import { SearchLocationQuerySchema } from "@/features/locations/location.schema";
 import { locationService } from "@/container";
 import { parseSchema } from "@/shared/lib/validation";
 import { AppRoutes } from "@/shared/routes/routes";

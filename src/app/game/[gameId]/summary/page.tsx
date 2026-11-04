@@ -1,6 +1,6 @@
 import { GameSummary } from "@/features/game/components/game-summary";
-import { requireAuth } from "@/features/auth/lib/auth-check";
-import { mockGameSummary } from "@/features/game/mock/_game";
+import { requireAuth } from "@/features/auth/server/auth-check";
+import { mockGameSummary } from "@/features/game/game.mock";
 
 export default async function GameSummaryPage({
   params,

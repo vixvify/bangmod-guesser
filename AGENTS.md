@@ -36,7 +36,7 @@ tests/                       # Unit, component and integration tests
 e2e/                         # End-to-end tests
 ```
 
-Keep related code together under `src/features/<feature>`. Put code shared across features under `src/shared`. Preserve this structure unless explicitly instructed otherwise.
+Keep related code together under `src/features/<feature>`. Each feature uses root files for public types, schemas, constants, routes, mocks, and a single store; `components/` for UI; `server/` for services, ports, repositories, adapters, and factories; and `hooks/` when it has multiple hooks. Put code shared across features under `src/shared`.
 
 Do not introduce a completely different architecture or reorganize the project without a strong technical reason.
 
@@ -93,9 +93,9 @@ Do not immediately create new abstractions or files before inspecting the existi
 
 ## Feature ownership
 
-Choose the feature that owns a change before adding a file. Keep its components, constants, domain output, schemas, services, ports, repositories, factories, adapters, routes, hooks, store, and mocks under `src/features/<feature>` as needed. Create only the directories that the feature actually uses. Put cross-feature UI and technical helpers under `src/shared`; do not move business rules there merely because two features call them. `src/app` owns URLs and composes feature code, while `src/container.ts` wires server services. Keep Prisma payload types in `prisma/types`.
+Choose the feature that owns a change before adding a file. Keep public types, schemas, constants, route constants, mocks, and single stores at the feature root. Keep UI in `components/`, server-only services, ports, repositories, adapters, factories, and integrations in `server/`, and multiple hooks in `hooks/`. Create only directories the feature actually uses. Put cross-feature UI and technical helpers under `src/shared`; do not move business rules there merely because two features call them. `src/app` owns URLs and composes feature code, while `src/container.ts` wires server services. Keep Prisma payload types in `prisma/types`.
 
-Keep each feature's workflow in its owning feature even when another feature displays related data. A port file declares its repository contract; reusable filters and results belong to the owning feature's domain, while Prisma query payload definitions belong in `prisma/types`.
+Keep each feature's workflow in its owning feature even when another feature displays related data. A `server/*.repository.port.ts` file declares its repository contract; reusable filters and results belong to the owning feature's root domain file, while Prisma query payload definitions belong in `prisma/types`.
 
 Use a stable `@/features/<feature>/...` or `@/shared/...` import from another feature or route. Relative imports are suitable for files within one feature. Client components call the HTTP API through `src/shared/lib/http.ts`; server routes and pages use services from `src/container.ts`.
 
@@ -250,18 +250,16 @@ Core code should remain separate from UI implementation details.
 
 ---
 
-## `src/features/<feature>/domain`
+## `src/features/<feature>/<feature>.ts`
 
 Contains domain models and business rules.
 
 Examples:
 
 ```text
-domain/
-├── user.ts
-├── course.ts
-├── enrollment.ts
-└── project.ts
+features/users/user.ts
+features/game/game.ts
+features/locations/location.ts
 ```
 
 Domain files may contain:
@@ -283,17 +281,16 @@ Domain code should not depend on:
 
 # Ports
 
-## `src/features/<feature>/ports`
+## `src/features/<feature>/server/*.port.ts`
 
 Contains contracts required by the application.
 
 Examples:
 
 ```text
-ports/
-├── user.repository.ts
-├── course.repository.ts
-└── storage.port.ts
+server/
+├── user.repository.port.ts
+└── user-admin.port.ts
 ```
 
 Example:
@@ -315,7 +312,7 @@ They should not contain database-specific implementation details.
 
 # Services
 
-## `src/features/<feature>/service`
+## `src/features/<feature>/server/*.service.ts`
 
 Contains application services grouped by domain or feature.
 
@@ -324,12 +321,8 @@ Prefer one main service per domain/module.
 Example:
 
 ```text
-service/
-├── auth.service.ts
-├── user.service.ts
-├── course.service.ts
-├── enrollment.service.ts
-└── project.service.ts
+features/users/server/user.service.ts
+features/game/server/game.service.ts
 ```
 
 A service may contain multiple related operations.
@@ -387,7 +380,7 @@ only when token or password logic becomes complex enough to justify separation.
 
 # Schemas
 
-## `src/features/<feature>/schema`
+## `src/features/<feature>/*.schema.ts`
 
 Contains validation schemas.
 
@@ -420,17 +413,15 @@ Avoid manually duplicating types that can safely be inferred.
 
 # Constants
 
-## `src/features/<feature>/constants`
+## `src/features/<feature>/*.constants.ts`
 
 Contains shared application constants.
 
 Examples:
 
 ```text
-constants/
-├── role.constant.ts
-├── route.constant.ts
-└── pagination.constant.ts
+features/users/user.constants.ts
+features/game/game.constants.ts
 ```
 
 Avoid magic strings and magic numbers when a shared constant improves clarity.
@@ -441,7 +432,7 @@ Do not create constants for trivial one-time values without a reason.
 
 # Infrastructure
 
-## `src/features/<feature>`
+## `src/features/<feature>/server`
 
 Contains technical implementation details.
 
@@ -455,16 +446,16 @@ Examples:
 
 ---
 
-## `src/features/<feature>/repositories`
+## `src/features/<feature>/server/*.repository.ts`
 
 Contains repository implementations.
 
 Example:
 
 ```text
-features/users/
-├── ports/user.repository.ts
-└── repositories/user.repository.ts
+features/users/server/
+├── user.repository.port.ts
+└── user.repository.ts
 ```
 
 Prefer this dependency flow:
@@ -501,7 +492,7 @@ Do not place core business models here.
 
 ---
 
-## `src/features/<feature>/factories`
+## `src/features/<feature>/server/*.factory.ts`
 
 Contains mappings from infrastructure data to domain output models.
 
@@ -517,11 +508,11 @@ The composition root for repository implementations and services. Route handlers
 
 ## `prisma/types`
 
-Contains Prisma-specific model and payload types, including relations returned by repository queries. Keep these types separate from `src/features/<feature>/domain`, which represents application output models.
+Contains Prisma-specific model and payload types, including relations returned by repository queries. Keep these types separate from feature root domain files, which represent application output models.
 
 ---
 
-## `src/features/<feature>/routes`
+## `src/features/<feature>/*.routes.ts`
 
 Contains API route constants owned by a feature. App-wide route constants live in `src/shared/routes`. Keep route strings out of reusable components and services when a shared route constant already exists.
 
@@ -531,7 +522,7 @@ Contains API route constants owned by a feature. App-wide route constants live i
 
 ## `src/shared/lib`
 
-Contains technical helpers used by multiple features. Feature-specific integrations belong under that feature's `lib` directory; runtime configuration belongs in `src/shared/config/runtime.ts`.
+Contains technical helpers used by multiple features. Feature-specific server integrations belong in that feature's `server/` directory; runtime configuration belongs in `src/shared/config/runtime.ts`.
 
 Examples:
 
@@ -548,7 +539,7 @@ Do not put application business logic inside `lib`.
 
 # Store
 
-## `src/features/<feature>/store`
+## `src/features/<feature>/*.store.ts`
 
 Contains global client-side state.
 
@@ -561,8 +552,7 @@ Do not put every piece of state into a global store.
 Prefer focused stores:
 
 ```text
-features/settings/store/
-└── settings-store.ts
+features/settings/settings.store.ts
 ```
 
 Avoid one giant global store responsible for unrelated concerns.

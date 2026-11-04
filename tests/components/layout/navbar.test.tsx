@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { UserRole } from "@/features/users/domain/user";
+import { UserRole } from "@/features/users/user";
 
 const { pathnameMock } = vi.hoisted(() => ({ pathnameMock: vi.fn(() => "/") }));
 
@@ -9,7 +9,7 @@ vi.mock("next/navigation", () => ({
   usePathname: pathnameMock,
 }));
 
-vi.mock("@/features/auth/lib/auth-client", () => ({
+vi.mock("@/features/auth/auth-client", () => ({
   authClient: { signOut: vi.fn() },
 }));
 

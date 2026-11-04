@@ -1,5 +1,5 @@
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
-import type { GameHistoryItem } from "@/features/profile/domain/profile";
+import type { GameHistoryItem } from "@/features/profile/profile";
 import { formatThaiDateTime } from "@/shared/lib/utils";
 
 const numberFormatter = new Intl.NumberFormat("en-US");

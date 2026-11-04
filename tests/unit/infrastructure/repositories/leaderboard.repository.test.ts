@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { LeaderboardRepositoryImpl } from "@/features/leaderboard/repositories/leaderboard.repository";
+import { LeaderboardRepositoryImpl } from "@/features/leaderboard/server/leaderboard.repository";
 
 const mocks = vi.hoisted(() => ({
   queryRaw: vi.fn(),

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { IMAGE_MESSAGES } from "@/features/images/constants/image";
+import { IMAGE_MESSAGES } from "@/features/images/image.constants";
 import { AppError } from "@/shared/errors/app.error";
 
 const NodeEnvironmentSchema = z.enum(["development", "test", "production"]);

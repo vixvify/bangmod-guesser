@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DashboardService } from "@/features/dashboard/service/dashboard.service";
-import { DashboardQuerySchema } from "@/features/dashboard/schema/dashboard.schema";
+import { DashboardService } from "@/features/dashboard/server/dashboard.service";
+import { DashboardQuerySchema } from "@/features/dashboard/dashboard.schema";
 import { dashboardGame, dashboardNow, dashboardRound } from "../../../fixtures/dashboard";
 import { createDashboardRepositoryMock } from "../../../mocks/dashboard.repository.mock";
 

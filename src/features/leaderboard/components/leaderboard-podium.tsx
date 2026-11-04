@@ -1,5 +1,5 @@
 import Avatar from "@mui/material/Avatar";
-import type { LeaderboardEntry } from "@/features/leaderboard/domain/leaderboard";
+import type { LeaderboardEntry } from "@/features/leaderboard/leaderboard";
 
 const positionClasses: Record<number, string> = {
   1: "order-1 col-span-2 sm:order-2 sm:col-span-1 sm:-translate-y-5 sm:scale-105 sm:min-h-64",

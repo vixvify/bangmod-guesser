@@ -5,10 +5,10 @@ import { GameHistory } from "@/features/profile/components/game-history";
 import { Button } from "@/shared/components/ui/button";
 import { DateRangePicker } from "@/shared/components/ui/date-range-picker";
 import { ListPagination } from "@/shared/components/ui/list-pagination";
-import type { ProfileResult } from "@/features/profile/domain/profile";
-import type { ProfileQueryInput } from "@/features/profile/schema/profile.schema";
+import type { ProfileResult } from "@/features/profile/profile";
+import type { ProfileQueryInput } from "@/features/profile/profile.schema";
 import httpClient from "@/shared/lib/http";
-import { ProfileRoutes } from "@/features/profile/routes/profile.routes";
+import { ProfileRoutes } from "@/features/profile/profile.routes";
 import { AppRoutes } from "@/shared/routes/routes";
 
 type ProfileHistoryProps = {

@@ -4,6 +4,8 @@
 
 KMUTT Guesser is a fullstack Next.js application. The App Router owns routing and composition. Code is grouped by feature; each feature keeps its business contracts and implementations together.
 
+Feature roots hold public types, schemas, constants, route constants, mocks, and single stores. UI belongs in `components/`, server-only code in `server/`, and multiple hooks in `hooks/`. Create only directories that a feature uses. Repository contracts are named `*.repository.port.ts` alongside their implementations.
+
 ```text
 src/
 ├── app/                         # App Router pages and API handlers
@@ -63,17 +65,17 @@ Server Components and server-only code may call a service from `src/container.ts
 | `src/app` | Route-specific concerns, pages, layouts, route handlers, cookies, and HTTP responses. Keep it thin. |
 | `src/shared/config/runtime.ts` | Shared application configuration. It exports the API base URL and server runtime configuration; application code consumes it instead of reading `process.env` directly. |
 | `src/features/<feature>/components` | Reusable UI. Use Server Components by default; add a client boundary only for browser interaction or state. |
-| `src/features/<feature>/domain` | Public application models and domain rules, including the `UserRole` authorization enum. It must not contain Prisma or UI concerns. |
-| `src/features/<feature>/schema` | Zod validation schemas and inferred input types. |
+| `src/features/<feature>/<feature>.ts` | Public application models and domain rules, including the `UserRole` authorization enum. It must not contain Prisma or UI concerns. |
+| `src/features/<feature>/*.schema.ts` | Zod validation schemas and inferred input types. |
 | `src/shared/errors` | Application errors such as `AppError`. |
-| `src/features/<feature>/ports` | Contracts that services require from persistence or external storage. |
-| `src/features/<feature>/service` | Business logic, validation, authorization decisions, and orchestration. |
-| `src/features/<feature>/repositories` | Prisma queries and external storage operations. Repositories return the values requested by their ports. |
-| `src/features/<feature>/factories` | Maps Prisma records to public domain output, including Prisma role enum values to domain `UserRole`. Factories remove sensitive fields. |
+| `src/features/<feature>/server/*.port.ts` | Contracts that services require from persistence or external storage. |
+| `src/features/<feature>/server/*.service.ts` | Business logic, validation, authorization decisions, and orchestration. |
+| `src/features/<feature>/server/*.repository.ts` | Prisma queries and external storage operations. Repositories return the values requested by their ports. |
+| `src/features/<feature>/server/*.factory.ts` | Maps Prisma records to public domain output, including Prisma role enum values to domain `UserRole`. Factories remove sensitive fields. |
 | `src/container.ts` | Creates repository and service instances. |
 | `src/shared/components` | Cross-feature UI and layouts. |
 | `src/shared/lib` | Reusable technical helpers, Prisma global instance, API response formatting, validation parsing, and client HTTP setup. |
-| `src/features/auth/lib` | Better Auth configuration, client, role checks, and authentication helpers. |
+| `src/features/auth` | Better Auth client and public helpers; its server configuration, adapter, and session checks live in `server/`. |
 | `prisma/types` | Prisma-only types for records with included relations. These are not domain models. |
 
 ## Auth and session model

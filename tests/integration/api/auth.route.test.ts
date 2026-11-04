@@ -12,7 +12,7 @@ vi.mock("better-auth/next-js", () => ({
   })),
 }));
 
-vi.mock("@/features/auth/lib/auth", () => ({
+vi.mock("@/features/auth/server/auth", () => ({
   auth: {
     handler: vi.fn(),
   },

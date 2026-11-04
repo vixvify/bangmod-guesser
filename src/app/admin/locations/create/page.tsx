@@ -1,4 +1,4 @@
-import { CreateLocation } from "@/features/locations/components/admin/create-location";
+import { CreateLocation } from "@/features/locations/components/create-location";
 
 export default function CreateLocationPage() {
   return (

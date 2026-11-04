@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { ContentContainer } from "@/shared/components/layout/content-container";
 import { ScrollReveal } from "@/shared/components/ui/scroll-reveal";
-import { HomeBackgroundImages } from "@/features/home/constants/home";
+import { HomeBackgroundImages } from "@/features/home/home.constants";
 
 export function IntroSection() {
   return (

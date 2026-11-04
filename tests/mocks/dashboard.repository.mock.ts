@@ -1,5 +1,5 @@
 import { vi } from "vitest";
-import type { DashboardRepository } from "@/features/dashboard/ports/dashboard.repository";
+import type { DashboardRepository } from "@/features/dashboard/server/dashboard.repository.port";
 
 export function createDashboardRepositoryMock() {
   return {

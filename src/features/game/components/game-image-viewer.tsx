@@ -11,7 +11,7 @@ import Fade from "@mui/material/Fade";
 import Modal from "@mui/material/Modal";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import { Button } from "@/shared/components/ui/button";
-import { MAP_CONFIG } from "@/features/game/constants/game";
+import { MAP_CONFIG } from "@/features/game/game.constants";
 import { playSoundEffect } from "@/shared/lib/sound-effect";
 
 const GameMap = dynamic(

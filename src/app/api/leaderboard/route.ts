@@ -1,5 +1,5 @@
 import { leaderboardService } from "@/container";
-import { requireAuth } from "@/features/auth/lib/auth-check";
+import { requireAuth } from "@/features/auth/server/auth-check";
 import { errorResponse, successResponse } from "@/shared/lib/api-response";
 
 export async function GET() {

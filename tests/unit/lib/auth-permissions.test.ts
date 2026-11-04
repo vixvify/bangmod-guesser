@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { UserRole } from "@/features/users/domain/user";
-import { authRoles } from "@/features/auth/lib/auth-permissions";
+import { UserRole } from "@/features/users/user";
+import { authRoles } from "@/features/auth/auth-permissions";
 
 describe("admin permissions", () => {
   it("allows the user operations needed by the admin UI", () => {

@@ -2,7 +2,7 @@ import { LeaderboardPodium } from "@/features/leaderboard/components/leaderboard
 import { LeaderboardRow } from "@/features/leaderboard/components/leaderboard-row";
 import { leaderboardService } from "@/container";
 import { MainLayout } from "@/shared/components/layout/main-layout";
-import { requireAuth } from "@/features/auth/lib/auth-check";
+import { requireAuth } from "@/features/auth/server/auth-check";
 
 export default async function LeaderboardPage() {
   const user = await requireAuth();

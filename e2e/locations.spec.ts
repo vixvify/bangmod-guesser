@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { expect, test } from "@playwright/test";
-import { LOCATION_MESSAGES } from "../src/features/locations/constants/location";
+import { LOCATION_MESSAGES } from "../src/features/locations/location.constants";
 import { E2E_BASE_URL, E2E_DATABASE_URL } from "./config";
 
 const prisma = new PrismaClient({ datasources: { db: { url: E2E_DATABASE_URL } } });

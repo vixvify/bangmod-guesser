@@ -8,7 +8,7 @@ vi.mock("@/shared/lib/prisma", async () => {
   return { prisma: new PrismaClient({ datasourceUrl: E2E_DATABASE_URL }) };
 });
 import { prisma } from "@/shared/lib/prisma";
-import { GameRepositoryImpl } from "@/features/game/repositories/game.repository";
+import { GameRepositoryImpl } from "@/features/game/server/game.repository";
 
 const repository = new GameRepositoryImpl();
 const now = new Date("2026-10-27T12:00:00Z");

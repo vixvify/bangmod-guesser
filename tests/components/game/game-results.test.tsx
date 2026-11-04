@@ -5,7 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GameRoundScore } from "@/features/game/components/game-round-score";
 import { GameSummary } from "@/features/game/components/game-summary";
-import { mockRoundResult, mockGameSummary } from "@/features/game/mock/_game";
+import { mockRoundResult, mockGameSummary } from "@/features/game/game.mock";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/features/game/components/game-result-map", () => ({ GameResultMap: () => <div>Map</div> }));

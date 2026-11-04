@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { GameRepositoryImpl } from "@/features/game/repositories/game.repository";
+import { GameRepositoryImpl } from "@/features/game/server/game.repository";
 import { gameStateSelect } from "../../../../prisma/types/game";
 
 const { findUnique, updateMany, transaction } = vi.hoisted(() => ({

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { SETTINGS_MESSAGES } from "@/features/settings/constants/settings";
+import { SETTINGS_MESSAGES } from "@/features/settings/settings.constants";
 
 test("keeps confirmed settings after a page reload", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });

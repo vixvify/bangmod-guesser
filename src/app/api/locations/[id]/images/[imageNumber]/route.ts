@@ -1,9 +1,9 @@
-import { UserRole } from "@/features/users/domain/user";
-import { ImageNumberSchema } from "@/features/images/schema/image.schema";
-import { LocationIdSchema } from "@/features/locations/schema/location.schema";
+import { UserRole } from "@/features/users/user";
+import { ImageNumberSchema } from "@/features/images/image.schema";
+import { LocationIdSchema } from "@/features/locations/location.schema";
 import { locationService } from "@/container";
 import { errorResponse, successResponse } from "@/shared/lib/api-response";
-import { requireAuth } from "@/features/auth/lib/auth-check";
+import { requireAuth } from "@/features/auth/server/auth-check";
 import { roleCheck } from "@/shared/lib/role-check";
 import { parseSchema } from "@/shared/lib/validation";
 

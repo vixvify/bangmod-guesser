@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GameIdSchema } from "@/features/game/schema/game.schema";
+import { GameIdSchema } from "@/features/game/game.schema";
 
 describe("GameIdSchema", () => {
   it("accepts and trims an opaque game ID", () => {

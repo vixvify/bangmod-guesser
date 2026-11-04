@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getAuthRedirect } from "@/features/auth/lib/auth-redirect";
+import { getAuthRedirect } from "@/features/auth/auth-redirect";
 
 describe("getAuthRedirect", () => {
   it("keeps local paths and falls back to home for external destinations", () => {

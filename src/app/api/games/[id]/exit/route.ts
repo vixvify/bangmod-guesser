@@ -1,7 +1,7 @@
-import { GameIdSchema } from "@/features/game/schema/game.schema";
+import { GameIdSchema } from "@/features/game/game.schema";
 import { gameService } from "@/container";
 import { errorResponse, successResponse } from "@/shared/lib/api-response";
-import { requireAuth } from "@/features/auth/lib/auth-check";
+import { requireAuth } from "@/features/auth/server/auth-check";
 import { parseSchema } from "@/shared/lib/validation";
 
 interface RouteContext {

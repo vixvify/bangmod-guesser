@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DashboardFactory } from "@/features/dashboard/factories/dashboard.factory";
+import { DashboardFactory } from "@/features/dashboard/server/dashboard.factory";
 import { dashboardGame, dashboardRound } from "../fixtures/dashboard";
 
 describe("DashboardFactory", () => {

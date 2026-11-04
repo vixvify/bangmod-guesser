@@ -7,7 +7,7 @@ import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import { Button } from "@/shared/components/ui/button";
 import { GameBackdrop } from "@/features/game/components/game-backdrop";
 import { SettingsModal } from "@/features/settings/components/settings-modal";
-import { GAME_MESSAGES } from "@/features/game/constants/game";
+import { GAME_MESSAGES } from "@/features/game/game.constants";
 
 type GameLayoutProps = {
   children: ReactNode;

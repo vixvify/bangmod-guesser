@@ -3,7 +3,7 @@ import { ContentContainer } from "@/shared/components/layout/content-container";
 import { Footer } from "@/shared/components/layout/footer";
 import { Navbar } from "@/shared/components/layout/navbar";
 import { NavigationGuardProvider } from "@/shared/hooks/use-navigation-guard";
-import type { User } from "@/features/users/domain/user";
+import type { User } from "@/features/users/user";
 
 type MainLayoutProps = {
   children: ReactNode;

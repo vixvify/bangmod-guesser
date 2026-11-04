@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { betterAuth } from "better-auth";
-import { UserRole } from "@/features/users/domain/user";
-import { AdminPaths } from "@/features/users/routes/admin.routes";
+import { UserRole } from "@/features/users/user";
+import { AdminPaths } from "@/features/users/admin.routes";
 
 vi.mock("better-auth", () => ({ betterAuth: vi.fn(() => ({})) }));
 vi.mock("better-auth/adapters/prisma", () => ({ prismaAdapter: vi.fn(() => ({})) }));
@@ -22,7 +22,7 @@ vi.mock("@/shared/config/runtime", () => ({
 }));
 vi.mock("@/shared/lib/prisma", () => ({ prisma: {} }));
 
-import "@/features/auth/lib/auth";
+import "@/features/auth/server/auth";
 
 describe("Better Auth configuration", () => {
   it("registers admin endpoints with the existing uppercase roles", () => {

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { UserRole } from "@/features/users/domain/user";
+import { UserRole } from "@/features/users/user";
 import { dashboardGame, dashboardNow, dashboardRound } from "../../fixtures/dashboard";
 
 const { requireAuth, repository } = vi.hoisted(() => ({
@@ -11,9 +11,9 @@ const { requireAuth, repository } = vi.hoisted(() => ({
   },
 }));
 vi.mock("server-only", () => ({}));
-vi.mock("@/features/auth/lib/auth-check", () => ({ requireAuth }));
+vi.mock("@/features/auth/server/auth-check", () => ({ requireAuth }));
 vi.mock("@/container", async () => {
-  const { DashboardService } = await import("@/features/dashboard/service/dashboard.service");
+  const { DashboardService } = await import("@/features/dashboard/server/dashboard.service");
   return { dashboardService: new DashboardService(repository) };
 });
 import { GET as summary } from "@/app/api/dashboard/route";

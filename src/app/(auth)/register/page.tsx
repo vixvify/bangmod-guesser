@@ -12,11 +12,11 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
-import { AUTH_MESSAGES } from "@/features/auth/constants/auth";
-import { RegisterSchema, type RegisterInput } from "@/features/auth/schema/auth.schema";
+import { AUTH_MESSAGES } from "@/features/auth/auth.constants";
+import { RegisterSchema, type RegisterInput } from "@/features/auth/auth.schema";
 import httpClient, { HttpError } from "@/shared/lib/http";
-import { getAuthRedirect } from "@/features/auth/lib/auth-redirect";
-import { SessionRoutes } from "@/features/auth/routes/session.routes";
+import { getAuthRedirect } from "@/features/auth/auth-redirect";
+import { SessionRoutes } from "@/features/auth/session.routes";
 import { AppRoutes } from "@/shared/routes/routes";
 
 type RegisterPageProps = {

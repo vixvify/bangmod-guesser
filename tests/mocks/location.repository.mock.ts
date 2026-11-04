@@ -1,5 +1,5 @@
 import { vi } from "vitest";
-import type { LocationRepository } from "@/features/locations/ports/location.repository";
+import type { LocationRepository } from "@/features/locations/server/location.repository.port";
 
 export function createLocationRepositoryMock() {
   return {

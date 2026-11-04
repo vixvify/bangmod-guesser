@@ -3,11 +3,11 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ProfileHistory } from "@/features/profile/components/profile-history";
-import type { ProfileResult } from "@/features/profile/domain/profile";
+import type { ProfileResult } from "@/features/profile/profile";
 import httpClient from "@/shared/lib/http";
 
 vi.mock("@/shared/lib/http", () => ({ default: { get: vi.fn() } }));
-vi.mock("@/features/profile/routes/profile.routes", () => ({ ProfileRoutes: { history: "/api/profile" } }));
+vi.mock("@/features/profile/profile.routes", () => ({ ProfileRoutes: { history: "/api/profile" } }));
 vi.mock("@/shared/components/ui/date-range-picker", () => ({
   DateRangePicker: ({ onChange, defaultValue }: { onChange: (range: { startDate: string | null; endDate: string | null }) => void; defaultValue: { startDate: string | null; endDate: string | null } }) => (
     <div>

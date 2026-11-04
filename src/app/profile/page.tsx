@@ -1,10 +1,10 @@
 import { ProfileCard } from "@/features/profile/components/profile-card";
 import { ProfileHistory } from "@/features/profile/components/profile-history";
-import { UserRole } from "@/features/users/domain/user";
-import { ProfileQuerySchema } from "@/features/profile/schema/profile.schema";
+import { UserRole } from "@/features/users/user";
+import { ProfileQuerySchema } from "@/features/profile/profile.schema";
 import { profileService } from "@/container";
 import { MainLayout } from "@/shared/components/layout/main-layout";
-import { requireAuth } from "@/features/auth/lib/auth-check";
+import { requireAuth } from "@/features/auth/server/auth-check";
 import { hasRole } from "@/shared/lib/role-check";
 import { parseSchema } from "@/shared/lib/validation";
 

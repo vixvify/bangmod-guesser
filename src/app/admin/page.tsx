@@ -1,9 +1,9 @@
-import { DashboardCharts } from "@/features/dashboard/components/admin/dashboard-charts";
-import { DashboardFilters } from "@/features/dashboard/components/admin/dashboard-filters";
-import { DashboardRecentGames } from "@/features/dashboard/components/admin/dashboard-recent-games";
-import { DashboardStats } from "@/features/dashboard/components/admin/dashboard-stats";
+import { DashboardCharts } from "@/features/dashboard/components/dashboard-charts";
+import { DashboardFilters } from "@/features/dashboard/components/dashboard-filters";
+import { DashboardRecentGames } from "@/features/dashboard/components/dashboard-recent-games";
+import { DashboardStats } from "@/features/dashboard/components/dashboard-stats";
 import { Button } from "@/shared/components/ui/button";
-import { DashboardQuerySchema } from "@/features/dashboard/schema/dashboard.schema";
+import { DashboardQuerySchema } from "@/features/dashboard/dashboard.schema";
 import { dashboardService } from "@/container";
 import { parseSchema } from "@/shared/lib/validation";
 import { AppRoutes } from "@/shared/routes/routes";

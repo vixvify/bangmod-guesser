@@ -7,7 +7,7 @@ const { requireAuth, getProfile, getLeaderboard } = vi.hoisted(() => ({
   getLeaderboard: vi.fn(),
 }));
 
-vi.mock("@/features/auth/lib/auth-check", () => ({ requireAuth }));
+vi.mock("@/features/auth/server/auth-check", () => ({ requireAuth }));
 vi.mock("@/container", () => ({
   profileService: { getProfile },
   leaderboardService: { getLeaderboard },
