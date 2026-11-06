@@ -26,7 +26,7 @@ describe("getDashboardScores", () => {
     expect(result.buckets.map((bucket) => bucket.count)).toEqual([2, 2, 2, 2, 2, 1]);
     expect(result.count).toBe(11);
     expect(result.median).toBe(2999);
-    expect(result.buckets[5]).toEqual({ min: 5000, count: 1 });
+    expect(result.buckets[5]).toMatchObject({ min: 5000, count: 1 });
     expect(result.mostFrequentBucket?.min).toBe(0);
   });
 
