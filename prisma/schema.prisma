@@ -150,6 +150,7 @@ model Game {
 
 model GameRound {
   questionNumber   Int
+  imageNumber      Int?
   guessedLatitude  Float?
   guessedLongitude Float?
   score            Int          @default(0)
