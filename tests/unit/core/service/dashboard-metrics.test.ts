@@ -11,22 +11,22 @@ describe("dashboardChangePercent", () => {
 });
 
 describe("getDashboardScores", () => {
-  it("includes a game at the same 6000-point maximum shown by the game summary", () => {
-    const result = getDashboardScores([{ score: 6000, count: 1 }]);
+  it("includes a game at the same 5000-point maximum shown by the game summary", () => {
+    const result = getDashboardScores([{ score: 5000, count: 1 }]);
 
-    expect(result.maxScore).toBe(6000);
+    expect(result.maxScore).toBe(5000);
     expect(result.count).toBe(1);
-    expect(result.median).toBe(6000);
-    expect(result.buckets.at(-1)).toMatchObject({ min: 6000, count: 1 });
+    expect(result.median).toBe(5000);
+    expect(result.buckets.at(-1)).toMatchObject({ min: 5000, count: 1 });
   });
 
   it("puts boundary scores into exactly one bucket", () => {
     const result = getDashboardScores([0, 999, 1000, 1999, 2000, 2999, 3000, 3999, 4000, 4999, 5000]
       .map((score) => ({ score, count: 1 })));
-    expect(result.buckets.map((bucket) => bucket.count)).toEqual([2, 2, 2, 2, 2, 1, 0]);
+    expect(result.buckets.map((bucket) => bucket.count)).toEqual([2, 2, 2, 2, 2, 1]);
     expect(result.count).toBe(11);
     expect(result.median).toBe(2999);
-    expect(result.buckets[5]).toEqual({ min: 5000, max: 6000, maxInclusive: false, count: 1, percentage: 9.09 });
+    expect(result.buckets[5]).toEqual({ min: 5000, count: 1 });
     expect(result.mostFrequentBucket?.min).toBe(0);
   });
 
@@ -40,7 +40,7 @@ describe("getDashboardScores", () => {
 
   it("does not invent zero scores for missing or out-of-contract totals", () => {
     const result = getDashboardScores([
-      { score: null, count: 4 }, { score: 6001, count: 2 },
+      { score: null, count: 4 }, { score: 5001, count: 2 },
       { score: -1, count: 1 },
     ]);
     expect(result.count).toBe(0);
