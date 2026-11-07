@@ -10,7 +10,10 @@ import type {
   UploadImageInput,
   UpdateLocationImagesInput,
 } from "../../images/image.schema";
-import { LocationImageRecordSchema } from "../../images/image.schema";
+import {
+  ImageNumberSchema,
+  LocationImageRecordSchema,
+} from "../../images/image.schema";
 import type {
   CreateLocationInput,
   SearchLocationQueryInput,
@@ -99,16 +102,22 @@ export class LocationService {
       (first, second) => first.imageNumber - second.imageNumber,
     );
     const keepNumbers = imageChanges.keepImageNumbers;
-    if (
-      keepNumbers?.some(
-        (number) =>
-          !existingImages.some((image) => image.imageNumber === number),
-      )
-    ) {
-      throw new AppError("Image not found", 404);
-    }
-    if (keepNumbers && new Set(keepNumbers).size !== keepNumbers.length) {
-      throw new AppError("Duplicate image number", 400);
+
+    if (keepNumbers) {
+      for (const number of keepNumbers) {
+        ImageNumberSchema.parse(number);
+      }
+      if (
+        keepNumbers.some(
+          (number) =>
+            !existingImages.some((image) => image.imageNumber === number),
+        )
+      ) {
+        throw new AppError("Image not found", 404);
+      }
+      if (new Set(keepNumbers).size !== keepNumbers.length) {
+        throw new AppError("Duplicate image number", 400);
+      }
     }
 
     const keptImages =
@@ -161,21 +170,41 @@ export class LocationService {
         usedNumbers.add(imageNumber);
       }
 
-      const record = await this.locationRepository.update(
+      const result = await this.locationRepository.update(
         id,
         input,
         hasImageChanges ? images : undefined,
       );
 
-      const keptNumbers = new Set(
-        keptImages.map((image) => image.imageNumber),
-      );
+      if (result.status === "IMAGE_IN_USE") {
+        throw new AppError(
+          "Cannot delete or replace an image used by a game in progress",
+          409,
+        );
+      }
+
+      const updatedImages = hasImageChanges
+        ? images
+        : existingImages.map((image) => ({
+            imageNumber: image.imageNumber,
+            imageUrl: image.imageUrl,
+          }));
 
       const removedKeys = existingImages
-        .filter((image) => !keptNumbers.has(image.imageNumber))
+        .filter((oldImage) => {
+          const updatedImage = updatedImages.find(
+            (image) => image.imageNumber === oldImage.imageNumber,
+          );
+
+          return (
+            updatedImage === undefined ||
+            updatedImage.imageUrl !== oldImage.imageUrl
+          );
+        })
         .flatMap((image) => extractImageKey(image.imageUrl) ?? []);
       await this.deleteImagesFromStorage(removedKeys);
-      return LocationFactory.toDomain(record);
+
+      return LocationFactory.toDomain(result.location);
     } catch (error) {
       await this.deleteImagesFromStorage(uploadedKeys);
       throw error;

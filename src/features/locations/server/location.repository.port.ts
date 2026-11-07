@@ -10,6 +10,15 @@ import type {
 } from "../location.schema";
 import type { LocationStatus } from "../location";
 
+export type LocationUpdateResult =
+  | {
+      status: "UPDATED";
+      location: LocationModelWithImages;
+    }
+  | {
+      status: "IMAGE_IN_USE";
+    };
+
 export interface LocationRepository {
   findMany(query: SearchLocationQueryInput): Promise<GetLocationRecordsResult>;
   findById(id: string): Promise<LocationModelWithImages | null>;
@@ -22,6 +31,6 @@ export interface LocationRepository {
     id: string,
     input: UpdateLocationInput,
     images?: LocationImageRecordInput[],
-  ): Promise<LocationModelWithImages>;
+  ): Promise<LocationUpdateResult>;
   delete(id: string): Promise<void>;
 }

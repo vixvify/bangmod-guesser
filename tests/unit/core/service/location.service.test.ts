@@ -250,9 +250,10 @@ describe("LocationService", () => {
       });
 
       imageRepository.delete.mockResolvedValue();
-      locationRepository.update.mockImplementation(async () =>
-        (await locationRepository.findById("loc_1"))!,
-      );
+      locationRepository.update.mockImplementation(async () => ({
+        status: "UPDATED",
+        location: (await locationRepository.findById("loc_1"))!,
+      }));
 
       await locationService.updateLocation("loc_1", {}, { keepImageNumbers: [1, 3] });
 
@@ -273,6 +274,188 @@ describe("LocationService", () => {
           },
         ],
       );
+    });
+
+    it("throws 409 and cleans up newly uploaded images when an image is in use", async () => {
+      const { locationService, locationRepository, imageRepository } =
+        createTestService();
+
+      locationRepository.findById.mockResolvedValue({
+        id: "loc_1",
+        name: "CB2",
+        description: null,
+        latitude: 13.65,
+        longitude: 100.49,
+        status: LocationStatus.ACTIVE,
+        createdAt: new Date(),
+        updatedAt: null,
+        images: [
+          {
+            locationId: "loc_1",
+            imageNumber: 1,
+            imageUrl: "https://example.com/images/1.jpg",
+            createdAt: new Date(),
+          },
+          {
+            locationId: "loc_1",
+            imageNumber: 2,
+            imageUrl: "https://example.com/images/2.jpg",
+            createdAt: new Date(),
+          },
+          {
+            locationId: "loc_1",
+            imageNumber: 3,
+            imageUrl: "https://example.com/images/3.jpg",
+            createdAt: new Date(),
+          },
+        ],
+      });
+
+      imageRepository.upload.mockResolvedValue();
+      imageRepository.getPublicUrl.mockImplementation(
+        (key) => `https://example.com/${key}`,
+      );
+      imageRepository.delete.mockResolvedValue();
+
+      locationRepository.update.mockResolvedValue({
+        status: "IMAGE_IN_USE",
+      });
+
+      await expect(
+        locationService.updateLocation(
+          "loc_1",
+          {},
+          {
+            keepImageNumbers: [1, 3],
+            newImages: [
+              {
+                contentType: "image/jpeg",
+                content: sampleImageBuffer,
+              },
+            ],
+          },
+        ),
+      ).rejects.toThrowError(
+        new AppError(
+          "Cannot delete or replace an image used by a game in progress",
+          409,
+        ),
+      );
+
+      expect(imageRepository.upload).toHaveBeenCalledTimes(1);
+      expect(locationRepository.update).toHaveBeenCalledTimes(1);
+      expect(imageRepository.delete).toHaveBeenCalledTimes(1);
+    });
+
+    it("replaces an image and deletes only the old image from storage", async () => {
+      const { locationService, locationRepository, imageRepository } =
+        createTestService();
+
+      locationRepository.findById.mockResolvedValue({
+        id: "loc_1",
+        name: "CB2",
+        description: null,
+        latitude: 13.65,
+        longitude: 100.49,
+        status: LocationStatus.ACTIVE,
+        createdAt: new Date(),
+        updatedAt: null,
+        images: [
+          {
+            locationId: "loc_1",
+            imageNumber: 1,
+            imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3301.jpg",
+            createdAt: new Date(),
+          },
+          {
+            locationId: "loc_1",
+            imageNumber: 2,
+            imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3302.jpg",
+            createdAt: new Date(),
+          },
+          {
+            locationId: "loc_1",
+            imageNumber: 3,
+            imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3303.jpg",
+            createdAt: new Date(),
+          },
+        ],
+      });
+
+      imageRepository.upload.mockResolvedValue();
+      imageRepository.getPublicUrl.mockImplementation(
+        (key) => `https://example.com/${key}`,
+      );
+      imageRepository.delete.mockResolvedValue();
+
+      locationRepository.update.mockResolvedValue({
+        status: "UPDATED",
+        location: {
+          id: "loc_1",
+          name: "CB2",
+          description: null,
+          latitude: 13.65,
+          longitude: 100.49,
+          status: LocationStatus.ACTIVE,
+          createdAt: new Date(),
+          updatedAt: null,
+          images: [
+            {
+              locationId: "loc_1",
+              imageNumber: 1,
+              imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3301.jpg",
+              createdAt: new Date(),
+            },
+            {
+              locationId: "loc_1",
+              imageNumber: 2,
+              imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3302.jpg",
+              createdAt: new Date(),
+            },
+            {
+              locationId: "loc_1",
+              imageNumber: 3,
+              imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3303.jpg",
+              createdAt: new Date(),
+            },
+          ],
+        },
+      });
+
+      await locationService.updateLocation(
+        "loc_1",
+        {},
+        {
+          keepImageNumbers: [1, 3],
+          newImages: [
+            {
+              contentType: "image/jpeg",
+              content: sampleImageBuffer,
+            },
+          ],
+        },
+      );
+
+      expect(locationRepository.update).toHaveBeenCalledWith(
+        "loc_1",
+        {},
+        expect.arrayContaining([
+          expect.objectContaining({
+            imageNumber: 1,
+            imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3301.jpg",
+          }),
+          expect.objectContaining({
+            imageNumber: 2,
+          }),
+          expect.objectContaining({
+            imageNumber: 3,
+            imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3303.jpg",
+          }),
+        ]),
+      );
+
+      expect(imageRepository.delete).toHaveBeenCalledTimes(1);
+      expect(imageRepository.delete).toHaveBeenCalledWith("images/3f2504e0-4f89-11d3-9a0c-0305e82c3302.jpg");
     });
 
     it.each([
@@ -313,28 +496,31 @@ describe("LocationService", () => {
         );
 
         locationRepository.update.mockResolvedValue({
-          id: "loc_1",
-          name: "CB2",
-          description: null,
-          latitude: 13.65,
-          longitude: 100.49,
-          status: LocationStatus.ACTIVE,
-          createdAt: new Date(),
-          updatedAt: null,
-          images: [
-            ...existingNumbers.map((imageNumber) => ({
-              locationId: "loc_1",
-              imageNumber,
-              imageUrl: `https://example.com/images/${imageNumber}.jpg`,
-              createdAt: new Date(),
-            })),
-            {
-              locationId: "loc_1",
-              imageNumber: expectedNewNumber,
-              imageUrl: "https://example.com/images/new.jpg",
-              createdAt: new Date(),
-            },
-          ],
+          status: "UPDATED",
+          location: {
+            id: "loc_1",
+            name: "CB2",
+            description: null,
+            latitude: 13.65,
+            longitude: 100.49,
+            status: LocationStatus.ACTIVE,
+            createdAt: new Date(),
+            updatedAt: null,
+            images: [
+              ...existingNumbers.map((imageNumber) => ({
+                locationId: "loc_1",
+                imageNumber,
+                imageUrl: `https://example.com/images/${imageNumber}.jpg`,
+                createdAt: new Date(),
+              })),
+              {
+                locationId: "loc_1",
+                imageNumber: expectedNewNumber,
+                imageUrl: "https://example.com/images/new.jpg",
+                createdAt: new Date(),
+              },
+            ],
+          }
         });
 
         await locationService.updateLocation(
@@ -530,9 +716,10 @@ describe("LocationService", () => {
       });
 
       imageRepository.delete.mockResolvedValue();
-      locationRepository.update.mockImplementation(async () =>
-        (await locationRepository.findById("loc_1"))!,
-      );
+      locationRepository.update.mockImplementation(async () => ({
+        status: "UPDATED",
+        location: (await locationRepository.findById("loc_1"))!,
+      }));
 
       await locationService.deleteLocationImage("loc_1", 2);
 

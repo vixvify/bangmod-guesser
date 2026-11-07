@@ -95,25 +95,42 @@ describe.skipIf(process.env.RUN_LOCATION_DATABASE_TESTS !== "1")(
       ]);
     }
 
-    it("prevents deleting an image used by a PLAYING game and rolls back other changes", async () => {
+    async function replaceImage2() {
+      return repository.update(locationId, {}, [
+        {
+          imageNumber: 1,
+          imageUrl: "https://example.test/image-1.jpg",
+        },
+        {
+          imageNumber: 2,
+          imageUrl: "https://example.test/replacement-image-2.jpg",
+        },
+        {
+          imageNumber: 3,
+          imageUrl: "https://example.test/image-3.jpg",
+        },
+      ]);
+    }
+
+    it("returns IMAGE_IN_USE when deleting an image used by a PLAYING game", async () => {
       await createGameWithRound(GameStatus.PLAYING);
 
-      await expect(
-        repository.update(
-          locationId,
-          { name: "Changed location name" },
-          [
-            {
-              imageNumber: 1,
-              imageUrl: "https://example.test/image-1.jpg",
-            },
-            {
-              imageNumber: 3,
-              imageUrl: "https://example.test/image-3.jpg",
-            },
-          ],
-        ),
-      ).rejects.toThrow("Cannot delete an image used by a game in progress");
+      const result = await repository.update(
+        locationId,
+        { name: "Changed location name" },
+        [
+          {
+            imageNumber: 1,
+            imageUrl: "https://example.test/image-1.jpg",
+          },
+          {
+            imageNumber: 3,
+            imageUrl: "https://example.test/image-3.jpg",
+          },
+        ],
+      );
+
+      expect(result.status).toBe("IMAGE_IN_USE");
 
       const location = await prisma.location.findUniqueOrThrow({
         where: { id: locationId },
@@ -124,12 +141,38 @@ describe.skipIf(process.env.RUN_LOCATION_DATABASE_TESTS !== "1")(
       expect(location.images.map((image) => image.imageNumber)).toEqual([1, 2, 3]);
     });
 
+    it("returns IMAGE_IN_USE when replacing an image used by a PLAYING game", async () => {
+      await createGameWithRound(GameStatus.PLAYING);
+
+      const result = await replaceImage2();
+
+      expect(result.status).toBe("IMAGE_IN_USE");
+
+      const location = await prisma.location.findUniqueOrThrow({
+        where: { id: locationId },
+        include: { images: { orderBy: { imageNumber: "asc" } } },
+      });
+
+      expect(
+        location.images.find((image) => image.imageNumber === 2)?.imageUrl,
+      ).toBe("https://example.test/image-2.jpg");
+
+      const game = await prisma.game.findFirstOrThrow({
+        where: { userId },
+        include: { rounds: true },
+      });
+
+      expect(game.rounds[0].imageNumber).toBe(2);
+    });
+
     it.each([GameStatus.COMPLETED, GameStatus.INCOMPLETE])(
       "sets the round imageNumber to null when deleting an image used by a %s game",
       async (status) => {
         const game = await createGameWithRound(status);
 
-        await removeImage2();
+        const result = await removeImage2();
+
+        expect(result.status).toBe("UPDATED");
 
         const updatedGame = await prisma.game.findUniqueOrThrow({
           where: { id: game.id },
@@ -158,8 +201,48 @@ describe.skipIf(process.env.RUN_LOCATION_DATABASE_TESTS !== "1")(
       },
     );
 
+    it.each([GameStatus.COMPLETED, GameStatus.INCOMPLETE])(
+      "sets the round imageNumber to null when replacing an image used by a %s game",
+      async (status) => {
+        const game = await createGameWithRound(status);
+
+        const result = await replaceImage2();
+
+        expect(result.status).toBe("UPDATED");
+
+        const updatedGame = await prisma.game.findUniqueOrThrow({
+          where: { id: game.id },
+          include: { rounds: true },
+        });
+
+        expect(updatedGame.status).toBe(status);
+        expect(updatedGame.rounds[0]).toMatchObject({
+          questionNumber: 1,
+          locationId,
+          imageNumber: null,
+          status: RoundStatus.COMPLETED,
+          score: 900,
+          playTimeSeconds: 20,
+          guessedLatitude: 13.7,
+          guessedLongitude: 100.5,
+        });
+
+        const images = await prisma.locationImage.findMany({
+          where: { locationId },
+          orderBy: { imageNumber: "asc" },
+        });
+
+        expect(images.map((image) => image.imageNumber)).toEqual([1, 2, 3]);
+        expect(images.find((image) => image.imageNumber === 2)?.imageUrl).toBe(
+          "https://example.test/replacement-image-2.jpg",
+        );
+      },
+    );
+
     it("deletes an unused image without changing the remaining image numbers", async () => {
-      await removeImage2();
+      const result = await removeImage2();
+
+      expect(result.status).toBe("UPDATED");
 
       const images = await prisma.locationImage.findMany({
         where: { locationId },
