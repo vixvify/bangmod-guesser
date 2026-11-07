@@ -214,7 +214,7 @@ describe("LocationService", () => {
       ).rejects.toThrowError(new AppError("Location not found", 404));
     });
 
-    it("deletes specified images, resequences remaining, and cleans up storage", async () => {
+    it("deletes specified images, preserves remaining image numbers, and cleans up storage", async () => {
       const { locationService, locationRepository, imageRepository } =
         createTestService();
 
@@ -268,12 +268,100 @@ describe("LocationService", () => {
             imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3301.jpg",
           },
           {
-            imageNumber: 2,
+            imageNumber: 3,
             imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3303.jpg",
           },
         ],
       );
     });
+
+    it.each([
+      {
+        existingNumbers: [1, 3],
+        expectedNewNumber: 2,
+      },
+      {
+        existingNumbers: [2, 4],
+        expectedNewNumber: 1,
+      },
+    ])(
+      "assigns the lowest available image number when adding an image to slots $existingNumbers",
+      async ({ existingNumbers, expectedNewNumber }) => {
+        const { locationService, locationRepository, imageRepository } =
+          createTestService();
+
+        locationRepository.findById.mockResolvedValue({
+          id: "loc_1",
+          name: "CB2",
+          description: null,
+          latitude: 13.65,
+          longitude: 100.49,
+          status: LocationStatus.ACTIVE,
+          createdAt: new Date(),
+          updatedAt: null,
+          images: existingNumbers.map((imageNumber) => ({
+            locationId: "loc_1",
+            imageNumber,
+            imageUrl: `https://example.com/images/${imageNumber}.jpg`,
+            createdAt: new Date(),
+          })),
+        });
+
+        imageRepository.upload.mockResolvedValue();
+        imageRepository.getPublicUrl.mockReturnValue(
+          "https://example.com/images/new.jpg",
+        );
+
+        locationRepository.update.mockResolvedValue({
+          id: "loc_1",
+          name: "CB2",
+          description: null,
+          latitude: 13.65,
+          longitude: 100.49,
+          status: LocationStatus.ACTIVE,
+          createdAt: new Date(),
+          updatedAt: null,
+          images: [
+            ...existingNumbers.map((imageNumber) => ({
+              locationId: "loc_1",
+              imageNumber,
+              imageUrl: `https://example.com/images/${imageNumber}.jpg`,
+              createdAt: new Date(),
+            })),
+            {
+              locationId: "loc_1",
+              imageNumber: expectedNewNumber,
+              imageUrl: "https://example.com/images/new.jpg",
+              createdAt: new Date(),
+            },
+          ],
+        });
+
+        await locationService.updateLocation(
+          "loc_1",
+          {},
+          {
+            newImages: [
+              {
+                contentType: "image/jpeg",
+                content: sampleImageBuffer,
+              },
+            ],
+          },
+        );
+
+        expect(locationRepository.update).toHaveBeenCalledWith(
+          "loc_1",
+          {},
+          expect.arrayContaining([
+            expect.objectContaining({
+              imageNumber: expectedNewNumber,
+              imageUrl: "https://example.com/images/new.jpg",
+            }),
+          ]),
+        );
+      },
+    );
 
     it("rejects when all images are deleted and none remain", async () => {
       const { locationService, locationRepository } = createTestService();
@@ -406,7 +494,7 @@ describe("LocationService", () => {
       ).rejects.toThrowError(new AppError("Image not found", 404));
     });
 
-    it("deletes target image, resequences remaining images, and cleans storage", async () => {
+    it("deletes target image, preserves remaining image numbers, and cleans storage", async () => {
       const { locationService, locationRepository, imageRepository } =
         createTestService();
 
@@ -460,7 +548,7 @@ describe("LocationService", () => {
             imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3301.jpg",
           },
           {
-            imageNumber: 2,
+            imageNumber: 3,
             imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3303.jpg",
           },
         ],
