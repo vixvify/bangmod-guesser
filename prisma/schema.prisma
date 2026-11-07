@@ -127,6 +127,8 @@ model LocationImage {
   locationId String
   location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
 
+  gameRounds GameRound[]
+
   @@id([locationId, imageNumber])
   @@index([locationId])
   @@map("location_images")
@@ -163,6 +165,7 @@ model GameRound {
 
   locationId String
   location   Location @relation(fields: [locationId], references: [id])
+  locationImage LocationImage? @relation(fields: [locationId, imageNumber], references: [locationId, imageNumber], onDelete: Restrict)
 
   @@unique([gameId, questionNumber])
   @@index([gameId])
