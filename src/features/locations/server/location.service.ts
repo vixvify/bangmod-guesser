@@ -64,10 +64,13 @@ export class LocationService {
       for (const image of imagesToUpload) {
         const uploaded = await this.imageService.upload(image);
         uploadedKeys.push(uploaded.key);
-        images.push(LocationImageRecordSchema.parse({
-          imageNumber: images.length + 1,
-          imageUrl: uploaded.url,
-        }));
+
+        images.push(
+          LocationImageRecordSchema.parse({
+            imageNumber: images.length + 1,
+            imageUrl: uploaded.url,
+          }),
+        );
       }
 
       const record = await this.locationRepository.create(
@@ -115,7 +118,9 @@ export class LocationService {
             keepNumbers.includes(image.imageNumber),
           );
     const newImages = imageChanges.newImages ?? [];
-    const hasImageChanges = keepNumbers !== undefined || newImages.length > 0;
+    const hasImageChanges =
+      keepNumbers !== undefined || newImages.length > 0;
+
     const imageCount = keptImages.length + newImages.length;
     if (
       hasImageChanges &&
@@ -126,17 +131,34 @@ export class LocationService {
 
     const uploadedKeys: string[] = [];
     try {
-      const images = keptImages.map((image, index) => ({
-        imageNumber: index + 1,
+      const images = keptImages.map((image) => ({
+        imageNumber: image.imageNumber,
         imageUrl: image.imageUrl,
       }));
+      const usedNumbers = new Set(
+        images.map((image) => image.imageNumber),
+      );
       for (const image of newImages) {
+        const imageNumber = Array.from(
+          { length: LOCATION_MAX_IMAGES },
+          (_, index) => index + 1,
+        ).find((number) => !usedNumbers.has(number));
+
+        if (imageNumber === undefined) {
+          throw new AppError("Location requires 1 to 5 images", 400);
+        }
+
         const uploaded = await this.imageService.upload(image);
         uploadedKeys.push(uploaded.key);
-        images.push(LocationImageRecordSchema.parse({
-          imageNumber: images.length + 1,
-          imageUrl: uploaded.url,
-        }));
+
+        images.push(
+          LocationImageRecordSchema.parse({
+            imageNumber,
+            imageUrl: uploaded.url,
+          }),
+        );
+
+        usedNumbers.add(imageNumber);
       }
 
       const record = await this.locationRepository.update(
@@ -145,8 +167,12 @@ export class LocationService {
         hasImageChanges ? images : undefined,
       );
 
+      const keptNumbers = new Set(
+        keptImages.map((image) => image.imageNumber),
+      );
+
       const removedKeys = existingImages
-        .filter((image) => !keptImages.includes(image))
+        .filter((image) => !keptNumbers.has(image.imageNumber))
         .flatMap((image) => extractImageKey(image.imageUrl) ?? []);
       await this.deleteImagesFromStorage(removedKeys);
       return LocationFactory.toDomain(record);
