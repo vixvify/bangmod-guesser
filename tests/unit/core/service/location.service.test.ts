@@ -263,17 +263,33 @@ describe("LocationService", () => {
       expect(locationRepository.update).toHaveBeenCalledWith(
         "loc_1",
         {},
-        [
-          {
-            imageNumber: 1,
-            imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3301.jpg",
-          },
-          {
-            imageNumber: 3,
-            imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3303.jpg",
-          },
-        ],
-      );
+        {
+          images: [
+            {
+              imageNumber: 1,
+              imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3301.jpg",
+            },
+            {
+              imageNumber: 3,
+              imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3303.jpg",
+            },
+          ],
+          originalImages: [
+            {
+              imageNumber: 1,
+              imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3301.jpg",
+            },
+            {
+              imageNumber: 2,
+              imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3302.jpg",
+            },
+            {
+              imageNumber: 3,
+              imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3303.jpg",
+            },
+          ],
+        },
+);
     });
 
     it("throws 409 and cleans up newly uploaded images when an image is in use", async () => {
@@ -345,6 +361,74 @@ describe("LocationService", () => {
       expect(imageRepository.upload).toHaveBeenCalledTimes(1);
       expect(locationRepository.update).toHaveBeenCalledTimes(1);
       expect(imageRepository.delete).toHaveBeenCalledTimes(1);
+    });
+
+    it("throws 409 and cleans up newly uploaded images when the image snapshot is stale", async () => {
+      const { locationService, locationRepository, imageRepository } =
+        createTestService();
+
+      locationRepository.findById.mockResolvedValue({
+        id: "loc_1",
+        name: "CB2",
+        description: null,
+        latitude: 13.65,
+        longitude: 100.49,
+        status: LocationStatus.ACTIVE,
+        createdAt: new Date(),
+        updatedAt: null,
+        images: [
+          {
+            locationId: "loc_1",
+            imageNumber: 1,
+            imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3301.jpg",
+            createdAt: new Date(),
+          },
+          {
+            locationId: "loc_1",
+            imageNumber: 2,
+            imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3302.jpg",
+            createdAt: new Date(),
+          },
+        ],
+      });
+
+      imageRepository.upload.mockResolvedValue();
+      imageRepository.getPublicUrl.mockImplementation(
+        (key) => `https://example.com/${key}`,
+      );
+      imageRepository.delete.mockResolvedValue();
+
+      locationRepository.update.mockResolvedValue({
+        status: "STALE_UPDATE",
+      });
+
+      await expect(
+        locationService.updateLocation(
+          "loc_1",
+          {},
+          {
+            keepImageNumbers: [1],
+            newImages: [
+              {
+                contentType: "image/jpeg",
+                content: sampleImageBuffer,
+              },
+            ],
+          },
+        ),
+      ).rejects.toThrowError(
+        new AppError(
+          "Location images have changed. Reload the latest data and try again.",
+          409,
+        ),
+      );
+
+      expect(imageRepository.upload).toHaveBeenCalledTimes(1);
+      expect(locationRepository.update).toHaveBeenCalledTimes(1);
+      expect(imageRepository.delete).toHaveBeenCalledTimes(1);
+      expect(imageRepository.delete).not.toHaveBeenCalledWith(
+        "images/3f2504e0-4f89-11d3-9a0c-0305e82c3302.jpg",
+      );
     });
 
     it("replaces an image and deletes only the old image from storage", async () => {
@@ -439,19 +523,35 @@ describe("LocationService", () => {
       expect(locationRepository.update).toHaveBeenCalledWith(
         "loc_1",
         {},
-        expect.arrayContaining([
-          expect.objectContaining({
-            imageNumber: 1,
-            imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3301.jpg",
-          }),
-          expect.objectContaining({
-            imageNumber: 2,
-          }),
-          expect.objectContaining({
-            imageNumber: 3,
-            imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3303.jpg",
-          }),
-        ]),
+        expect.objectContaining({
+          images: expect.arrayContaining([
+            expect.objectContaining({
+              imageNumber: 1,
+              imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3301.jpg",
+            }),
+            expect.objectContaining({
+              imageNumber: 2,
+            }),
+            expect.objectContaining({
+              imageNumber: 3,
+              imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3303.jpg",
+            }),
+          ]),
+          originalImages: [
+            {
+              imageNumber: 1,
+              imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3301.jpg",
+            },
+            {
+              imageNumber: 2,
+              imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3302.jpg",
+            },
+            {
+              imageNumber: 3,
+              imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3303.jpg",
+            },
+          ],
+        }),
       );
 
       expect(imageRepository.delete).toHaveBeenCalledTimes(1);
@@ -539,12 +639,18 @@ describe("LocationService", () => {
         expect(locationRepository.update).toHaveBeenCalledWith(
           "loc_1",
           {},
-          expect.arrayContaining([
-            expect.objectContaining({
-              imageNumber: expectedNewNumber,
-              imageUrl: "https://example.com/images/new.jpg",
-            }),
-          ]),
+          expect.objectContaining({
+            images: expect.arrayContaining([
+              expect.objectContaining({
+                imageNumber: expectedNewNumber,
+                imageUrl: "https://example.com/images/new.jpg",
+              }),
+            ]),
+            originalImages: existingNumbers.map((imageNumber) => ({
+              imageNumber,
+              imageUrl: `https://example.com/images/${imageNumber}.jpg`,
+            })),
+          }),
         );
       },
     );
@@ -729,16 +835,32 @@ describe("LocationService", () => {
       expect(locationRepository.update).toHaveBeenCalledWith(
         "loc_1",
         {},
-        [
-          {
-            imageNumber: 1,
-            imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3301.jpg",
-          },
-          {
-            imageNumber: 3,
-            imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3303.jpg",
-          },
-        ],
+        {
+          images: [
+            {
+              imageNumber: 1,
+              imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3301.jpg",
+            },
+            {
+              imageNumber: 3,
+              imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3303.jpg",
+            },
+          ],
+          originalImages: [
+            {
+              imageNumber: 1,
+              imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3301.jpg",
+            },
+            {
+              imageNumber: 2,
+              imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3302.jpg",
+            },
+            {
+              imageNumber: 3,
+              imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3303.jpg",
+            },
+          ],
+        },
       );
     });
   });

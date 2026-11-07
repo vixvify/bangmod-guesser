@@ -1,6 +1,7 @@
 import { GameStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/shared/lib/prisma";
 import type {
+  LocationImageUpdateInput,
   LocationRepository,
   LocationUpdateResult,
 } from "@/features/locations/server/location.repository.port";
@@ -89,166 +90,182 @@ export class LocationRepositoryImpl implements LocationRepository {
   async update(
     id: string,
     data: UpdateLocationInput,
-    images?: LocationImageRecordInput[],
+    imageUpdate?: LocationImageUpdateInput,
   ): Promise<LocationUpdateResult> {
-    if (images === undefined) {
+    if (imageUpdate === undefined) {
       const location = await prisma.location.update({
         where: { id },
         data,
         include: { images: true },
       });
-
-      return {
-        status: "UPDATED",
-        location,
-      };
+      return { status: "UPDATED", location };
     }
 
-    return prisma.$transaction(
-      async (transaction): Promise<LocationUpdateResult> => {
-        const existingImages = await transaction.locationImage.findMany({
-          where: { locationId: id },
-          select: {
-            imageNumber: true,
-            imageUrl: true,
-          },
-        });
+    try {
+      return await prisma.$transaction(
+        async (transaction): Promise<LocationUpdateResult> => {
+          await transaction.$queryRaw`
+            SELECT "id"
+            FROM "locations"
+            WHERE "id" = ${id}
+            FOR UPDATE
+          `;
 
-        const requestedImages = new Map(
-          images.map((image) => [image.imageNumber, image.imageUrl]),
-        );
-
-        const affectedImages = existingImages.filter((existing) => {
-          const requestedUrl = requestedImages.get(existing.imageNumber);
-
-          return (
-            requestedUrl === undefined ||
-            requestedUrl !== existing.imageUrl
-          );
-        });
-
-        const affectedNumbers = affectedImages.map(
-          (image) => image.imageNumber,
-        );
-
-        if (affectedNumbers.length > 0) {
-          const playingRound = await transaction.gameRound.findFirst({
-            where: {
-              locationId: id,
-              imageNumber: { in: affectedNumbers },
-              game: {
-                is: {
-                  status: GameStatus.PLAYING,
-                },
-              },
-            },
-            select: {
-              gameId: true,
-              questionNumber: true,
-            },
+          const existingImages = await transaction.locationImage.findMany({
+            where: { locationId: id },
+            select: { imageNumber: true, imageUrl: true },
           });
 
-          if (playingRound) {
-            return {
-              status: "IMAGE_IN_USE",
-            };
+          const sortImages = (
+            images: { imageNumber: number; imageUrl: string }[],
+          ) =>
+            [...images].sort(
+              (first, second) => first.imageNumber - second.imageNumber,
+            );
+
+          const currentSnapshot = sortImages(existingImages);
+          const originalSnapshot = sortImages(
+            imageUpdate.originalImages,
+          );
+
+          const isStale =
+            currentSnapshot.length !== originalSnapshot.length ||
+            currentSnapshot.some(
+              (image, index) =>
+                image.imageNumber !== originalSnapshot[index].imageNumber ||
+                image.imageUrl !== originalSnapshot[index].imageUrl,
+            );
+
+          if (isStale) {
+            return { status: "STALE_UPDATE" };
           }
 
-          await transaction.gameRound.updateMany({
-            where: {
-              locationId: id,
-              imageNumber: { in: affectedNumbers },
-              game: {
-                is: {
-                  status: {
-                    in: [
-                      GameStatus.COMPLETED,
-                      GameStatus.INCOMPLETE,
-                    ],
+          const images = imageUpdate.images;
+
+          const requestedImages = new Map(
+            images.map((image) => [image.imageNumber, image.imageUrl]),
+          );
+
+          const affectedImages = existingImages.filter((existing) => {
+            const requestedUrl = requestedImages.get(existing.imageNumber);
+            return (
+              requestedUrl === undefined ||
+              requestedUrl !== existing.imageUrl
+            );
+          });
+
+          const affectedNumbers = affectedImages.map(
+            (image) => image.imageNumber,
+          );
+
+          if (affectedNumbers.length > 0) {
+            const playingRound = await transaction.gameRound.findFirst({
+              where: {
+                locationId: id,
+                imageNumber: { in: affectedNumbers },
+                game: { is: { status: GameStatus.PLAYING } },
+              },
+              select: { gameId: true, questionNumber: true },
+            });
+
+            if (playingRound) {
+              return { status: "IMAGE_IN_USE" };
+            }
+
+            await transaction.gameRound.updateMany({
+              where: {
+                locationId: id,
+                imageNumber: { in: affectedNumbers },
+                game: {
+                  is: {
+                    status: {
+                      in: [GameStatus.COMPLETED, GameStatus.INCOMPLETE],
+                    },
                   },
                 },
               },
-            },
-            data: {
-              imageNumber: null,
-            },
-          });
-        }
+              data: { imageNumber: null },
+            });
+          }
 
-        const existingNumberSet = new Set(
-          existingImages.map((image) => image.imageNumber),
-        );
-
-        const requestedNumberSet = new Set(
-          images.map((image) => image.imageNumber),
-        );
-
-        const deletedNumbers = existingImages
-          .filter((image) => !requestedNumberSet.has(image.imageNumber))
-          .map((image) => image.imageNumber);
-
-        if (deletedNumbers.length > 0) {
-          await transaction.locationImage.deleteMany({
-            where: {
-              locationId: id,
-              imageNumber: { in: deletedNumbers },
-            },
-          });
-        }
-
-        const newImages = images.filter(
-          (image) => !existingNumberSet.has(image.imageNumber),
-        );
-
-        if (newImages.length > 0) {
-          await transaction.locationImage.createMany({
-            data: newImages.map((image) => ({
-              locationId: id,
-              imageNumber: image.imageNumber,
-              imageUrl: image.imageUrl,
-            })),
-          });
-        }
-
-        const replacedImages = images.filter((image) => {
-          const existing = existingImages.find(
-            (item) => item.imageNumber === image.imageNumber,
+          const existingNumberSet = new Set(
+            existingImages.map((image) => image.imageNumber),
+          );
+          const requestedNumberSet = new Set(
+            images.map((image) => image.imageNumber),
           );
 
-          return existing !== undefined && existing.imageUrl !== image.imageUrl;
-        });
+          const deletedNumbers = existingImages
+            .filter((image) => !requestedNumberSet.has(image.imageNumber))
+            .map((image) => image.imageNumber);
 
-        for (const image of replacedImages) {
-          await transaction.locationImage.update({
-            where: {
-              locationId_imageNumber: {
+          if (deletedNumbers.length > 0) {
+            await transaction.locationImage.deleteMany({
+              where: {
+                locationId: id,
+                imageNumber: { in: deletedNumbers },
+              },
+            });
+          }
+
+          const newImages = images.filter(
+            (image) => !existingNumberSet.has(image.imageNumber),
+          );
+
+          if (newImages.length > 0) {
+            await transaction.locationImage.createMany({
+              data: newImages.map((image) => ({
                 locationId: id,
                 imageNumber: image.imageNumber,
-              },
-            },
-            data: {
-              imageUrl: image.imageUrl,
-            },
+                imageUrl: image.imageUrl,
+              })),
+            });
+          }
+
+          const replacedImages = images.filter((image) => {
+            const existing = existingImages.find(
+              (item) => item.imageNumber === image.imageNumber,
+            );
+            return (
+              existing !== undefined &&
+              existing.imageUrl !== image.imageUrl
+            );
           });
-        }
 
-        const location = await transaction.location.update({
-          where: { id },
-          data,
-          include: {
-            images: true,
-          },
-        });
+          for (const image of replacedImages) {
+            await transaction.locationImage.update({
+              where: {
+                locationId_imageNumber: {
+                  locationId: id,
+                  imageNumber: image.imageNumber,
+                },
+              },
+              data: { imageUrl: image.imageUrl },
+            });
+          }
 
-        return {
-          status: "UPDATED",
-          location,
-        };
-      },
-      {
-        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-      },
-    );
+          const location = await transaction.location.update({
+            where: { id },
+            data,
+            include: { images: true },
+          });
+
+          return { status: "UPDATED", location };
+        },
+        {
+          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        },
+      );
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2034"
+      ) {
+        return { status: "STALE_UPDATE" };
+      }
+
+      throw error;
+    }
   }
 
   async delete(id: string): Promise<void> {

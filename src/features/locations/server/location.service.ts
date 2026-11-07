@@ -173,8 +173,23 @@ export class LocationService {
       const result = await this.locationRepository.update(
         id,
         input,
-        hasImageChanges ? images : undefined,
+        hasImageChanges
+          ? {
+              images,
+              originalImages: existingImages.map((image) => ({
+                imageNumber: image.imageNumber,
+                imageUrl: image.imageUrl,
+              })),
+            }
+          : undefined,
       );
+
+      if (result.status === "STALE_UPDATE") {
+        throw new AppError(
+          "Location images have changed. Reload the latest data and try again.",
+          409,
+        );
+      }
 
       if (result.status === "IMAGE_IN_USE") {
         throw new AppError(

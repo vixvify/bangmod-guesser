@@ -10,6 +10,16 @@ import type {
 } from "../location.schema";
 import type { LocationStatus } from "../location";
 
+export type LocationImageSnapshot = {
+  imageNumber: number;
+  imageUrl: string;
+}[];
+
+export type LocationImageUpdateInput = {
+  images: LocationImageRecordInput[];
+  originalImages: LocationImageSnapshot;
+};
+
 export type LocationUpdateResult =
   | {
       status: "UPDATED";
@@ -17,6 +27,9 @@ export type LocationUpdateResult =
     }
   | {
       status: "IMAGE_IN_USE";
+    }
+  | {
+      status: "STALE_UPDATE";
     };
 
 export interface LocationRepository {
@@ -30,7 +43,7 @@ export interface LocationRepository {
   update(
     id: string,
     input: UpdateLocationInput,
-    images?: LocationImageRecordInput[],
+    imageUpdate?: LocationImageUpdateInput,
   ): Promise<LocationUpdateResult>;
   delete(id: string): Promise<void>;
 }
