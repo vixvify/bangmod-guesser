@@ -10,6 +10,8 @@ import { NavigationGuardProvider } from "@/shared/hooks/use-navigation-guard";
 import { mockLocations } from "@/features/locations/locations.mock";
 import { AppError } from "@/shared/errors/app.error";
 import { UserRole } from "@/features/users/user";
+import { HttpError } from "@/shared/lib/http";
+import { LOCATION_MESSAGES } from "@/features/locations/location.constants";
 
 const { getLocationById, post, put, push, refresh, success, error } = vi.hoisted(() => ({
   getLocationById: vi.fn(),
@@ -22,7 +24,16 @@ const { getLocationById, post, put, push, refresh, success, error } = vi.hoisted
 }));
 
 vi.mock("@/container", () => ({ locationService: { getLocationById } }));
-vi.mock("@/shared/lib/http", () => ({ default: { post, put } }));
+vi.mock("@/shared/lib/http", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/shared/lib/http")>();
+  return {
+    ...actual,
+    default: {
+      post,
+      put,
+    },
+  };
+});
 vi.mock("sonner", () => ({ toast: { success, error } }));
 vi.mock("@/features/auth/auth-client", () => ({ authClient: { signOut: vi.fn() } }));
 vi.mock("next/navigation", async (importOriginal) => ({
@@ -441,6 +452,137 @@ describe("location editor", () => {
     const form = put.mock.calls[0][1] as FormData;
     expect(form.getAll("keepImageNumbers")).toEqual(["2"]);
     expect(form.getAll("newImages")).toEqual([replacement]);
+  });
+
+  it("shows a stale update message when location images have changed", async () => {
+    put.mockRejectedValueOnce(
+      new HttpError(
+        "Location images have changed. Reload the latest data and try again.",
+        409,
+        "STALE_UPDATE",
+      ),
+    );
+
+    render(
+      await EditLocationPage({
+        params: Promise.resolve({ id: "location-01" }),
+      }),
+    );
+
+    fireEvent.change(
+      screen.getByRole("textbox", {
+        name: "ชื่อสถานที่ *",
+      }),
+      { target: { value: "Updated location name" } },
+    );
+
+    const submit = screen.getByRole("button", {
+      name: "แก้ไขสถานที่",
+    });
+
+    await waitFor(() => expect(submit.hasAttribute("disabled")).toBe(false));
+    fireEvent.click(submit);
+
+    const dialog = await screen.findByRole("dialog", {
+      name: "ยืนยันการแก้ไขสถานที่",
+    });
+
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "ยืนยัน" }),
+    );
+
+    await waitFor(() => {
+      expect(error).toHaveBeenCalledWith(LOCATION_MESSAGES.staleUpdate);
+    });
+
+    expect(push).not.toHaveBeenCalled();
+    expect(
+      (screen.getByRole("textbox", {
+        name: "ชื่อสถานที่ *",
+      }) as HTMLInputElement).value,
+    ).toBe("Updated location name");
+  });
+
+  it("shows an image in use message when an image is used in an active game", async () => {
+    put.mockRejectedValueOnce(
+      new HttpError(
+        "Cannot delete or replace an image used by a game in progress",
+        409,
+        "IMAGE_IN_USE",
+      ),
+    );
+
+    render(
+      await EditLocationPage({
+        params: Promise.resolve({ id: "location-01" }),
+      }),
+    );
+
+    fireEvent.change(
+      screen.getByRole("textbox", {
+        name: "ชื่อสถานที่ *",
+      }),
+      { target: { value: "Updated location name" } },
+    );
+
+    const submit = screen.getByRole("button", {
+      name: "แก้ไขสถานที่",
+    });
+
+    await waitFor(() => expect(submit.hasAttribute("disabled")).toBe(false));
+    fireEvent.click(submit);
+
+    const dialog = await screen.findByRole("dialog", {
+      name: "ยืนยันการแก้ไขสถานที่",
+    });
+
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "ยืนยัน" }),
+    );
+
+    await waitFor(() => {
+      expect(error).toHaveBeenCalledWith(LOCATION_MESSAGES.imageInUse);
+    });
+
+    expect(push).not.toHaveBeenCalled();
+  });
+
+  it("shows the generic update failed message for other API errors", async () => {
+    put.mockRejectedValueOnce(new Error("Server unavailable"));
+
+    render(
+      await EditLocationPage({
+        params: Promise.resolve({ id: "location-01" }),
+      }),
+    );
+
+    fireEvent.change(
+      screen.getByRole("textbox", {
+        name: "ชื่อสถานที่ *",
+      }),
+      { target: { value: "Updated location name" } },
+    );
+
+    const submit = screen.getByRole("button", {
+      name: "แก้ไขสถานที่",
+    });
+
+    await waitFor(() => expect(submit.hasAttribute("disabled")).toBe(false));
+    fireEvent.click(submit);
+
+    const dialog = await screen.findByRole("dialog", {
+      name: "ยืนยันการแก้ไขสถานที่",
+    });
+
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "ยืนยัน" }),
+    );
+
+    await waitFor(() => {
+      expect(error).toHaveBeenCalledWith(LOCATION_MESSAGES.updateFailed);
+    });
+
+    expect(push).not.toHaveBeenCalled();
   });
 
   it("keeps the create form open and reports API failure", async () => {

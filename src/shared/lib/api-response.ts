@@ -18,7 +18,7 @@ export function errorResponse(error: unknown) {
       {
         error: error.message,
         status: error.status,
-        statusCode: "ERROR",
+        statusCode: error.code ?? "ERROR",
       },
       { status: error.status },
     );

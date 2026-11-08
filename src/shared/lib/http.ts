@@ -21,7 +21,11 @@ function getHttp(): AxiosInstance {
 }
 
 export class HttpError extends Error {
-  constructor(message: string, public readonly status?: number) {
+  constructor(
+    message: string,
+    public readonly status?: number,
+    public readonly statusCode?: string,
+  ) {
     super(message);
     this.name = "HttpError";
   }
@@ -47,6 +51,7 @@ const handleRequest = async <T>(
         axiosError.message ||
         "An unexpected error occurred",
       axiosError.response?.status,
+      errorData?.statusCode,
     );
   }
 };

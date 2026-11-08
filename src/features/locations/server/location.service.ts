@@ -188,6 +188,7 @@ export class LocationService {
         throw new AppError(
           "Location images have changed. Reload the latest data and try again.",
           409,
+          "STALE_UPDATE",
         );
       }
 
@@ -195,6 +196,7 @@ export class LocationService {
         throw new AppError(
           "Cannot delete or replace an image used by a game in progress",
           409,
+          "IMAGE_IN_USE",
         );
       }
 
