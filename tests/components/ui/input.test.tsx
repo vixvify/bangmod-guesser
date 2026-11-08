@@ -7,6 +7,14 @@ import { Input } from "@/shared/components/ui/input";
 afterEach(cleanup);
 
 describe("Input", () => {
+  it.each([false, true])("keeps a thin focused border for multiline=%s", (multiline) => {
+    render(<Input id="field" label="Field" multiline={multiline} />);
+    const input = screen.getByRole("textbox", { name: "Field" });
+    fireEvent.focus(input);
+    const outline = input.closest(".MuiOutlinedInput-root")?.querySelector(".MuiOutlinedInput-notchedOutline");
+    expect(outline).toBeTruthy();
+    expect(window.getComputedStyle(outline!).borderWidth).toBe("0.0625rem");
+  });
   it("preserves help text alongside validation errors for screen readers", () => {
     render(<Input id="name" label="Name" aria-describedby="name-help" error="Required" />);
     expect(screen.getByRole("textbox", { name: "Name" }).getAttribute("aria-describedby")).toBe("name-help name-error");

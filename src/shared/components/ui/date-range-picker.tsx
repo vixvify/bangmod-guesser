@@ -118,6 +118,10 @@ export function DateRangePicker({
             "& .MuiOutlinedInput-notchedOutline": isDark
               ? { borderColor: "var(--color-surface-control-border)" }
               : undefined,
+            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+              borderColor: "var(--color-primary-main)",
+              borderWidth: "0.0625rem",
+            },
             "& .MuiInputAdornment-root": isDark
               ? { color: "var(--color-primary-light)" }
               : undefined,

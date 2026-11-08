@@ -12,7 +12,8 @@ const { updateUserMock, refreshMock, toastSuccessMock, toastErrorMock } = vi.hoi
   toastErrorMock: vi.fn(),
 }));
 
-vi.mock("@/features/auth/auth-client", () => ({ authClient: { updateUser: updateUserMock } }));
+vi.mock("@/shared/lib/http", () => ({ default: { patch: updateUserMock } }));
+vi.mock("@/features/profile/profile.routes", () => ({ ProfileRoutes: { update: "/api/profile" } }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: refreshMock }) }));
 vi.mock("sonner", () => ({
   toast: { success: toastSuccessMock, error: toastErrorMock },
@@ -90,7 +91,7 @@ describe("ProfileCard", () => {
     fireEvent.click(screen.getByRole("button", { name: "บันทึก" }));
 
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
-    expect(updateUserMock).toHaveBeenCalledWith({ name: "Bangmod Player" });
+    expect(updateUserMock).toHaveBeenCalledWith("/api/profile", { username: "Bangmod Player" });
     expect(refreshMock).toHaveBeenCalledOnce();
     expect(toastSuccessMock).toHaveBeenCalledOnce();
     expect(screen.getByRole("heading", { name: "Bangmod Player" })).toBeTruthy();
@@ -136,8 +137,8 @@ describe("ProfileCard", () => {
     expect(refreshMock).not.toHaveBeenCalled();
   });
 
-  it("keeps the old username and dialog open when Better Auth rejects the update", async () => {
-    updateUserMock.mockResolvedValueOnce({ data: null, error: { message: "Failed" } });
+  it("keeps the old username and dialog open when the API rejects the update", async () => {
+    updateUserMock.mockRejectedValueOnce(new Error("Update failed"));
     render(<ProfileCard profile={profile} />);
     fireEvent.click(screen.getByRole("button", { name: "แก้ไขชื่อผู้ใช้" }));
     fireEvent.change(screen.getByRole("textbox", { name: "ชื่อผู้ใช้" }), {
@@ -154,7 +155,7 @@ describe("ProfileCard", () => {
     expect(refreshMock).not.toHaveBeenCalled();
   });
 
-  it("keeps the dialog open when the request fails to reach Better Auth", async () => {
+  it("keeps the dialog open when the request fails to reach the API", async () => {
     updateUserMock.mockRejectedValueOnce(new Error("Network unavailable"));
     render(<ProfileCard profile={profile} />);
     fireEvent.click(screen.getByRole("button", { name: "แก้ไขชื่อผู้ใช้" }));
