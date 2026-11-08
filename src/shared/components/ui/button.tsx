@@ -42,11 +42,11 @@ const buttonStyles: SystemStyleObject<Theme> = {
 
 const variantStyles: Record<ButtonVariant, SystemStyleObject<Theme>> = {
   primary: {
-    backgroundColor: "var(--color-primary-main)",
+    backgroundColor: "var(--color-primary-button)",
     color: "#fff",
     boxShadow: "0 0.625rem 1.5rem rgb(255 122 47 / 25%)",
     "&:not(.Mui-disabled):hover": {
-      backgroundColor: "var(--color-primary-hover)",
+      backgroundColor: "var(--color-primary-button-hover)",
       boxShadow: "0 0.875rem 1.875rem rgb(255 122 47 / 32%)",
     },
     "&.Mui-disabled": {

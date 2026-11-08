@@ -8,7 +8,7 @@ describe("Button", () => {
 
     expect(markup).toContain("Play");
     expect(markup).toContain("disabled");
-    expect(markup).toContain("background-color:var(--color-primary-main)");
+    expect(markup).toContain("background-color:var(--color-primary-button)");
     expect(markup).toContain(".Mui-disabled");
     expect(markup).toContain('type="button"');
     expect(markup).toContain("color:#fff");

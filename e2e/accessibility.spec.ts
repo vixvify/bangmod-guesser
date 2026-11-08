@@ -59,6 +59,9 @@ test("skip link, settings modal, and keyboard focus work on the home page", asyn
   await page.keyboard.press("Enter");
   await expect(page.getByRole("dialog")).toBeVisible();
   await expectAccessible(page);
+  await page.getByRole("dialog").getByRole("button", { name: "ตกลง" }).hover();
+  await page.waitForTimeout(250);
+  await expectAccessible(page);
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toBeHidden();
   await expect(settings).toBeFocused();
