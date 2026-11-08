@@ -3,6 +3,7 @@ import { AppError } from "@/shared/errors/app.error";
 import type { AuthPort } from "@/features/auth/server/auth.port";
 import type { CreateUserInput, LoginInput } from "@/features/auth/auth.schema";
 import { auth } from "@/features/auth/server/auth";
+import type { UpdateUsernameFormInput } from "@/features/profile/profile.schema";
 
 function authFailure(error: unknown, message: string): never {
   if (error instanceof APIError) {
@@ -53,6 +54,19 @@ export class AuthAdapter implements AuthPort {
       return result.headers;
     } catch (error) {
       return authFailure(error, "Sign out failed");
+    }
+  }
+
+  async updateUsername(headers: Headers, input: UpdateUsernameFormInput): Promise<Headers> {
+    try {
+      const result = await auth.api.updateUser({
+        body: { name: input.username },
+        headers,
+        returnHeaders: true,
+      });
+      return result.headers;
+    } catch (error) {
+      return authFailure(error, "Update username failed");
     }
   }
 }

@@ -1,6 +1,7 @@
 import type { AuthPort } from "@/features/auth/server/auth.port";
 import type { CreateUserInput, LoginInput } from "@/features/auth/auth.schema";
 import { getAuthRedirect } from "@/features/auth/auth-redirect";
+import type { UpdateUsernameFormInput } from "@/features/profile/profile.schema";
 
 export class AuthService {
   constructor(private readonly authAdapter: AuthPort) {}
@@ -23,5 +24,9 @@ export class AuthService {
 
   signOut(headers: Headers): Promise<Headers> {
     return this.authAdapter.signOut(headers);
+  }
+
+  updateUsername(headers: Headers, input: UpdateUsernameFormInput): Promise<Headers> {
+    return this.authAdapter.updateUsername(headers, input);
   }
 }

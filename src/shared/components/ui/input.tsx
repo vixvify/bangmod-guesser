@@ -112,6 +112,7 @@ export function Input({
           },
           "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
             borderColor: "var(--color-primary-main)",
+            borderWidth: "0.0625rem",
           },
           "& .MuiOutlinedInput-input": {
             py: size === "small" ? "0.5rem" : "0.875rem",

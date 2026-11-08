@@ -141,11 +141,9 @@ body {
     0 0.75rem 1.5rem var(--color-secondary-main);
 }
 
-/* A two-tone focus ring remains visible on both light and dark surfaces. */
-:is(a, button, input, select, textarea, [tabindex]):focus-visible {
-  outline: 3px solid var(--color-primary-focus);
-  outline-offset: 3px;
-  box-shadow: 0 0 0 6px var(--color-secondary-main);
+:is(a, button, input, select, textarea, [tabindex]):focus-visible:not(.MuiInputBase-input):not(.MuiSelect-select) {
+  outline: 2px solid var(--color-primary-focus);
+  outline-offset: 2px;
 }
 
 .skip-link {
