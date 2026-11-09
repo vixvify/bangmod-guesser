@@ -10,3 +10,4 @@ export type GetLocationRecordsResult = {
   items: LocationModelWithImages[];
   total: number;
 };
+

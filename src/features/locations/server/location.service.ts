@@ -10,7 +10,10 @@ import type {
   UploadImageInput,
   UpdateLocationImagesInput,
 } from "../../images/image.schema";
-import { LocationImageRecordSchema } from "../../images/image.schema";
+import {
+  ImageNumberSchema,
+  LocationImageRecordSchema,
+} from "../../images/image.schema";
 import type {
   CreateLocationInput,
   SearchLocationQueryInput,
@@ -19,6 +22,8 @@ import type {
 import type { ImageService } from "../../images/server/image.service";
 import { LocationFactory } from "@/features/locations/server/location.factory";
 import { extractImageKey } from "@/features/images/server/image-key";
+import { parseSchema } from "@/shared/lib/validation";
+import { LocationImagesChangedError, LocationImagesInUseError } from "./location.errors";
 
 export class LocationService {
   constructor(
@@ -64,10 +69,13 @@ export class LocationService {
       for (const image of imagesToUpload) {
         const uploaded = await this.imageService.upload(image);
         uploadedKeys.push(uploaded.key);
-        images.push(LocationImageRecordSchema.parse({
-          imageNumber: images.length + 1,
-          imageUrl: uploaded.url,
-        }));
+
+        images.push(
+          LocationImageRecordSchema.parse({
+            imageNumber: images.length + 1,
+            imageUrl: uploaded.url,
+          }),
+        );
       }
 
       const record = await this.locationRepository.create(
@@ -95,17 +103,31 @@ export class LocationService {
     const existingImages = [...existing.images].sort(
       (first, second) => first.imageNumber - second.imageNumber,
     );
-    const keepNumbers = imageChanges.keepImageNumbers;
-    if (
-      keepNumbers?.some(
-        (number) =>
-          !existingImages.some((image) => image.imageNumber === number),
-      )
-    ) {
-      throw new AppError("Image not found", 404);
+    if (imageChanges.expectedImages && (
+      existingImages.length !== imageChanges.expectedImages.length ||
+      existingImages.some((image) => !imageChanges.expectedImages?.some((expected) =>
+        expected.imageNumber === image.imageNumber && expected.imageUrl === image.imageUrl,
+      ))
+    )) {
+      throw new AppError("Location images have changed. Reload the latest data and try again.", 409, "STALE_UPDATE");
     }
-    if (keepNumbers && new Set(keepNumbers).size !== keepNumbers.length) {
-      throw new AppError("Duplicate image number", 400);
+    const keepNumbers = imageChanges.keepImageNumbers;
+
+    if (keepNumbers) {
+      for (const number of keepNumbers) {
+        parseSchema(ImageNumberSchema, number);
+      }
+      if (
+        keepNumbers.some(
+          (number) =>
+            !existingImages.some((image) => image.imageNumber === number),
+        )
+      ) {
+        throw new AppError("Image not found", 404);
+      }
+      if (new Set(keepNumbers).size !== keepNumbers.length) {
+        throw new AppError("Duplicate image number", 400);
+      }
     }
 
     const keptImages =
@@ -115,10 +137,12 @@ export class LocationService {
             keepNumbers.includes(image.imageNumber),
           );
     const newImages = imageChanges.newImages ?? [];
-    const hasImageChanges = keepNumbers !== undefined || newImages.length > 0;
+    const hasImageUpdate =
+      keepNumbers !== undefined || newImages.length > 0;
+
     const imageCount = keptImages.length + newImages.length;
     if (
-      hasImageChanges &&
+      hasImageUpdate &&
       (imageCount < 1 || imageCount > LOCATION_MAX_IMAGES)
     ) {
       throw new AppError("Location requires 1 to 5 images", 400);
@@ -126,32 +150,80 @@ export class LocationService {
 
     const uploadedKeys: string[] = [];
     try {
-      const images = keptImages.map((image, index) => ({
-        imageNumber: index + 1,
+      const images = keptImages.map((image) => ({
+        imageNumber: image.imageNumber,
         imageUrl: image.imageUrl,
       }));
+      const usedNumbers = new Set(
+        images.map((image) => image.imageNumber),
+      );
       for (const image of newImages) {
+        const imageNumber = Array.from(
+          { length: LOCATION_MAX_IMAGES },
+          (_, index) => index + 1,
+        ).find((number) => !usedNumbers.has(number));
+
+        if (imageNumber === undefined) {
+          throw new AppError("Location requires 1 to 5 images", 400);
+        }
+
         const uploaded = await this.imageService.upload(image);
         uploadedKeys.push(uploaded.key);
-        images.push(LocationImageRecordSchema.parse({
-          imageNumber: images.length + 1,
-          imageUrl: uploaded.url,
-        }));
+
+        images.push(
+          LocationImageRecordSchema.parse({
+            imageNumber,
+            imageUrl: uploaded.url,
+          }),
+        );
+
+        usedNumbers.add(imageNumber);
       }
 
-      const record = await this.locationRepository.update(
+      const result = await this.locationRepository.update(
         id,
         input,
-        hasImageChanges ? images : undefined,
+        hasImageUpdate
+          ? {
+              images,
+              originalImages: existingImages.map((image) => ({
+                imageNumber: image.imageNumber,
+                imageUrl: image.imageUrl,
+              })),
+            }
+          : undefined,
       );
 
+      const updatedImages = hasImageUpdate
+        ? images
+        : existingImages.map((image) => ({
+            imageNumber: image.imageNumber,
+            imageUrl: image.imageUrl,
+          }));
+
       const removedKeys = existingImages
-        .filter((image) => !keptImages.includes(image))
+        .filter((oldImage) => {
+          const updatedImage = updatedImages.find(
+            (image) => image.imageNumber === oldImage.imageNumber,
+          );
+
+          return (
+            updatedImage === undefined ||
+            updatedImage.imageUrl !== oldImage.imageUrl
+          );
+        })
         .flatMap((image) => extractImageKey(image.imageUrl) ?? []);
       await this.deleteImagesFromStorage(removedKeys);
-      return LocationFactory.toDomain(record);
+
+      return LocationFactory.toDomain(result);
     } catch (error) {
       await this.deleteImagesFromStorage(uploadedKeys);
+      if (error instanceof LocationImagesChangedError) {
+        throw new AppError("Location images have changed. Reload the latest data and try again.", 409, "STALE_UPDATE");
+      }
+      if (error instanceof LocationImagesInUseError) {
+        throw new AppError("Cannot delete or replace an image used by a game in progress", 409, "IMAGE_IN_USE");
+      }
       throw error;
     }
   }
@@ -175,6 +247,7 @@ export class LocationService {
         keepImageNumbers: existing.images
           .filter((image) => image.imageNumber !== imageNumber)
           .map((image) => image.imageNumber),
+        expectedImages: existing.images.map(({ imageNumber, imageUrl }) => ({ imageNumber, imageUrl })),
       },
     );
   }

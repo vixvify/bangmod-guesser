@@ -63,6 +63,15 @@ describe("location image schemas", () => {
     });
     expect(LocationImageRecordSchema.safeParse({ imageNumber: 1, imageUrl: "not-a-url" }).success).toBe(false);
   });
+
+  it("validates the image snapshot submitted by the edit form", () => {
+    expect(UpdateLocationImagesSchema.safeParse({
+      expectedImages: [{ imageNumber: 6, imageUrl: "https://example.com/1.jpg" }],
+    }).success).toBe(false);
+    expect(UpdateLocationImagesSchema.safeParse({
+      expectedImages: [{ imageNumber: 1, imageUrl: "https://example.com/1.jpg" }],
+    }).success).toBe(true);
+  });
 });
 
 describe("DeleteImageSchema", () => {

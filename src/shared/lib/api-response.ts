@@ -18,20 +18,9 @@ export function errorResponse(error: unknown) {
       {
         error: error.message,
         status: error.status,
-        statusCode: "ERROR",
+        statusCode: error.code ?? "ERROR",
       },
       { status: error.status },
-    );
-  }
-
-  if (error instanceof SyntaxError) {
-    return NextResponse.json(
-      {
-        error: "Invalid JSON payload",
-        status: 400,
-        statusCode: "ERROR",
-      },
-      { status: 400 },
     );
   }
 

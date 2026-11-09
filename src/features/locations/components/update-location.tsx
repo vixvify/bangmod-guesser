@@ -8,7 +8,7 @@ import { LOCATION_MESSAGES } from "@/features/locations/location.constants";
 import type { Location } from "@/features/locations/location";
 import type { UpdateLocationFormImagesInput } from "@/features/images/image.schema";
 import type { UpdateLocationFormInput } from "@/features/locations/location.schema";
-import httpClient from "@/shared/lib/http";
+import httpClient, { HttpError } from "@/shared/lib/http";
 import { LocationRoutes } from "@/features/locations/location.routes";
 import { AppRoutes } from "@/shared/routes/routes";
 
@@ -30,12 +30,15 @@ export function UpdateLocation({
     form.append("description", values.description ?? "");
     form.append("latitude", String(values.latitude));
     form.append("longitude", String(values.longitude));
-    if (images.keepImageNumbers.length === 0)
+
+    if (images.keepImageNumbers.length === 0) {
       form.append("keepImageNumbers", "");
+    }
     images.keepImageNumbers.forEach((number) =>
       form.append("keepImageNumbers", String(number)),
     );
     images.newImages.forEach((image) => form.append("newImages", image));
+    form.append("expectedImages", JSON.stringify(location.images.map(({ imageNumber, url }) => ({ imageNumber, imageUrl: url }))));
 
     try {
       await httpClient.put<Location>(LocationRoutes.update(location.id), form, {
@@ -43,7 +46,19 @@ export function UpdateLocation({
       });
       toast.success(LOCATION_MESSAGES.updateSuccess);
       router.push(AppRoutes.adminLocations);
-    } catch {
+    } catch (error) {
+      if (error instanceof HttpError) {
+        if (error.statusCode === "STALE_UPDATE") {
+          toast.error(LOCATION_MESSAGES.staleUpdate);
+          return;
+        }
+
+        if (error.statusCode === "IMAGE_IN_USE") {
+          toast.error(LOCATION_MESSAGES.imageInUse);
+          return;
+        }
+      }
+
       toast.error(LOCATION_MESSAGES.updateFailed);
     }
   }

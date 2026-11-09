@@ -49,6 +49,24 @@ describe("session API routes", () => {
     expect(signIn).not.toHaveBeenCalled();
   });
 
+  it("returns 400 for malformed JSON without calling the service", async () => {
+    const response = await login(new Request("http://localhost/api/session/login", {
+      method: "POST", headers: { "content-type": "application/json" }, body: "{",
+    }));
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ error: "Invalid JSON payload" });
+    expect(signIn).not.toHaveBeenCalled();
+  });
+
+  it("returns a safe 500 when an internal operation throws a syntax error", async () => {
+    signIn.mockRejectedValueOnce(new SyntaxError("private implementation details"));
+    const response = await login(post("/api/session/login", {
+      email: "student@example.com", password: "Password1",
+    }));
+    expect(response.status).toBe(500);
+    expect(await response.json()).toMatchObject({ error: "Internal server error" });
+  });
+
   it("registers with the fields sent by the signup page, without a confirmation field", async () => {
     signUp.mockResolvedValue(undefined);
     const response = await register(post("/api/session/register", {

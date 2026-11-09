@@ -48,9 +48,15 @@ export const LocationImageRecordSchema = z.object({
   imageUrl: z.string().url(),
 });
 
+export const LocationImageUpdateSchema = z.object({
+  images: z.array(LocationImageRecordSchema),
+  originalImages: z.array(LocationImageRecordSchema),
+});
+
 export const UpdateLocationImagesSchema = z.object({
   keepImageNumbers: z.array(ImageNumberSchema).optional(),
   newImages: z.array(UploadImageSchema).max(LOCATION_MAX_IMAGES).optional(),
+  expectedImages: z.array(LocationImageRecordSchema).max(LOCATION_MAX_IMAGES).optional(),
 });
 
 export const DeleteImageSchema = z.object({
@@ -74,6 +80,7 @@ export type UpdateLocationFormImagesInput = {
 export type LocationImageRecordInput = z.infer<
   typeof LocationImageRecordSchema
 >;
+export type LocationImageUpdateInput = z.infer<typeof LocationImageUpdateSchema>;
 export type UpdateLocationImagesInput = z.infer<
   typeof UpdateLocationImagesSchema
 >;
