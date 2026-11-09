@@ -10,6 +10,7 @@ vi.mock("@/shared/lib/prisma", async () => {
 
 import { prisma } from "@/shared/lib/prisma";
 import { LocationRepositoryImpl } from "@/features/locations/server/location.repository";
+import { LocationImagesChangedError, LocationImagesInUseError } from "@/features/locations/server/location.errors";
 
 const repository = new LocationRepositoryImpl();
 
@@ -140,7 +141,7 @@ describe.skipIf(process.env.RUN_LOCATION_DATABASE_TESTS !== "1")(
       await createGameWithRound(GameStatus.PLAYING);
 
       const originalImages = await getImageSnapshot();
-      const result = await repository.update(
+      await expect(repository.update(
         locationId,
         { name: "Changed location name" },
         {
@@ -156,9 +157,7 @@ describe.skipIf(process.env.RUN_LOCATION_DATABASE_TESTS !== "1")(
           ],
           originalImages,
         },
-      );
-
-      expect(result.status).toBe("IMAGE_IN_USE");
+      )).rejects.toBeInstanceOf(LocationImagesInUseError);
 
       const location = await prisma.location.findUniqueOrThrow({
         where: { id: locationId },
@@ -172,9 +171,7 @@ describe.skipIf(process.env.RUN_LOCATION_DATABASE_TESTS !== "1")(
     it("returns IMAGE_IN_USE when replacing an image used by a PLAYING game", async () => {
       await createGameWithRound(GameStatus.PLAYING);
 
-      const result = await replaceImage2();
-
-      expect(result.status).toBe("IMAGE_IN_USE");
+      await expect(replaceImage2()).rejects.toBeInstanceOf(LocationImagesInUseError);
 
       const location = await prisma.location.findUniqueOrThrow({
         where: { id: locationId },
@@ -200,7 +197,7 @@ describe.skipIf(process.env.RUN_LOCATION_DATABASE_TESTS !== "1")(
 
         const result = await removeImage2();
 
-        expect(result.status).toBe("UPDATED");
+        expect(result.id).toBe(locationId);
 
         const updatedGame = await prisma.game.findUniqueOrThrow({
           where: { id: game.id },
@@ -236,7 +233,7 @@ describe.skipIf(process.env.RUN_LOCATION_DATABASE_TESTS !== "1")(
 
         const result = await replaceImage2();
 
-        expect(result.status).toBe("UPDATED");
+        expect(result.id).toBe(locationId);
 
         const updatedGame = await prisma.game.findUniqueOrThrow({
           where: { id: game.id },
@@ -270,7 +267,7 @@ describe.skipIf(process.env.RUN_LOCATION_DATABASE_TESTS !== "1")(
     it("deletes an unused image without changing the remaining image numbers", async () => {
       const result = await removeImage2();
 
-      expect(result.status).toBe("UPDATED");
+      expect(result.id).toBe(locationId);
 
       const images = await prisma.locationImage.findMany({
         where: { locationId },
@@ -347,12 +344,10 @@ describe.skipIf(process.env.RUN_LOCATION_DATABASE_TESTS !== "1")(
         originalImages,
       });
 
-      const results = await Promise.all([firstUpdate, secondUpdate]);
-
-      expect(results.map((result) => result.status).sort()).toEqual([
-        "STALE_UPDATE",
-        "UPDATED",
-      ]);
+      const results = await Promise.allSettled([firstUpdate, secondUpdate]);
+      expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+      const rejected = results.find((result) => result.status === "rejected");
+      expect(rejected?.status === "rejected" && rejected.reason).toBeInstanceOf(LocationImagesChangedError);
 
       const location = await prisma.location.findUniqueOrThrow({
         where: { id: locationId },

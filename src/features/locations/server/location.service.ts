@@ -23,6 +23,7 @@ import type { ImageService } from "../../images/server/image.service";
 import { LocationFactory } from "@/features/locations/server/location.factory";
 import { extractImageKey } from "@/features/images/server/image-key";
 import { parseSchema } from "@/shared/lib/validation";
+import { LocationImagesChangedError, LocationImagesInUseError } from "./location.errors";
 
 export class LocationService {
   constructor(
@@ -193,22 +194,6 @@ export class LocationService {
           : undefined,
       );
 
-      if (result.status === "STALE_UPDATE") {
-        throw new AppError(
-          "Location images have changed. Reload the latest data and try again.",
-          409,
-          "STALE_UPDATE",
-        );
-      }
-
-      if (result.status === "IMAGE_IN_USE") {
-        throw new AppError(
-          "Cannot delete or replace an image used by a game in progress",
-          409,
-          "IMAGE_IN_USE",
-        );
-      }
-
       const updatedImages = hasImageUpdate
         ? images
         : existingImages.map((image) => ({
@@ -230,9 +215,15 @@ export class LocationService {
         .flatMap((image) => extractImageKey(image.imageUrl) ?? []);
       await this.deleteImagesFromStorage(removedKeys);
 
-      return LocationFactory.toDomain(result.location);
+      return LocationFactory.toDomain(result);
     } catch (error) {
       await this.deleteImagesFromStorage(uploadedKeys);
+      if (error instanceof LocationImagesChangedError) {
+        throw new AppError("Location images have changed. Reload the latest data and try again.", 409, "STALE_UPDATE");
+      }
+      if (error instanceof LocationImagesInUseError) {
+        throw new AppError("Cannot delete or replace an image used by a game in progress", 409, "IMAGE_IN_USE");
+      }
       throw error;
     }
   }

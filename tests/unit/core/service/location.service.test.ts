@@ -5,6 +5,7 @@ import { createLocationRepositoryMock } from "../../../mocks/location.repository
 import { createImageRepositoryMock } from "../../../mocks/image.repository.mock";
 import { ImageService } from "@/features/images/server/image.service";
 import { AppError } from "@/shared/errors/app.error";
+import { LocationImagesChangedError, LocationImagesInUseError } from "@/features/locations/server/location.errors";
 
 const sampleImageBuffer = new Uint8Array([1, 2, 3, 4]);
 
@@ -264,10 +265,9 @@ describe("LocationService", () => {
       });
 
       imageRepository.delete.mockResolvedValue();
-      locationRepository.update.mockImplementation(async () => ({
-        status: "UPDATED",
-        location: (await locationRepository.findById("loc_1"))!,
-      }));
+      locationRepository.update.mockImplementation(async () =>
+        (await locationRepository.findById("loc_1"))!,
+      );
 
       await locationService.updateLocation("loc_1", {}, { keepImageNumbers: [1, 3] });
 
@@ -347,9 +347,7 @@ describe("LocationService", () => {
       );
       imageRepository.delete.mockResolvedValue();
 
-      locationRepository.update.mockResolvedValue({
-        status: "IMAGE_IN_USE",
-      });
+      locationRepository.update.mockRejectedValue(new LocationImagesInUseError());
 
       await expect(
         locationService.updateLocation(
@@ -413,9 +411,7 @@ describe("LocationService", () => {
       );
       imageRepository.delete.mockResolvedValue();
 
-      locationRepository.update.mockResolvedValue({
-        status: "STALE_UPDATE",
-      });
+      locationRepository.update.mockRejectedValue(new LocationImagesChangedError());
 
       await expect(
         locationService.updateLocation(
@@ -489,8 +485,6 @@ describe("LocationService", () => {
       imageRepository.delete.mockResolvedValue();
 
       locationRepository.update.mockResolvedValue({
-        status: "UPDATED",
-        location: {
           id: "loc_1",
           name: "CB2",
           description: null,
@@ -519,7 +513,6 @@ describe("LocationService", () => {
               createdAt: new Date(),
             },
           ],
-        },
       });
 
       await locationService.updateLocation(
@@ -612,8 +605,6 @@ describe("LocationService", () => {
         );
 
         locationRepository.update.mockResolvedValue({
-          status: "UPDATED",
-          location: {
             id: "loc_1",
             name: "CB2",
             description: null,
@@ -636,7 +627,6 @@ describe("LocationService", () => {
                 createdAt: new Date(),
               },
             ],
-          }
         });
 
         await locationService.updateLocation(
@@ -838,10 +828,9 @@ describe("LocationService", () => {
       });
 
       imageRepository.delete.mockResolvedValue();
-      locationRepository.update.mockImplementation(async () => ({
-        status: "UPDATED",
-        location: (await locationRepository.findById("loc_1"))!,
-      }));
+      locationRepository.update.mockImplementation(async () =>
+        (await locationRepository.findById("loc_1"))!,
+      );
 
       await locationService.deleteLocationImage("loc_1", 2);
 

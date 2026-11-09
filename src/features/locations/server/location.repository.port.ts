@@ -1,7 +1,6 @@
 import type {
   GetLocationRecordsResult,
   LocationModelWithImages,
-  LocationUpdateResult,
 } from "../../../../prisma/types/location";
 import type { LocationImageRecordInput, LocationImageUpdateInput } from "../../images/image.schema";
 import type {
@@ -23,6 +22,6 @@ export interface LocationRepository {
     id: string,
     input: UpdateLocationInput,
     imageUpdate?: LocationImageUpdateInput,
-  ): Promise<LocationUpdateResult>;
+  ): Promise<LocationModelWithImages>;
   delete(id: string): Promise<void>;
 }

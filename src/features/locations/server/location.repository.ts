@@ -1,4 +1,5 @@
 import { GameStatus, Prisma } from "@prisma/client";
+import { LocationImagesChangedError, LocationImagesInUseError } from "./location.errors";
 import { prisma } from "@/shared/lib/prisma";
 import type { LocationRepository } from "@/features/locations/server/location.repository.port";
 import type { LocationImageRecordInput, LocationImageUpdateInput } from "@/features/images/image.schema";
@@ -11,7 +12,6 @@ import type { LocationStatus } from "@/features/locations/location";
 import type {
   GetLocationRecordsResult,
   LocationModelWithImages,
-  LocationUpdateResult,
 } from "../../../../prisma/types/location";
 
 export class LocationRepositoryImpl implements LocationRepository {
@@ -88,19 +88,18 @@ export class LocationRepositoryImpl implements LocationRepository {
     id: string,
     data: UpdateLocationInput,
     imageUpdate?: LocationImageUpdateInput,
-  ): Promise<LocationUpdateResult> {
+  ): Promise<LocationModelWithImages> {
     if (imageUpdate === undefined) {
-      const location = await prisma.location.update({
+      return prisma.location.update({
         where: { id },
         data,
         include: { images: true },
       });
-      return { status: "UPDATED", location };
     }
 
     try {
       return await prisma.$transaction(
-        async (transaction): Promise<LocationUpdateResult> => {
+        async (transaction): Promise<LocationModelWithImages> => {
           await transaction.$queryRaw`
             SELECT "id"
             FROM "locations"
@@ -134,7 +133,7 @@ export class LocationRepositoryImpl implements LocationRepository {
             );
 
           if (isStale) {
-            return { status: "STALE_UPDATE" };
+            throw new LocationImagesChangedError();
           }
 
           const images = imageUpdate.images;
@@ -166,7 +165,7 @@ export class LocationRepositoryImpl implements LocationRepository {
             });
 
             if (playingRound) {
-              return { status: "IMAGE_IN_USE" };
+              throw new LocationImagesInUseError();
             }
 
             await transaction.gameRound.updateMany({
@@ -247,7 +246,7 @@ export class LocationRepositoryImpl implements LocationRepository {
             include: { images: true },
           });
 
-          return { status: "UPDATED", location };
+          return location;
         },
         {
           isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
@@ -258,7 +257,7 @@ export class LocationRepositoryImpl implements LocationRepository {
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === "P2034"
       ) {
-        return { status: "STALE_UPDATE" };
+        throw new LocationImagesChangedError();
       }
 
       throw error;
