@@ -1,7 +1,8 @@
-import { betterAuth } from "better-auth";
+import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { admin } from "better-auth/plugins";
+import { Resend } from "resend";
 import { UserRole } from "@/features/users/user";
 import {
   AdminRoleSchema,
@@ -14,6 +15,12 @@ import { AdminPaths } from "@/features/users/admin.routes";
 
 const googleOAuth = config.googleOAuth;
 
+type SendResetPasswordData = Parameters<
+  NonNullable<
+    NonNullable<BetterAuthOptions["emailAndPassword"]>["sendResetPassword"]
+  >
+>[0];
+
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
@@ -23,6 +30,34 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     autoSignIn: false,
+    resetPasswordTokenExpiresIn: 3600,
+    sendResetPassword: async ({ user, url }: SendResetPasswordData) => {
+      const resendConfig = config.resend;
+      const resend = new Resend(resendConfig.apiKey);
+
+      return resend.emails
+        .send({
+          from: resendConfig.fromEmail,
+          to: user.email,
+          subject: "Reset your Bangmod Guesser password",
+          text: [
+            "We received a request to reset your Bangmod Guesser password.",
+            "",
+            "Click the link below to reset your password:",
+            url,
+            "",
+            "If you did not request a password reset, you can ignore this email.",
+          ].join("\n"),
+        })
+        .then(({ error }) => {
+          if (error) {
+            console.error("Failed to send password reset email:", error);
+          }
+        })
+        .catch((error: unknown) => {
+          console.error("Failed to send password reset email:", error);
+        });
+    },
   },
   socialProviders: googleOAuth ? { google: googleOAuth } : {},
   plugins: [

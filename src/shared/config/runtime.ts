@@ -26,9 +26,15 @@ const GoogleOAuthEnvironmentSchema = z.object({
   clientSecret: z.string().trim().min(1),
 });
 
+const ResendEnvironmentSchema = z.object({
+  apiKey: z.string().trim().min(1),
+  fromEmail: z.string().trim().email(),
+});
+
 const InitialAdminEmailSchema = z.string().trim().toLowerCase().email();
 
 export type R2Config = z.infer<typeof R2EnvironmentSchema>;
+export type ResendConfig = z.infer<typeof ResendEnvironmentSchema>;
 
 function getR2Config(): R2Config {
   const result = R2EnvironmentSchema.safeParse({
@@ -83,6 +89,19 @@ function getGoogleOAuthConfig() {
   return result.data;
 }
 
+function getResendConfig(): ResendConfig {
+  const result = ResendEnvironmentSchema.safeParse({
+    apiKey: process.env.RESEND_API_KEY,
+    fromEmail: process.env.RESEND_FROM_EMAIL,
+  });
+
+  if (!result.success) {
+    throw new AppError("Resend configuration is incomplete or invalid", 500);
+  }
+
+  return result.data;
+}
+
 export const config = {
   get apiUrl() {
     return getApiUrl();
@@ -98,6 +117,10 @@ export const config = {
 
   get googleOAuth() {
     return getGoogleOAuthConfig();
+  },
+
+  get resend() {
+    return getResendConfig();
   },
 
   get initialAdminEmail() {
@@ -122,4 +145,3 @@ export const config = {
     return getR2Config();
   },
 };
-
