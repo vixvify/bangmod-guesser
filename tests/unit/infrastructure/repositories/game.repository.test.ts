@@ -2,11 +2,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GameRepositoryImpl } from "@/features/game/server/game.repository";
 import { gameStateSelect } from "../../../../prisma/types/game";
 
-const { findUnique, updateMany, transaction } = vi.hoisted(() => ({
+const { findUnique, updateMany, transaction, findMany, create, queryRaw, findImage } = vi.hoisted(() => ({
   findUnique: vi.fn(), updateMany: vi.fn(), transaction: vi.fn(),
+  findMany: vi.fn(), create: vi.fn(), queryRaw: vi.fn(), findImage: vi.fn(),
 }));
 vi.mock("@/shared/lib/prisma", () => ({
-  prisma: { game: { findUnique }, $transaction: transaction },
+  prisma: { location: { findMany }, game: { findUnique }, $transaction: transaction },
 }));
 
 const repository = new GameRepositoryImpl();
@@ -17,7 +18,7 @@ beforeEach(() => {
   vi.resetAllMocks();
   findUnique.mockResolvedValue(record);
   updateMany.mockResolvedValue({ count: 1 });
-  transaction.mockImplementation(async (operation) => operation({ game: { findUnique, updateMany } }));
+  transaction.mockImplementation(async (operation) => operation({ game: { findUnique, updateMany, create }, locationImage: { findUnique: findImage }, $queryRaw: queryRaw }));
 });
 
 describe("GameRepositoryImpl", () => {
@@ -55,5 +56,27 @@ describe("GameRepositoryImpl", () => {
     updateMany.mockRejectedValue(new Error("write failed"));
     await expect(repository.exitPlayingGame("game-1", "player-1", now)).rejects.toThrow("write failed");
     expect(findUnique).not.toHaveBeenCalled();
+  });
+});
+
+
+describe("GameRepositoryImpl creation", () => {
+  const rounds = Array.from({ length: 5 }, (_, i) => ({ questionNumber: i + 1, locationId: `l-${i}`, imageNumber: 2 }));
+  it("queries only active locations with at least one image", async () => {
+    findMany.mockResolvedValue([]);
+    await repository.findCandidates();
+    expect(findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { status: "ACTIVE", images: { some: {} } } }));
+  });
+  it("creates all rounds in one nested transaction after validating selected images", async () => {
+    findImage.mockResolvedValue({ location: { status: "ACTIVE" } });
+    create.mockResolvedValue({ id: "new-game" });
+    expect(await repository.createGame("player", rounds)).toEqual({ id: "new-game" });
+    expect(queryRaw).toHaveBeenCalledTimes(5);
+    expect(create).toHaveBeenCalledWith({ data: { userId: "player", status: "PLAYING", rounds: { create: rounds.map((r) => ({ ...r, status: "PENDING" })) } }, select: { id: true } });
+  });
+  it("does not create anything if a chosen image disappeared", async () => {
+    findImage.mockResolvedValue(null);
+    await expect(repository.createGame("player", rounds)).rejects.toMatchObject({ status: 409 });
+    expect(create).not.toHaveBeenCalled();
   });
 });
