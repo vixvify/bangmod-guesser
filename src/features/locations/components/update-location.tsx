@@ -30,8 +30,10 @@ export function UpdateLocation({
     form.append("description", values.description ?? "");
     form.append("latitude", String(values.latitude));
     form.append("longitude", String(values.longitude));
-    if (images.keepImageNumbers.length === 0)
+
+    if (images.keepImageNumbers.length === 0) {
       form.append("keepImageNumbers", "");
+    }
     images.keepImageNumbers.forEach((number) =>
       form.append("keepImageNumbers", String(number)),
     );
@@ -45,9 +47,19 @@ export function UpdateLocation({
       toast.success(LOCATION_MESSAGES.updateSuccess);
       router.push(AppRoutes.adminLocations);
     } catch (error) {
-      toast.error(error instanceof HttpError && error.status === 409
-        ? LOCATION_MESSAGES.updateConflict
-        : LOCATION_MESSAGES.updateFailed);
+      if (error instanceof HttpError) {
+        if (error.statusCode === "STALE_UPDATE") {
+          toast.error(LOCATION_MESSAGES.staleUpdate);
+          return;
+        }
+
+        if (error.statusCode === "IMAGE_IN_USE") {
+          toast.error(LOCATION_MESSAGES.imageInUse);
+          return;
+        }
+      }
+
+      toast.error(LOCATION_MESSAGES.updateFailed);
     }
   }
 

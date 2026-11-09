@@ -59,7 +59,10 @@ describe.skipIf(process.env.RUN_LOCATION_DATABASE_TESTS !== "1")(
       await prisma.$disconnect();
     });
 
-    async function createGameWithRound(status: GameStatus) {
+    async function createGameWithRound(
+      status: GameStatus,
+      imageNumber: number | null = 2,
+    ) {
       return prisma.game.create({
         data: {
           userId,
@@ -69,7 +72,7 @@ describe.skipIf(process.env.RUN_LOCATION_DATABASE_TESTS !== "1")(
             create: {
               questionNumber: 1,
               locationId,
-              imageNumber: 2,
+              imageNumber,
               status: RoundStatus.COMPLETED,
               score: 900,
               playTimeSeconds: 20,
@@ -82,27 +85,66 @@ describe.skipIf(process.env.RUN_LOCATION_DATABASE_TESTS !== "1")(
       });
     }
 
-    async function removeImage2() {
-      return repository.update(locationId, {}, [
-        {
-          imageNumber: 1,
-          imageUrl: "https://example.test/image-1.jpg",
+    async function getImageSnapshot() {
+      return prisma.locationImage.findMany({
+        where: { locationId },
+        select: {
+          imageNumber: true,
+          imageUrl: true,
         },
-        {
-          imageNumber: 3,
-          imageUrl: "https://example.test/image-3.jpg",
-        },
-      ]);
+        orderBy: { imageNumber: "asc" },
+      });
     }
 
-    it("prevents deleting an image used by a PLAYING game and rolls back other changes", async () => {
+    async function removeImage2() {
+      const originalImages = await getImageSnapshot();
+
+      return repository.update(locationId, {}, {
+        images: [
+          {
+            imageNumber: 1,
+            imageUrl: "https://example.test/image-1.jpg",
+          },
+          {
+            imageNumber: 3,
+            imageUrl: "https://example.test/image-3.jpg",
+          },
+        ],
+        originalImages,
+      });
+    }
+
+    async function replaceImage2() {
+      const originalImages = await getImageSnapshot();
+
+      return repository.update(locationId, {}, {
+        images: [
+          {
+            imageNumber: 1,
+            imageUrl: "https://example.test/image-1.jpg",
+          },
+          {
+            imageNumber: 2,
+            imageUrl: "https://example.test/replacement-image-2.jpg",
+          },
+          {
+            imageNumber: 3,
+            imageUrl: "https://example.test/image-3.jpg",
+          },
+        ],
+        originalImages,
+      });
+    }
+
+    it("returns IMAGE_IN_USE when deleting an image used by a PLAYING game", async () => {
       await createGameWithRound(GameStatus.PLAYING);
 
-      await expect(
-        repository.update(
-          locationId,
-          { name: "Changed location name" },
-          [
+      const originalImages = await getImageSnapshot();
+      const result = await repository.update(
+        locationId,
+        { name: "Changed location name" },
+        {
+          images: [
             {
               imageNumber: 1,
               imageUrl: "https://example.test/image-1.jpg",
@@ -112,8 +154,11 @@ describe.skipIf(process.env.RUN_LOCATION_DATABASE_TESTS !== "1")(
               imageUrl: "https://example.test/image-3.jpg",
             },
           ],
-        ),
-      ).rejects.toThrow("Cannot delete an image used by a game in progress");
+          originalImages,
+        },
+      );
+
+      expect(result.status).toBe("IMAGE_IN_USE");
 
       const location = await prisma.location.findUniqueOrThrow({
         where: { id: locationId },
@@ -124,12 +169,38 @@ describe.skipIf(process.env.RUN_LOCATION_DATABASE_TESTS !== "1")(
       expect(location.images.map((image) => image.imageNumber)).toEqual([1, 2, 3]);
     });
 
+    it("returns IMAGE_IN_USE when replacing an image used by a PLAYING game", async () => {
+      await createGameWithRound(GameStatus.PLAYING);
+
+      const result = await replaceImage2();
+
+      expect(result.status).toBe("IMAGE_IN_USE");
+
+      const location = await prisma.location.findUniqueOrThrow({
+        where: { id: locationId },
+        include: { images: { orderBy: { imageNumber: "asc" } } },
+      });
+
+      expect(
+        location.images.find((image) => image.imageNumber === 2)?.imageUrl,
+      ).toBe("https://example.test/image-2.jpg");
+
+      const game = await prisma.game.findFirstOrThrow({
+        where: { userId },
+        include: { rounds: true },
+      });
+
+      expect(game.rounds[0].imageNumber).toBe(2);
+    });
+
     it.each([GameStatus.COMPLETED, GameStatus.INCOMPLETE])(
       "sets the round imageNumber to null when deleting an image used by a %s game",
       async (status) => {
         const game = await createGameWithRound(status);
 
-        await removeImage2();
+        const result = await removeImage2();
+
+        expect(result.status).toBe("UPDATED");
 
         const updatedGame = await prisma.game.findUniqueOrThrow({
           where: { id: game.id },
@@ -158,8 +229,48 @@ describe.skipIf(process.env.RUN_LOCATION_DATABASE_TESTS !== "1")(
       },
     );
 
+    it.each([GameStatus.COMPLETED, GameStatus.INCOMPLETE])(
+      "sets the round imageNumber to null when replacing an image used by a %s game",
+      async (status) => {
+        const game = await createGameWithRound(status);
+
+        const result = await replaceImage2();
+
+        expect(result.status).toBe("UPDATED");
+
+        const updatedGame = await prisma.game.findUniqueOrThrow({
+          where: { id: game.id },
+          include: { rounds: true },
+        });
+
+        expect(updatedGame.status).toBe(status);
+        expect(updatedGame.rounds[0]).toMatchObject({
+          questionNumber: 1,
+          locationId,
+          imageNumber: null,
+          status: RoundStatus.COMPLETED,
+          score: 900,
+          playTimeSeconds: 20,
+          guessedLatitude: 13.7,
+          guessedLongitude: 100.5,
+        });
+
+        const images = await prisma.locationImage.findMany({
+          where: { locationId },
+          orderBy: { imageNumber: "asc" },
+        });
+
+        expect(images.map((image) => image.imageNumber)).toEqual([1, 2, 3]);
+        expect(images.find((image) => image.imageNumber === 2)?.imageUrl).toBe(
+          "https://example.test/replacement-image-2.jpg",
+        );
+      },
+    );
+
     it("deletes an unused image without changing the remaining image numbers", async () => {
-      await removeImage2();
+      const result = await removeImage2();
+
+      expect(result.status).toBe("UPDATED");
 
       const images = await prisma.locationImage.findMany({
         where: { locationId },
@@ -173,60 +284,89 @@ describe.skipIf(process.env.RUN_LOCATION_DATABASE_TESTS !== "1")(
       ]);
     });
 
-    it.each([GameStatus.PLAYING, GameStatus.COMPLETED])(
-      "handles replacement of an image used by a %s game",
-      async (status) => {
-        const game = await createGameWithRound(status);
-        const images = await prisma.locationImage.findMany({ where: { locationId } });
-        const replacement = images.map(({ imageNumber, imageUrl }) => ({
-          imageNumber,
-          imageUrl: imageNumber === 2 ? "https://example.test/replacement.jpg" : imageUrl,
-        }));
-        const update = repository.update(locationId, {}, replacement, images);
-        if (status === GameStatus.PLAYING) {
-          await expect(update).rejects.toThrow("Cannot delete an image used by a game in progress");
-        } else {
-          await update;
-        }
-        const round = await prisma.gameRound.findFirstOrThrow({ where: { gameId: game.id } });
-        const image = await prisma.locationImage.findUniqueOrThrow({ where: { locationId_imageNumber: { locationId, imageNumber: 2 } } });
-        expect(round.imageNumber).toBe(status === GameStatus.PLAYING ? 2 : null);
-        expect(image.imageUrl).toBe(status === GameStatus.PLAYING ? "https://example.test/image-2.jpg" : "https://example.test/replacement.jpg");
-      },
-    );
-
-    it("rejects a change based on an outdated image snapshot", async () => {
-      const snapshot = await prisma.locationImage.findMany({ where: { locationId } });
-      await prisma.locationImage.update({
-        where: { locationId_imageNumber: { locationId, imageNumber: 2 } },
-        data: { imageUrl: "https://example.test/other.jpg" },
+    it("rejects a GameRound with a non-existent imageNumber", async () => {
+      await expect(
+        createGameWithRound(GameStatus.COMPLETED, 999),
+      ).rejects.toMatchObject({
+        code: "P2003",
       });
-      await expect(repository.update(locationId, {}, snapshot.slice(0, 2), snapshot))
-        .rejects.toThrow("Location images have changed");
-      expect((await prisma.locationImage.findMany({ where: { locationId } })).length).toBe(3);
+
+      const games = await prisma.game.findMany({
+        where: { userId },
+      });
+
+      expect(games).toHaveLength(0);
     });
 
-    it("does not allow simultaneous updates from the same snapshot to overwrite each other", async () => {
-      const snapshot = await prisma.locationImage.findMany({ where: { locationId } });
-      const first = snapshot.filter((image) => image.imageNumber !== 2);
-      const second = snapshot.filter((image) => image.imageNumber !== 3);
-      const results = await Promise.allSettled([
-        repository.update(locationId, {}, first, snapshot),
-        repository.update(locationId, {}, second, snapshot),
+    it("allows a GameRound with a null imageNumber", async () => {
+      const game = await createGameWithRound(
+        GameStatus.COMPLETED,
+        null,
+      );
+
+      expect(game.rounds).toHaveLength(1);
+      expect(game.rounds[0].imageNumber).toBeNull();
+    });
+
+    it("rejects a concurrent image update when the original snapshot is stale", async () => {
+      const originalImages = await getImageSnapshot();
+
+      const firstUpdate = repository.update(locationId, {}, {
+        images: [
+          {
+            imageNumber: 1,
+            imageUrl: "https://example.test/image-1.jpg",
+          },
+          {
+            imageNumber: 2,
+            imageUrl: "https://example.test/first-replacement.jpg",
+          },
+          {
+            imageNumber: 3,
+            imageUrl: "https://example.test/image-3.jpg",
+          },
+        ],
+        originalImages,
+      });
+
+      const secondUpdate = repository.update(locationId, {}, {
+        images: [
+          {
+            imageNumber: 1,
+            imageUrl: "https://example.test/image-1.jpg",
+          },
+          {
+            imageNumber: 2,
+            imageUrl: "https://example.test/second-replacement.jpg",
+          },
+          {
+            imageNumber: 3,
+            imageUrl: "https://example.test/image-3.jpg",
+          },
+        ],
+        originalImages,
+      });
+
+      const results = await Promise.all([firstUpdate, secondUpdate]);
+
+      expect(results.map((result) => result.status).sort()).toEqual([
+        "STALE_UPDATE",
+        "UPDATED",
       ]);
-      expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
-      expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
-      expect(await prisma.locationImage.count({ where: { locationId } })).toBe(2);
-    });
 
-    it("enforces the image relation while allowing an unknown image", async () => {
-      const game = await createGameWithRound(GameStatus.COMPLETED);
-      await expect(prisma.gameRound.updateMany({
-        where: { gameId: game.id }, data: { imageNumber: 5 },
-      })).rejects.toThrow();
-      await prisma.gameRound.updateMany({ where: { gameId: game.id }, data: { imageNumber: null } });
-      expect(await prisma.gameRound.findFirstOrThrow({ where: { gameId: game.id } }))
-        .toMatchObject({ locationId, imageNumber: null });
+      const location = await prisma.location.findUniqueOrThrow({
+        where: { id: locationId },
+        include: { images: true },
+      });
+
+      const image2 = location.images.find(
+        (image) => image.imageNumber === 2,
+      );
+
+      expect([
+        "https://example.test/first-replacement.jpg",
+        "https://example.test/second-replacement.jpg",
+      ]).toContain(image2?.imageUrl);
     });
   },
 );

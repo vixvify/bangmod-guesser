@@ -1,11 +1,7 @@
 import { GameStatus, Prisma } from "@prisma/client";
-import {
-  LocationImagesChangedError,
-  LocationImagesInUseError,
-} from "./location.errors";
 import { prisma } from "@/shared/lib/prisma";
 import type { LocationRepository } from "@/features/locations/server/location.repository.port";
-import type { LocationImageRecordInput } from "@/features/images/image.schema";
+import type { LocationImageRecordInput, LocationImageUpdateInput } from "@/features/images/image.schema";
 import type {
   CreateLocationInput,
   SearchLocationQueryInput,
@@ -15,6 +11,7 @@ import type { LocationStatus } from "@/features/locations/location";
 import type {
   GetLocationRecordsResult,
   LocationModelWithImages,
+  LocationUpdateResult,
 } from "../../../../prisma/types/location";
 
 export class LocationRepositoryImpl implements LocationRepository {
@@ -90,96 +87,92 @@ export class LocationRepositoryImpl implements LocationRepository {
   async update(
     id: string,
     data: UpdateLocationInput,
-    images?: LocationImageRecordInput[],
-    expectedImages?: LocationImageRecordInput[],
-  ): Promise<LocationModelWithImages> {
-    if (images === undefined) {
-      return prisma.location.update({
+    imageUpdate?: LocationImageUpdateInput,
+  ): Promise<LocationUpdateResult> {
+    if (imageUpdate === undefined) {
+      const location = await prisma.location.update({
         where: { id },
         data,
         include: { images: true },
       });
+      return { status: "UPDATED", location };
     }
 
     try {
       return await prisma.$transaction(
-        async (transaction) => {
-          const requestedNumbers = images.map((image) => image.imageNumber);
-
-          await transaction.location.update({
-            where: { id },
-            data,
-          });
+        async (transaction): Promise<LocationUpdateResult> => {
+          await transaction.$queryRaw`
+            SELECT "id"
+            FROM "locations"
+            WHERE "id" = ${id}
+            FOR UPDATE
+          `;
 
           const existingImages = await transaction.locationImage.findMany({
             where: { locationId: id },
-            select: {
-              imageNumber: true,
-              imageUrl: true,
-            },
+            select: { imageNumber: true, imageUrl: true },
           });
 
-          if (
-            expectedImages &&
-            (existingImages.length !== expectedImages.length ||
-              existingImages.some(
-                (image) =>
-                  !expectedImages.some(
-                    (expected) =>
-                      expected.imageNumber === image.imageNumber &&
-                      expected.imageUrl === image.imageUrl,
-                  ),
-              ))
-          ) {
-            throw new LocationImagesChangedError();
-          }
+          const sortImages = (
+            images: LocationImageRecordInput[],
+          ) =>
+            [...images].sort(
+              (first, second) => first.imageNumber - second.imageNumber,
+            );
 
-          const requestedNumberSet = new Set(requestedNumbers);
-
-          const removedImages = existingImages.filter(
-            (image) => !requestedNumberSet.has(image.imageNumber),
+          const currentSnapshot = sortImages(existingImages);
+          const originalSnapshot = sortImages(
+            imageUpdate.originalImages,
           );
 
-          const changedNumbers = existingImages
-            .filter(
-              (image) =>
-                !images.some(
-                  (requested) =>
-                    requested.imageNumber === image.imageNumber &&
-                    requested.imageUrl === image.imageUrl,
-                ),
-            )
-            .map((image) => image.imageNumber);
+          const isStale =
+            currentSnapshot.length !== originalSnapshot.length ||
+            currentSnapshot.some(
+              (image, index) =>
+                image.imageNumber !== originalSnapshot[index].imageNumber ||
+                image.imageUrl !== originalSnapshot[index].imageUrl,
+            );
 
-          const removedNumbers = removedImages.map(
+          if (isStale) {
+            return { status: "STALE_UPDATE" };
+          }
+
+          const images = imageUpdate.images;
+
+          const requestedImages = new Map(
+            images.map((image) => [image.imageNumber, image.imageUrl]),
+          );
+
+          const affectedImages = existingImages.filter((existing) => {
+            const requestedUrl = requestedImages.get(existing.imageNumber);
+            return (
+              requestedUrl === undefined ||
+              requestedUrl !== existing.imageUrl
+            );
+          });
+
+          const affectedNumbers = affectedImages.map(
             (image) => image.imageNumber,
           );
 
-          if (changedNumbers.length > 0) {
+          if (affectedNumbers.length > 0) {
             const playingRound = await transaction.gameRound.findFirst({
               where: {
                 locationId: id,
-                imageNumber: { in: changedNumbers },
-                game: {
-                  is: {
-                    status: GameStatus.PLAYING,
-                  },
-                },
+                imageNumber: { in: affectedNumbers },
+                game: { is: { status: GameStatus.PLAYING } },
               },
-              select: {
-                gameId: true,
-                questionNumber: true,
-              },
+              select: { gameId: true, questionNumber: true },
             });
 
             if (playingRound) {
-              throw new LocationImagesInUseError();
+              return { status: "IMAGE_IN_USE" };
             }
 
             await transaction.gameRound.updateMany({
               where: {
                 locationId: id,
-                imageNumber: { in: changedNumbers },
+                imageNumber: { in: affectedNumbers },
                 game: {
                   is: {
                     status: {
@@ -188,34 +181,33 @@ export class LocationRepositoryImpl implements LocationRepository {
                   },
                 },
               },
-              data: {
-                imageNumber: null,
-              },
-            });
-
-            await transaction.locationImage.deleteMany({
-              where: {
-                locationId: id,
-                imageNumber: { in: removedNumbers },
-              },
+              data: { imageNumber: null },
             });
           }
 
           const existingNumberSet = new Set(
             existingImages.map((image) => image.imageNumber),
           );
+          const requestedNumberSet = new Set(
+            images.map((image) => image.imageNumber),
+          );
+
+          const deletedNumbers = existingImages
+            .filter((image) => !requestedNumberSet.has(image.imageNumber))
+            .map((image) => image.imageNumber);
+
+          if (deletedNumbers.length > 0) {
+            await transaction.locationImage.deleteMany({
+              where: {
+                locationId: id,
+                imageNumber: { in: deletedNumbers },
+              },
+            });
+          }
 
           const newImages = images.filter(
             (image) => !existingNumberSet.has(image.imageNumber),
           );
-
-          const updatedImages = images.filter((image) => {
-            const existing = existingImages.find(
-              (item) => item.imageNumber === image.imageNumber,
-            );
-
-            return existing && existing.imageUrl !== image.imageUrl;
-          });
 
           if (newImages.length > 0) {
             await transaction.locationImage.createMany({
@@ -227,7 +219,17 @@ export class LocationRepositoryImpl implements LocationRepository {
             });
           }
 
-          for (const image of updatedImages) {
+          const replacedImages = images.filter((image) => {
+            const existing = existingImages.find(
+              (item) => item.imageNumber === image.imageNumber,
+            );
+            return (
+              existing !== undefined &&
+              existing.imageUrl !== image.imageUrl
+            );
+          });
+
+          for (const image of replacedImages) {
             await transaction.locationImage.update({
               where: {
                 locationId_imageNumber: {
@@ -235,16 +237,17 @@ export class LocationRepositoryImpl implements LocationRepository {
                   imageNumber: image.imageNumber,
                 },
               },
-              data: {
-                imageUrl: image.imageUrl,
-              },
+              data: { imageUrl: image.imageUrl },
             });
           }
 
-          return transaction.location.findUniqueOrThrow({
+          const location = await transaction.location.update({
             where: { id },
+            data,
             include: { images: true },
           });
+
+          return { status: "UPDATED", location };
         },
         {
           isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
@@ -255,8 +258,9 @@ export class LocationRepositoryImpl implements LocationRepository {
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === "P2034"
       ) {
-        throw new LocationImagesChangedError();
+        return { status: "STALE_UPDATE" };
       }
+
       throw error;
     }
   }
