@@ -1,8 +1,15 @@
 import type { AuthPort } from "@/features/auth/server/auth.port";
-import type { CreateUserInput, LoginInput } from "@/features/auth/auth.schema";
+import type {
+  CreateUserInput, 
+  LoginInput, 
+  RequestPasswordResetInput, 
+  ResetPasswordInput
+} from "@/features/auth/auth.schema";
 import { getAuthRedirect } from "@/features/auth/auth-redirect";
 import { handleAuthError } from "./auth-error";
 import { AppError } from "@/shared/errors/app.error";
+import { AppRoutes } from "@/shared/routes/routes";
+import { config } from "@/shared/config/runtime";
 import type { UpdateUsernameFormInput } from "@/features/profile/profile.schema";
 
 export class AuthService {
@@ -51,6 +58,30 @@ export class AuthService {
       return await this.authAdapter.updateUsername(headers, input);
     } catch (error) {
       return handleAuthError(error, "Update username failed");
+    }
+  }
+
+  async requestPasswordReset(headers: Headers, input: RequestPasswordResetInput): Promise<void> {
+    try {
+      const redirectTo = new URL(
+        AppRoutes.resetPassword,
+        config.authUrl,
+      ).toString();
+      await this.authAdapter.requestPasswordReset(
+        headers,
+        input,
+        redirectTo,
+      );
+    } catch (error) {
+      return handleAuthError(error, "Request password reset failed");
+    }
+  }
+
+  async resetPassword(headers: Headers, token: string, input: ResetPasswordInput): Promise<void> {
+    try {
+      await this.authAdapter.resetPassword(headers, token, input);
+    } catch (error) {
+      return handleAuthError(error, "Reset password failed");
     }
   }
 }

@@ -1,5 +1,10 @@
 import type { AuthPort } from "@/features/auth/server/auth.port";
-import type { CreateUserInput, LoginInput } from "@/features/auth/auth.schema";
+import type { 
+  CreateUserInput,
+  LoginInput,
+  RequestPasswordResetInput,
+  ResetPasswordInput
+} from "@/features/auth/auth.schema";
 import { auth } from "@/features/auth/server/auth";
 import type { UpdateUsernameFormInput } from "@/features/profile/profile.schema";
 
@@ -38,5 +43,19 @@ export class AuthAdapter implements AuthPort {
       returnHeaders: true,
     });
     return result.headers;
+  }
+
+  async requestPasswordReset(headers: Headers, input: RequestPasswordResetInput, redirectTo: string): Promise<void> {
+    await auth.api.requestPasswordReset({
+      body: { email: input.email, redirectTo },
+      headers,
+    });
+  }
+
+  async resetPassword(headers: Headers, token: string, input: ResetPasswordInput ): Promise<void> {
+    await auth.api.resetPassword({
+      body: { newPassword: input.password, token, },
+      headers,
+    });
   }
 }
