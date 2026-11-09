@@ -61,4 +61,21 @@ describe("GameService.submitGuess", () => {
     expect(result.score).toBe(700);
   });
 
+  it("persists at most 5000 points when the final exact guess earns a time bonus", async () => {
+    const game = createGameRecord();
+    game.rounds.forEach((round, index) => {
+      round.startedAt = gameNow;
+      if (index < 4) {
+        round.status = "COMPLETED";
+        round.score = 1000;
+        round.playTimeSeconds = 0;
+        round.guessedLatitude = guess.guessedLatitude;
+        round.guessedLongitude = guess.guessedLongitude;
+      }
+    });
+    repository.findGame.mockResolvedValue(game);
+    await service.submitGuess(game.id, game.userId, 5, guess, now);
+    expect(repository.saveGuess).toHaveBeenCalledWith(expect.objectContaining({ totalScore: 5000 }));
+  });
+
 });

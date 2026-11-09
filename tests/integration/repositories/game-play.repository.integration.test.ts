@@ -55,7 +55,7 @@ describe.skipIf(process.env.RUN_GAME_DATABASE_TESTS !== "1")("Game API persisten
       await service.submitGuess(gameId,userId,question,guess,new Date(now.getTime()+20000));
     }
     const game=await repository.findGame(gameId);
-    expect(game).toMatchObject({status:"COMPLETED",totalScore:5158});
+    expect(game).toMatchObject({status:"COMPLETED",totalScore:5000});
     expect(game?.rounds.every((r)=>r.status==="COMPLETED" && r.playTimeSeconds===20)).toBe(true);
   });
   it("rolls back round five if saving the game total fails", async () => {
@@ -71,7 +71,7 @@ describe.skipIf(process.env.RUN_GAME_DATABASE_TESTS !== "1")("Game API persisten
     await service.currentRound(gameId,userId,now);
     await Promise.allSettled([service.submitGuess(gameId,userId,5,guess,now),service.exitGame(gameId,userId,now)]);
     const game=await repository.findGame(gameId);
-    if(game?.status==="COMPLETED") expect(game).toMatchObject({totalScore:5189,rounds:expect.arrayContaining([expect.objectContaining({questionNumber:5,status:"COMPLETED"})])});
+    if(game?.status==="COMPLETED") expect(game).toMatchObject({totalScore:5000,rounds:expect.arrayContaining([expect.objectContaining({questionNumber:5,status:"COMPLETED"})])});
     else {expect(game?.status).toBe("INCOMPLETE");expect(game?.rounds[4].status).toBe("PENDING");}
   });
   it("leaves no partial game when creation fails", async () => {

@@ -1,3 +1,5 @@
+export const MAX_GAME_SCORE = 5000;
+
 const SCORE_RULES = {
   maxRoundScore: 1000,
   distanceReferenceMeters: 25,
@@ -26,8 +28,7 @@ export function calculateGameSummary(
 ) {
   const baseScore = rounds.reduce((sum, round) => sum + round.score, 0);
   const totalTimeSeconds = rounds.reduce((sum, round) => sum + (round.playTimeSeconds ?? 0), 0);
-  const bonusScore = storedTotalScore === undefined
-    ? calculateTimeBonus(totalTimeSeconds)
-    : storedTotalScore - baseScore;
-  return { baseScore, totalTimeSeconds, bonusScore, totalScore: baseScore + bonusScore };
+  const bonusScore = calculateTimeBonus(totalTimeSeconds);
+  const totalScore = Math.min(MAX_GAME_SCORE, storedTotalScore ?? baseScore + bonusScore);
+  return { baseScore, totalTimeSeconds, bonusScore, totalScore };
 }

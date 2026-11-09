@@ -29,8 +29,30 @@ describe("game scoring", () => {
     expect(calculateGameSummary(rounds)).toEqual({ baseScore: 4000, totalTimeSeconds: 120, bonusScore: 126, totalScore: 4126 });
   });
 
-  it("preserves a stored historical total after a formula change", () => {
+  it("preserves a stored total while calculating the bonus from saved time", () => {
     const rounds = Array.from({ length: 5 }, () => ({ score: 800, playTimeSeconds: 24 }));
-    expect(calculateGameSummary(rounds, 4500)).toEqual({ baseScore: 4000, totalTimeSeconds: 120, bonusScore: 500, totalScore: 4500 });
+    expect(calculateGameSummary(rounds, 4500)).toEqual({ baseScore: 4000, totalTimeSeconds: 120, bonusScore: 126, totalScore: 4500 });
   });
+  it.each([960, 1000])("caps the final total at 5000 when each round earns %s distance points", (score) => {
+    const rounds = Array.from({ length: 5 }, () => ({ score, playTimeSeconds: 0 }));
+    expect(calculateGameSummary(rounds).totalScore).toBe(5000);
+  });
+
+  it("adds one 120-point bonus to five 800-point rounds", () => {
+    const rounds = [24, 25, 25, 25, 25].map((playTimeSeconds) => ({ score: 800, playTimeSeconds }));
+    expect(calculateGameSummary(rounds)).toEqual({ baseScore: 4000, totalTimeSeconds: 124, bonusScore: 120, totalScore: 4120 });
+  });
+
+  it("reports the earned bonus separately when a perfect game reaches the cap", () => {
+    const rounds = [24, 25, 25, 25, 25].map((playTimeSeconds) => ({ score: 1000, playTimeSeconds }));
+    const summary = { baseScore: 5000, totalTimeSeconds: 124, bonusScore: 120, totalScore: 5000 };
+    expect(calculateGameSummary(rounds)).toEqual(summary);
+    expect(calculateGameSummary(rounds, 5000)).toEqual(summary);
+  });
+
+  it("keeps the full earned bonus visible when only part fits below 5000", () => {
+    const rounds = Array.from({ length: 5 }, () => ({ score: 980, playTimeSeconds: 0 }));
+    expect(calculateGameSummary(rounds, 5000)).toEqual({ baseScore: 4900, totalTimeSeconds: 0, bonusScore: 300, totalScore: 5000 });
+  });
+
 });

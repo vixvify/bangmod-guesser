@@ -33,4 +33,22 @@ describe("GET summary", () => {
   it("returns 409 before the game finishes", async () => { repository.findGame.mockResolvedValue(createGameRecord()); expect((await request()).status).toBe(409); });
   it("returns 400 for an invalid game ID", async () => { expect((await request(" ")).status).toBe(400); expect(repository.findGame).not.toHaveBeenCalled(); });
   it("hides persistence errors", async () => { repository.findGame.mockRejectedValue(new Error("secret")); expect(await (await request()).json()).toEqual({ error: "Internal server error", status: 500, statusCode: "ERROR" }); });
+  it("shows the earned time bonus independently while capping the saved final total", async () => {
+    const game = createGameRecord();
+    game.status = "COMPLETED";
+    game.totalScore = 5000;
+    game.rounds.forEach((round) => {
+      round.status = "COMPLETED";
+      round.score = 1000;
+      round.playTimeSeconds = 24;
+      round.guessedLatitude = 13.65;
+      round.guessedLongitude = 100.49;
+    });
+    repository.findGame.mockResolvedValue(game);
+    expect(await (await request()).json()).toEqual({
+      data: { baseScore: 5000, totalTimeSeconds: 120, bonusScore: 126, totalScore: 5000 },
+      status: 200, statusCode: "SUCCESS",
+    });
+  });
+
 });

@@ -43,7 +43,7 @@ describe("GameService.summary", () => {
     game.totalScore = 4400;
     repository.findGame.mockResolvedValue(game);
     expect(await service.summary(game.id, game.userId)).toEqual({
-      baseScore: 4000, totalTimeSeconds: 120, bonusScore: 400, totalScore: 4400,
+      baseScore: 4000, totalTimeSeconds: 120, bonusScore: 126, totalScore: 4400,
     });
   });
 
