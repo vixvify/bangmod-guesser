@@ -7,14 +7,14 @@ const service = new GameService(repository);
 function completedGame() {
   const game = createGameRecord();
   game.status = "COMPLETED";
-  game.totalScore = 4500;
+  game.totalScore = 4126;
   game.rounds.forEach((r) => { r.status = "COMPLETED"; r.score = 800; r.playTimeSeconds = 24; r.guessedLatitude = 13.65; r.guessedLongitude = 100.49; });
   return game;
 }
 beforeEach(() => { repository.findGame.mockResolvedValue(completedGame()); });
 describe("GameService.summary", () => {
   it("sums five answers and adds the time bonus once", async () => {
-    const expected = { baseScore: 4000, totalTimeSeconds: 120, bonusScore: 500, totalScore: 4500 };
+    const expected = { baseScore: 4000, totalTimeSeconds: 120, bonusScore: 126, totalScore: 4126 };
     expect(await service.summary("game-1", "player-1")).toEqual(expected);
     expect(await service.summary("game-1", "player-1")).toEqual(expected);
     expect(repository.saveGuess).not.toHaveBeenCalled();

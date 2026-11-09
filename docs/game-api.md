@@ -99,8 +99,8 @@ Backend ตรวจเจ้าของเกม ตรวจว่าเก�
   "guessedLatitude": 13.65,
   "guessedLongitude": 100.49,
   "distanceMeters": 15.5,
-  "score": 900,
-  "accumulatedScore": 1700,
+  "score": 881,
+  "accumulatedScore": 1681,
   "imageUrl": "https://images.example.invalid/question-image.webp",
   "location": {
     "latitude": 13.6501,
@@ -145,8 +145,8 @@ Backend ตรวจเจ้าของเกม สถานะ COMPLETED แ
 {
   "baseScore": 4000,
   "totalTimeSeconds": 120,
-  "bonusScore": 500,
-  "totalScore": 4500
+  "bonusScore": 126,
+  "totalScore": 4126
 }
 ```
 
@@ -180,9 +180,12 @@ JSON response ใช้รูปแบบกลางของโปรเจก
 ## กติกาคะแนนและความเข้ากันได้ (BE-008)
 
 - ใช้ Haversine เดิมจาก `src/shared/lib/calculate-distance.ts` หน่วยเมตร ใช้ค่าจริงคำนวณคะแนน และปัดระยะแสดงผลสองตำแหน่ง
-- คะแนนรอบ = round(1000 × exp(-distanceMeters / 70.0918313)) ทำให้ 0 เมตร = 1000 และ 25 เมตร = 700 คะแนน
-- โบนัสเวลา: สูงสุด 500 เมื่อเวลารวมไม่เกิน 120 วินาที ลดเชิงเส้นจนเหลือ 0 ที่ 300 วินาที คะแนนรวมสูงสุดรวมโบนัส = 5500
-- ค่าปรับจูนอยู่ใน `src/features/game/game-scoring.ts` เป็นค่าเริ่มต้นรอทีมทดลองเล่น
+- คะแนนระยะทาง: `S(d) = round(1000 × exp(ln(0.7) × (max(0, d) / 25)^p))` โดย `p = ln(ln(0.2) / ln(0.7)) / ln(2) ≈ 2.1738751462` สูตรนี้ได้จากจุดอ้างอิงในภาพและตรงกับตารางทุกแถว
+- ระยะ 0 / 5 / 10 / 15 / 20 / 25 / 30 / 35 / 40 / 45 / 50 / 60 / 75 / 100 / 150 เมตร ให้ 1000 / 989 / 953 / 889 / 803 / 700 / 589 / 477 / 371 / 278 / 200 / 91 / 21 / 1 / 0 คะแนน ตามลำดับ
+- โบนัสเวลา: `B(t) = round(300 × max(0, min(1, (200 - t) / 190)))` โดย t เป็นเวลาเล่นจริงรวม 5 รอบ (วินาที)
+- เวลาไม่เกิน 10 วินาที ได้ 300 คะแนน; 20 / 30 / 60 / 100 / 150 / 180 / 190 / 200 วินาที ได้ 284 / 268 / 221 / 158 / 79 / 32 / 16 / 0 คะแนน
+- คิดโบนัสครั้งเดียวตอนจบเกม คะแนนทายเต็ม 5000 + โบนัสเต็ม 300 = คะแนนรวมสูงสุด 5300; เช่นเวลา 120 วินาทีได้โบนัส 126
+- ฟังก์ชันคำนวณอยู่ใน `src/features/game/lib/game-scoring.ts` และค่าคงที่อยู่ใน `src/features/game/game.constants.ts`
 - ต้องเปิดรอบผ่าน current-round ก่อนส่ง guess จับเวลาจาก startedAt ของรอบนั้นและปัดลงเป็นวินาที ไม่รวมช่วงพักหน้าเฉลย
 - ตอนสร้างเกม ล็อกสถานที่ด้วย query เดียวเรียงตาม id และตรวจรูปทั้งชุดด้วย query เดียวก่อน nested write
 - ปฏิเสธผลรอบก่อนหน้าที่ขาดเวลา/พิกัด แทนการเล่นต่อและสร้าง summary ที่ใช้ไม่ได้
@@ -202,7 +205,7 @@ JSON response ใช้รูปแบบกลางของโปรเจก
 
 ### ผลตรวจในเครื่องสำหรับ BE-008
 
-รอบตรวจทานเพิ่ม regression tests สำหรับคะแนน summary ที่ต่างจากคะแนนบันทึก และผลรอบก่อนหน้าที่ขาดเวลา/พิกัด โดยยืนยันว่าเทสต์ล้มเหลวก่อนแก้และผ่านหลังแก้
+รอบตรวจทานก่อนเปลี่ยนสูตรเพิ่ม regression tests สำหรับคะแนน summary ที่ต่างจากคะแนนบันทึก และผลรอบก่อนหน้าที่ขาดเวลา/พิกัด โดยยืนยันว่าเทสต์ล้มเหลวก่อนแก้และผ่านหลังแก้
 
 - ใช้ของเดิม: `requireAuth`, `AppError`, `readJson`, `parseSchema`, `successResponse`, `errorResponse`, Prisma singleton/container, `haversineDistanceMeters` และ mock repository สำหรับเทสต์
 - ลบสูตรระยะทางที่ซ้ำ ลดการเรียกฐานข้อมูลในส่วนล็อก/ตรวจรูปจาก 10 เป็น 2 ครั้ง และคำนวณโบนัสเฉพาะเมื่อจบรอบสุดท้าย
@@ -214,7 +217,7 @@ JSON response ใช้รูปแบบกลางของโปรเจก
 
 | คำสั่ง | ผล |
 | --- | --- |
-| `npm run test:unit` | 381 ผ่าน |
+| `npm run test:unit` | 407 ผ่านหลังเปลี่ยนสูตร |
 | `npm run test:component` | 244 ผ่าน |
 | `npm run test:integration` | 102 ผ่าน / 22 skipped (PostgreSQL opt-in) |
 | `npm run lint` | ผ่าน |
@@ -225,3 +228,44 @@ JSON response ใช้รูปแบบกลางของโปรเจก
 | `npm run test:e2e -- game-api.spec.ts` | เริ่มไม่ได้: `spawnSync docker ENOENT` ก่อนเริ่มเทสต์ |
 
 ปัญหา Prisma DLL ถูกล็อกจากรอบก่อนหน้าไม่เกิดในการรัน build รอบตรวจทานนี้ ส่วน build ยังแจ้งเตือน BETTER_AUTH_SECRET ใน environment ปัจจุบันสั้น/entropy ต่ำ ไม่ได้เปลี่ยนค่า auth configuration ในงานเกมนี้
+
+## โครงสร้างและจุดเรียกใช้งาน
+
+```text
+src/
+├── app/api/games/
+│   ├── route.ts
+│   └── [id]/
+│       ├── current-round/route.ts
+│       ├── rounds/[questionNumber]/guess/route.ts
+│       └── summary/route.ts
+├── features/game/
+│   ├── game.ts
+│   ├── game.schema.ts
+│   ├── game.constants.ts
+│   ├── game.routes.ts
+│   ├── lib/game-scoring.ts
+│   └── server/
+│       ├── game.service.ts
+│       ├── game.repository.port.ts
+│       ├── game.repository.ts
+│       └── game.factory.ts
+├── shared/lib/calculate-distance.ts
+└── container.ts
+prisma/
+├── schema.prisma
+└── types/game.ts
+```
+
+| ส่วน | การทำงาน |
+| --- | --- |
+| API 01 `POST /api/games` | `route.ts` ตรวจ session → `GameService.createGame` สุ่ม 5 สถานที่พร้อมรูป → `GameRepositoryImpl.createGame` ตรวจข้อมูลและสร้าง Game + 5 GameRound ใน transaction → คืน gameId |
+| API 02 `GET /api/games/{gameId}/current-round` | `current-round/route.ts` ตรวจ input/session → `GameService.currentRound` ตรวจเจ้าของและ PLAYING → repository ล็อกเกมและตั้ง startedAt หากยังว่าง → factory คืนเฉพาะ questionNumber + imageUrl เดิม |
+| API 03 `POST /api/games/{gameId}/rounds/{questionNumber}/guess` | `guess/route.ts` ใช้ schema ตรวจพิกัด/เลขรอบ → `GameService.submitGuess` ตรวจเจ้าของและรอบ → shared Haversine คิดระยะ → lib คิดคะแนน → repository บันทึกแบบ conditional ภายใน transaction → factory คืนเฉลยพร้อมรูป; รอบ 5 เรียก lib รวมคะแนน/เวลา/โบนัสและปิดเกม |
+| API 04 `GET /api/games/{gameId}/summary` | `summary/route.ts` ตรวจ session/input → `GameService.summary` ตรวจเจ้าของ/COMPLETED/ผลครบ 5 รอบ → lib รวม baseScore และเวลา โดยใช้ totalScore ที่บันทึกแล้ว → คืน baseScore, totalTimeSeconds, bonusScore, totalScore |
+
+`game.schema.ts` เป็นขอบเขต validation, `game.ts` เป็นสัญญาข้อมูลสาธารณะ, `game.repository.port.ts` เป็นสัญญา persistence, `prisma/types/game.ts` เป็นชนิดข้อมูลจาก Prisma และ `container.ts` ประกอบ instance เดิมให้ routes เรียกใช้
+
+lib ของเกมเป็นฟังก์ชันคำนวณล้วน ไม่มี Prisma, session, HTTP หรือ state; กติกาเฉพาะเกมจึงอยู่ในฟีเจอร์เกม ส่วน Haversine ที่หลายฟีเจอร์ใช้ร่วมกันคงอยู่ใน shared/lib เดิม ไม่สร้างซ้ำ
+
+การเปลี่ยนสูตรนี้ใช้กับเกมที่เล่นต่อจากโค้ดรุ่นนี้ ไม่ย้อนแก้คะแนนรอบที่บันทึกแล้วหรือ totalScore ของเกมที่จบไปแล้ว

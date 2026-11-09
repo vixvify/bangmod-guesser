@@ -32,3 +32,14 @@ export const MAP_CONFIG = {
     shadowSize: [41, 41] as [number, number],
   },
 } as const;
+
+export const GAME_RULES = {
+  rounds: 5,
+  maxRoundScore: 1000,
+  distanceReferenceMeters: 25,
+  distanceReferenceRatio: 0.7,
+  distanceDecayExponent: Math.log(Math.log(0.2) / Math.log(0.7)) / Math.log(2),
+  maxTimeBonus: 300,
+  fullBonusSeconds: 10,
+  zeroBonusSeconds: 200,
+} as const;

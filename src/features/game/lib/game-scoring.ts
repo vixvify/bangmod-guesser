@@ -1,16 +1,10 @@
-import type { GameSummaryResult } from "./game";
-
-export const GAME_RULES = {
-  rounds: 5,
-  maxRoundScore: 1000,
-  scoreDecayMeters: -25 / Math.log(0.7),
-  maxTimeBonus: 500,
-  fullBonusSeconds: 120,
-  zeroBonusSeconds: 300,
-} as const;
+import type { GameSummaryResult } from "../game";
+import { GAME_RULES } from "../game.constants";
 
 export function calculateRoundScore(distanceMeters: number): number {
-  return Math.round(GAME_RULES.maxRoundScore * Math.exp(-Math.max(0, distanceMeters) / GAME_RULES.scoreDecayMeters));
+  const normalizedDistance = Math.max(0, distanceMeters) / GAME_RULES.distanceReferenceMeters;
+  const decay = Math.log(GAME_RULES.distanceReferenceRatio) * normalizedDistance ** GAME_RULES.distanceDecayExponent;
+  return Math.round(GAME_RULES.maxRoundScore * Math.exp(decay));
 }
 
 export function calculateTimeBonus(totalTimeSeconds: number): number {

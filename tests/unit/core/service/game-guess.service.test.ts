@@ -22,7 +22,7 @@ describe("GameService.submitGuess", () => {
     game.rounds.forEach((r,i) => { r.startedAt = gameNow; if(i<4) {r.status="COMPLETED";r.score=800;r.playTimeSeconds=25;r.guessedLatitude=13.65;r.guessedLongitude=100.49;} });
     repository.findGame.mockResolvedValue(game);
     expect((await service.submitGuess(game.id,game.userId,5,guess,now)).accumulatedScore).toBe(4200);
-    expect(repository.saveGuess).toHaveBeenCalledWith(expect.objectContaining({totalScore:4700,questionNumber:5,playTimeSeconds:20}));
+    expect(repository.saveGuess).toHaveBeenCalledWith(expect.objectContaining({totalScore:4326,questionNumber:5,playTimeSeconds:20}));
   });
   it.each([0,2,5,6])("rejects out of order round %s without saving", async (question) => {
     await expect(service.submitGuess("game-1","player-1",question,guess,now)).rejects.toMatchObject({status:409});

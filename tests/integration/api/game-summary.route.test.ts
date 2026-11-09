@@ -17,7 +17,7 @@ beforeEach(() => {
   requireAuth.mockResolvedValue({ id: "player-1" });
   const game = createGameRecord();
   game.status = "COMPLETED";
-  game.totalScore = 4500;
+  game.totalScore = 4126;
   game.rounds.forEach((r) => { r.status = "COMPLETED"; r.score = 800; r.playTimeSeconds = 24; r.guessedLatitude = 13.65; r.guessedLongitude = 100.49; });
   repository.findGame.mockResolvedValue(game);
 });
@@ -25,7 +25,7 @@ describe("GET summary", () => {
   it("returns the final score in the standard envelope without answer details", async () => {
     const response = await request();
     expect(response.headers.get("cache-control")).toBe("private, no-store");
-    expect(await response.json()).toEqual({ data: { baseScore: 4000, totalTimeSeconds: 120, bonusScore: 500, totalScore: 4500 }, status: 200, statusCode: "SUCCESS" });
+    expect(await response.json()).toEqual({ data: { baseScore: 4000, totalTimeSeconds: 120, bonusScore: 126, totalScore: 4126 }, status: 200, statusCode: "SUCCESS" });
   });
   it("requires authentication", async () => { requireAuth.mockRejectedValue(new AppError("Unauthorized", 401)); expect((await request()).status).toBe(401); expect(repository.findGame).not.toHaveBeenCalled(); });
   it("returns 403 for another owner's game", async () => { requireAuth.mockResolvedValue({ id: "other" }); expect((await request()).status).toBe(403); });
