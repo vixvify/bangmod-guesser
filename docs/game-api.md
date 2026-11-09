@@ -185,7 +185,7 @@ JSON response ใช้รูปแบบกลางของโปรเจก
 - โบนัสเวลา: `B(t) = round(300 × max(0, min(1, (200 - t) / 190)))` โดย t เป็นเวลาเล่นจริงรวม 5 รอบ (วินาที)
 - เวลาไม่เกิน 10 วินาที ได้ 300 คะแนน; 20 / 30 / 60 / 100 / 150 / 180 / 190 / 200 วินาที ได้ 284 / 268 / 221 / 158 / 79 / 32 / 16 / 0 คะแนน
 - คิดโบนัสครั้งเดียวตอนจบเกม คะแนนทายเต็ม 5000 + โบนัสเต็ม 300 = คะแนนรวมสูงสุด 5300; เช่นเวลา 120 วินาทีได้โบนัส 126
-- ฟังก์ชันคำนวณอยู่ใน `src/features/game/lib/game-scoring.ts` และค่าคงที่อยู่ใน `src/features/game/game.constants.ts`
+- สูตรและค่าคงที่สำหรับคะแนนอยู่ใน `src/shared/lib/game-scoring.ts` ส่วนจำนวนรอบอยู่ใน `src/features/game/game.constants.ts`
 - ต้องเปิดรอบผ่าน current-round ก่อนส่ง guess จับเวลาจาก startedAt ของรอบนั้นและปัดลงเป็นวินาที ไม่รวมช่วงพักหน้าเฉลย
 - ตอนสร้างเกม ล็อกสถานที่ด้วย query เดียวเรียงตาม id และตรวจรูปทั้งชุดด้วย query เดียวก่อน nested write
 - ปฏิเสธผลรอบก่อนหน้าที่ขาดเวลา/พิกัด แทนการเล่นต่อและสร้าง summary ที่ใช้ไม่ได้
@@ -197,7 +197,7 @@ JSON response ใช้รูปแบบกลางของโปรเจก
 
 - ใช้ migration `20261110000000_add_round_started_at` ผ่านขั้นตอน deploy ของทีม แล้วรัน `npx prisma generate`
 - ทุก endpoint ต้องมี session: 401 เมื่อไม่ล็อกอิน, 403 เมื่อไม่ใช่เจ้าของ, 404 เมื่อไม่พบเกม, 400 เมื่อ input ไม่ถูกต้อง และ 409 เมื่อสถานะหรือรอบไม่ตรง
-- Unit: `npx vitest run tests/unit/core/service/game tests/unit/core/domain/game-scoring.test.ts tests/unit/core/schema/game-guess.schema.test.ts`
+- Unit: `npx vitest run tests/unit/core/service/game tests/unit/lib/game-scoring.test.ts tests/unit/core/schema/game-guess.schema.test.ts`
 - Route integration ใช้ service/factory จริงและ mock เฉพาะ auth/repository: `npx vitest run tests/integration/api/game-`
 - PostgreSQL integration (ฐานข้อมูลทดสอบเฉพาะ port 5439 ที่ migrate แล้ว): ตั้ง `RUN_GAME_DATABASE_TESTS=1` แล้วรัน `npx vitest run tests/integration/repositories/game-play.repository.integration.test.ts`
 - HTTP E2E พร้อม session จริงและฐานข้อมูลแยก: `npm run test:e2e -- game-api.spec.ts` ต้องมี Docker และ Playwright browser
@@ -244,13 +244,14 @@ src/
 │   ├── game.schema.ts
 │   ├── game.constants.ts
 │   ├── game.routes.ts
-│   ├── lib/game-scoring.ts
 │   └── server/
 │       ├── game.service.ts
 │       ├── game.repository.port.ts
 │       ├── game.repository.ts
 │       └── game.factory.ts
-├── shared/lib/calculate-distance.ts
+├── shared/lib/
+│   ├── calculate-distance.ts
+│   └── game-scoring.ts
 └── container.ts
 prisma/
 ├── schema.prisma
@@ -266,6 +267,6 @@ prisma/
 
 `game.schema.ts` เป็นขอบเขต validation, `game.ts` เป็นสัญญาข้อมูลสาธารณะ, `game.repository.port.ts` เป็นสัญญา persistence, `prisma/types/game.ts` เป็นชนิดข้อมูลจาก Prisma และ `container.ts` ประกอบ instance เดิมให้ routes เรียกใช้
 
-lib ของเกมเป็นฟังก์ชันคำนวณล้วน ไม่มี Prisma, session, HTTP หรือ state; กติกาเฉพาะเกมจึงอยู่ในฟีเจอร์เกม ส่วน Haversine ที่หลายฟีเจอร์ใช้ร่วมกันคงอยู่ใน shared/lib เดิม ไม่สร้างซ้ำ
+`src/shared/lib/game-scoring.ts` เป็นฟังก์ชันคำนวณล้วน ไม่มี Prisma, session, HTTP, state หรือ dependency กลับเข้า features ส่วน Haversine ใช้ `src/shared/lib/calculate-distance.ts` เดิม ไม่มีโฟลเดอร์ lib ภายในฟีเจอร์เกม
 
 การเปลี่ยนสูตรนี้ใช้กับเกมที่เล่นต่อจากโค้ดรุ่นนี้ ไม่ย้อนแก้คะแนนรอบที่บันทึกแล้วหรือ totalScore ของเกมที่จบไปแล้ว

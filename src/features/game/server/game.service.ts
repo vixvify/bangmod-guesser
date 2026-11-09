@@ -3,8 +3,8 @@ import type { GamePlayRecord } from "../../../../prisma/types/game";
 import type { CurrentGameRound, GameExitResult, GameGuessResult, GameSummaryResult } from "../game";
 import type { GuessInput } from "../game.schema";
 import type { GameRepository } from "./game.repository.port";
-import { GAME_RULES } from "../game.constants";
-import { calculateRoundScore, calculateGameSummary } from "../lib/game-scoring";
+import { GAME_ROUND_COUNT } from "../game.constants";
+import { calculateRoundScore, calculateGameSummary } from "@/shared/lib/game-scoring";
 import { GameFactory } from "./game.factory";
 import { AppError } from "@/shared/errors/app.error";
 import { haversineDistanceMeters } from "@/shared/lib/calculate-distance";
@@ -14,7 +14,7 @@ export class GameService {
 
   async summary(id: string, userId: string): Promise<GameSummaryResult> {
     const game = await this.ownedGame(id, userId);
-    if (game.status !== "COMPLETED" || game.totalScore === null || game.rounds.length !== GAME_RULES.rounds
+    if (game.status !== "COMPLETED" || game.totalScore === null || game.rounds.length !== GAME_ROUND_COUNT
       || game.rounds.some((round, index) => round.questionNumber !== index + 1 || !this.hasCompleteAnswer(round))) {
       throw new AppError("Complete all five rounds before viewing the summary", 409);
     }
@@ -26,7 +26,7 @@ export class GameService {
     const round = this.pendingRound(game);
     if (round.questionNumber !== questionNumber) throw new AppError("Round already answered or out of order", 409);
     if (!round.startedAt) throw new AppError("Open the current round before submitting a guess", 409);
-    if (game.rounds.length !== GAME_RULES.rounds || game.rounds.some((r, i) => r.questionNumber !== i + 1 || (i + 1 < questionNumber && !this.hasCompleteAnswer(r)))) {
+    if (game.rounds.length !== GAME_ROUND_COUNT || game.rounds.some((r, i) => r.questionNumber !== i + 1 || (i + 1 < questionNumber && !this.hasCompleteAnswer(r)))) {
       throw new AppError("Game rounds are incomplete", 409);
     }
     const distance = haversineDistanceMeters(round.location, {
@@ -37,7 +37,7 @@ export class GameService {
     const results = game.rounds.map((r) => r.questionNumber === questionNumber ? { ...r, score, playTimeSeconds } : r);
     await this.gameRepository.saveGuess({
       gameId: id, userId, questionNumber, ...input, score, playTimeSeconds, finishedAt: now,
-      ...(questionNumber === GAME_RULES.rounds ? { totalScore: calculateGameSummary(results).totalScore } : {}),
+      ...(questionNumber === GAME_ROUND_COUNT ? { totalScore: calculateGameSummary(results).totalScore } : {}),
     });
     const accumulatedScore = results.filter((r) => r.questionNumber <= questionNumber).reduce((sum, r) => sum + r.score, 0);
     return GameFactory.toGuessResult(round, input, distance, score, accumulatedScore);
@@ -70,12 +70,12 @@ export class GameService {
 
   async createGame(userId: string): Promise<{ gameId: string }> {
     const candidates = await this.gameRepository.findCandidates();
-    if (candidates.length < GAME_RULES.rounds) throw new AppError("At least five active locations with images are required", 409);
-    for (let i = 0; i < GAME_RULES.rounds; i++) {
+    if (candidates.length < GAME_ROUND_COUNT) throw new AppError("At least five active locations with images are required", 409);
+    for (let i = 0; i < GAME_ROUND_COUNT; i++) {
       const j = randomInt(i, candidates.length);
       [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
     }
-    const rounds = candidates.slice(0, GAME_RULES.rounds).map((location, index) => ({
+    const rounds = candidates.slice(0, GAME_ROUND_COUNT).map((location, index) => ({
       questionNumber: index + 1,
       locationId: location.id,
       imageNumber: location.images[randomInt(location.images.length)].imageNumber,

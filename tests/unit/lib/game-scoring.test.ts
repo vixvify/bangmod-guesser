@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateRoundScore, calculateTimeBonus, calculateGameSummary } from "@/features/game/lib/game-scoring";
+import { calculateRoundScore, calculateTimeBonus, calculateGameSummary } from "@/shared/lib/game-scoring";
 
 describe("game scoring", () => {
   it.each([
