@@ -7,6 +7,7 @@ const service = new GameService(repository);
 function completedGame() {
   const game = createGameRecord();
   game.status = "COMPLETED";
+  game.totalScore = 4500;
   game.rounds.forEach((r) => { r.status = "COMPLETED"; r.score = 800; r.playTimeSeconds = 24; r.guessedLatitude = 13.65; r.guessedLongitude = 100.49; });
   return game;
 }
@@ -37,4 +38,18 @@ describe("GameService.summary", () => {
   it("rejects another owner before revealing the result", async () => {
     await expect(service.summary("game-1", "other")).rejects.toMatchObject({ status: 403 });
   });
+  it("preserves the stored final total when bonus tuning changes", async () => {
+    const game = completedGame();
+    game.totalScore = 4400;
+    repository.findGame.mockResolvedValue(game);
+    expect(await service.summary(game.id, game.userId)).toEqual({
+      baseScore: 4000, totalTimeSeconds: 120, bonusScore: 400, totalScore: 4400,
+    });
+  });
+
+  it("rejects completion without a stored final total", async () => {
+    repository.findGame.mockResolvedValue({ ...completedGame(), totalScore: null });
+    await expect(service.summary("game-1", "player-1")).rejects.toMatchObject({ status: 409 });
+  });
+
 });

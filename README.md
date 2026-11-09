@@ -4,6 +4,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 - [Architecture](docs/architecture.md)
 - [Writing rules](docs/writing-rules.md)
+- [Game API (BE-008)](docs/game-api.md)
 
 ## Getting Started
 
@@ -92,8 +93,9 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 Run the full test suite with `npm test`. Install the Playwright browser once with
 `npx playwright install chromium`, or run only the browser tests with
-`npm run test:e2e`. The signup/login E2E tests in `e2e/` mock Auth API responses,
-so they do not require a running database.
+`npm run test:e2e`. Some signup/login browser tests mock Auth API responses, but the E2E runner
+starts a disposable PostgreSQL database through Docker and applies migrations.
+The Game API flow uses real sessions and database records.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

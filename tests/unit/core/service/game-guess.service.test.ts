@@ -19,7 +19,7 @@ describe("GameService.submitGuess", () => {
   it("completes round five with base plus time bonus and ignores time on intermediate result pages", async () => {
     const game = createGameRecord();
     game.startedAt = new Date("2020-01-01");
-    game.rounds.forEach((r,i) => { r.startedAt = gameNow; if(i<4) {r.status="COMPLETED";r.score=800;r.playTimeSeconds=25;} });
+    game.rounds.forEach((r,i) => { r.startedAt = gameNow; if(i<4) {r.status="COMPLETED";r.score=800;r.playTimeSeconds=25;r.guessedLatitude=13.65;r.guessedLongitude=100.49;} });
     repository.findGame.mockResolvedValue(game);
     expect((await service.submitGuess(game.id,game.userId,5,guess,now)).accumulatedScore).toBe(4200);
     expect(repository.saveGuess).toHaveBeenCalledWith(expect.objectContaining({totalScore:4700,questionNumber:5,playTimeSeconds:20}));
@@ -42,4 +42,23 @@ describe("GameService.submitGuess", () => {
     repository.saveGuess.mockRejectedValue(new AppError("Already answered",409));
     await expect(service.submitGuess("game-1","player-1",1,guess,now)).rejects.toMatchObject({status:409});
   });
+  it.each(["time", "coordinates"])("rejects incomplete previous %s before completing another round", async (missing) => {
+    const game = createGameRecord();
+    game.rounds[0] = { ...game.rounds[0], status: "COMPLETED", score: 800,
+      playTimeSeconds: missing === "time" ? null : 20,
+      guessedLatitude: missing === "coordinates" ? null : 13.65,
+      guessedLongitude: 100.49 };
+    game.rounds[1].startedAt = gameNow;
+    repository.findGame.mockResolvedValue(game);
+    await expect(service.submitGuess(game.id, game.userId, 2, guess, now)).rejects.toMatchObject({ status: 409 });
+    expect(repository.saveGuess).not.toHaveBeenCalled();
+  });
+
+  it("uses the shared distance calculation for a guess 25 metres away", async () => {
+    const north = { ...guess, guessedLatitude: guess.guessedLatitude + 25 / 6371000 * 180 / Math.PI };
+    const result = await service.submitGuess("game-1", "player-1", 1, north, now);
+    expect(result.distanceMeters).toBe(25);
+    expect(result.score).toBe(700);
+  });
+
 });

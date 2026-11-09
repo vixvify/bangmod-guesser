@@ -59,7 +59,7 @@ describe.skipIf(process.env.RUN_GAME_DATABASE_TESTS !== "1")("Game API persisten
     expect(game?.rounds.every((r)=>r.status==="COMPLETED" && r.playTimeSeconds===20)).toBe(true);
   });
   it("rolls back round five if saving the game total fails", async () => {
-    await prisma.gameRound.updateMany({where:{gameId,questionNumber:{lt:5}},data:{status:"COMPLETED",score:1000,playTimeSeconds:20}});
+    await prisma.gameRound.updateMany({where:{gameId,questionNumber:{lt:5}},data:{status:"COMPLETED",score:1000,playTimeSeconds:20,guessedLatitude:13.65,guessedLongitude:100.49}});
     await service.currentRound(gameId,userId,now);
     await expect(repository.saveGuess({gameId,userId,questionNumber:5,...guess,score:1000,playTimeSeconds:20,finishedAt:now,totalScore:2**40})).rejects.toThrow();
     const game=await repository.findGame(gameId);
@@ -67,7 +67,7 @@ describe.skipIf(process.env.RUN_GAME_DATABASE_TESTS !== "1")("Game API persisten
     expect(game?.rounds[4]).toMatchObject({status:"PENDING",score:0,guessedLatitude:null});
   });
   it("serializes final completion against exit without overwriting either terminal state", async () => {
-    await prisma.gameRound.updateMany({where:{gameId,questionNumber:{lt:5}},data:{status:"COMPLETED",score:1000,playTimeSeconds:20}});
+    await prisma.gameRound.updateMany({where:{gameId,questionNumber:{lt:5}},data:{status:"COMPLETED",score:1000,playTimeSeconds:20,guessedLatitude:13.65,guessedLongitude:100.49}});
     await service.currentRound(gameId,userId,now);
     await Promise.allSettled([service.submitGuess(gameId,userId,5,guess,now),service.exitGame(gameId,userId,now)]);
     const game=await repository.findGame(gameId);

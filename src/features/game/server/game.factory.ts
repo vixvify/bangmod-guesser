@@ -1,7 +1,5 @@
-import type { GameExitResult } from "@/features/game/game";
-import type { GameStateRecord } from "../../../../prisma/types/game";
-import type { GamePlayRecord } from "../../../../prisma/types/game";
-import type { CurrentGameRound, GameGuessResult } from "../game";
+import type { GameStateRecord, GamePlayRecord } from "../../../../prisma/types/game";
+import type { CurrentGameRound, GameExitResult, GameGuessResult } from "../game";
 import type { GuessInput } from "../game.schema";
 import { AppError } from "@/shared/errors/app.error";
 

@@ -137,7 +137,7 @@ Backend ตรวจเจ้าของเกม ตรวจว่าเก�
 | --- | --- | --- |
 | gameId | string | รหัสเกมที่เล่นจบแล้ว |
 
-Backend ตรวจเจ้าของเกมและผลครบ 5 รอบ อ่านผลสรุป รวมเวลาเล่นทั้ง 5 รอบ และแสดงโบนัสจากเวลาที่ใช้ คะแนนสุดท้ายเท่ากับคะแนนทายรวมบวกโบนัส
+Backend ตรวจเจ้าของเกม สถานะ COMPLETED และผลครบ 5 รอบ รวมเวลาเล่นและคะแนนทาย แล้วคืน totalScore ที่บันทึกตอนจบเกม พร้อม bonusScore = totalScore - baseScore เพื่อให้ตรงกับประวัติและ leaderboard แม้ปรับสูตรโบนัสในภายหลัง
 
 ตอบกลับ HTTP 200 ตัวอย่างข้อมูลภายใน `data`
 
@@ -179,11 +179,13 @@ JSON response ใช้รูปแบบกลางของโปรเจก
 
 ## กติกาคะแนนและความเข้ากันได้ (BE-008)
 
-- คิดระยะด้วย Haversine หน่วยเมตร ใช้ค่าจริงคำนวณคะแนน และปัดระยะแสดงผลสองตำแหน่ง
+- ใช้ Haversine เดิมจาก `src/shared/lib/calculate-distance.ts` หน่วยเมตร ใช้ค่าจริงคำนวณคะแนน และปัดระยะแสดงผลสองตำแหน่ง
 - คะแนนรอบ = round(1000 × exp(-distanceMeters / 70.0918313)) ทำให้ 0 เมตร = 1000 และ 25 เมตร = 700 คะแนน
 - โบนัสเวลา: สูงสุด 500 เมื่อเวลารวมไม่เกิน 120 วินาที ลดเชิงเส้นจนเหลือ 0 ที่ 300 วินาที คะแนนรวมสูงสุดรวมโบนัส = 5500
 - ค่าปรับจูนอยู่ใน `src/features/game/game-scoring.ts` เป็นค่าเริ่มต้นรอทีมทดลองเล่น
 - ต้องเปิดรอบผ่าน current-round ก่อนส่ง guess จับเวลาจาก startedAt ของรอบนั้นและปัดลงเป็นวินาที ไม่รวมช่วงพักหน้าเฉลย
+- ตอนสร้างเกม ล็อกสถานที่ด้วย query เดียวเรียงตาม id และตรวจรูปทั้งชุดด้วย query เดียวก่อน nested write
+- ปฏิเสธผลรอบก่อนหน้าที่ขาดเวลา/พิกัด แทนการเล่นต่อและสร้าง summary ที่ใช้ไม่ได้
 - ล็อกแถว Game ก่อนเปลี่ยนรอบ แล้ว conditional update ด้วย gameId + questionNumber + PENDING ภายใน transaction เดียวกันกับผลรวมรอบสุดท้าย ป้องกัน guess ซ้ำและการแข่งขันกับ exit
 - schema คง imageNumber nullable ตามระบบจัดการรูปเดิม (ล้าง relation ของประวัติเกมเมื่อแอดมินลบรูป) แต่ Game API สร้างรอบใหม่พร้อม imageNumber เสมอ เกมเก่าที่ไม่มีรูปประจำรอบตอบ 409 ต้องเริ่มเกมใหม่
 - ภาพ game-api.png เป็นแผนภาพเดิมก่อน BE-008: ข้อความการสุ่มใน API 02 และฟิลด์ API 03 ให้ยึดสัญญา Markdown นี้
@@ -192,19 +194,34 @@ JSON response ใช้รูปแบบกลางของโปรเจก
 
 - ใช้ migration `20261110000000_add_round_started_at` ผ่านขั้นตอน deploy ของทีม แล้วรัน `npx prisma generate`
 - ทุก endpoint ต้องมี session: 401 เมื่อไม่ล็อกอิน, 403 เมื่อไม่ใช่เจ้าของ, 404 เมื่อไม่พบเกม, 400 เมื่อ input ไม่ถูกต้อง และ 409 เมื่อสถานะหรือรอบไม่ตรง
-- Unit: `npx vitest run tests/unit/core/service/game-*.service.test.ts tests/unit/core/domain/game-scoring.test.ts tests/unit/core/schema/game-guess.schema.test.ts`
-- Route integration ใช้ service/factory จริงและ mock เฉพาะ auth/repository: `npx vitest run tests/integration/api/game-*.route.test.ts`
+- Unit: `npx vitest run tests/unit/core/service/game tests/unit/core/domain/game-scoring.test.ts tests/unit/core/schema/game-guess.schema.test.ts`
+- Route integration ใช้ service/factory จริงและ mock เฉพาะ auth/repository: `npx vitest run tests/integration/api/game-`
 - PostgreSQL integration (ฐานข้อมูลทดสอบเฉพาะ port 5439 ที่ migrate แล้ว): ตั้ง `RUN_GAME_DATABASE_TESTS=1` แล้วรัน `npx vitest run tests/integration/repositories/game-play.repository.integration.test.ts`
 - HTTP E2E พร้อม session จริงและฐานข้อมูลแยก: `npm run test:e2e -- game-api.spec.ts` ต้องมี Docker และ Playwright browser
 - งานนี้ครอบคลุม Backend เท่านั้น หน้าเล่นเกมเดิมยังใช้ข้อมูล mock และยังไม่ได้เชื่อมต่อ API ใหม่
 
 ### ผลตรวจในเครื่องสำหรับ BE-008
 
-- `npm run test:unit`: 377 ผ่าน
-- `npm run test:component`: 244 ผ่าน (ใช้เทสต์ UI เดิม ไม่มีการเปลี่ยน component)
-- `npm run test:integration`: 102 ผ่าน / 22 skipped โดยชุด PostgreSQL opt-in ยังไม่รันจริง
-- `npm run lint`, `npm run typecheck`, `npx prisma validate`, `git diff --check`: ผ่าน
-- `npx next build`: ผ่าน โดยใช้ Prisma client ที่ generate แล้ว
-- `npm run build`: ติด EPERM ตอนแทนที่ Prisma engine DLL บน Windows จึงไม่ถือว่าคำสั่งนี้ผ่าน
-- Playwright discovery ของ `game-api.spec.ts`: พบเทสต์ครบ 1 flow แต่การรันผ่าน `npm run test:e2e -- --list` ติด `docker ENOENT` ก่อนสร้างฐานข้อมูล จึงยังไม่ยืนยัน E2E/PostgreSQL จริง
+รอบตรวจทานเพิ่ม regression tests สำหรับคะแนน summary ที่ต่างจากคะแนนบันทึก และผลรอบก่อนหน้าที่ขาดเวลา/พิกัด โดยยืนยันว่าเทสต์ล้มเหลวก่อนแก้และผ่านหลังแก้
+
+- ใช้ของเดิม: `requireAuth`, `AppError`, `readJson`, `parseSchema`, `successResponse`, `errorResponse`, Prisma singleton/container, `haversineDistanceMeters` และ mock repository สำหรับเทสต์
+- ลบสูตรระยะทางที่ซ้ำ ลดการเรียกฐานข้อมูลในส่วนล็อก/ตรวจรูปจาก 10 เป็น 2 ครั้ง และคำนวณโบนัสเฉพาะเมื่อจบรอบสุดท้าย
+- รอบตรวจทานนี้ไม่เพิ่มไฟล์ dependency ตาราง หรือ service ใหม่; คอลัมน์ startedAt จากงานเดิมยังจำเป็นต่อการจับเวลาจริง
+- ตรวจ syntax tree ของ TypeScript/TSX ทุกไฟล์ที่ BE-008 เปลี่ยน ไม่พบคอมเมนต์; migration ใหม่ไม่มีคอมเมนต์
 - migration ถูกสร้างไว้ใน repository แต่ยังไม่ได้ apply กับฐานข้อมูลใด และไม่ได้ deploy หรือ push
+
+ผลรันล่าสุดหลังแก้:
+
+| คำสั่ง | ผล |
+| --- | --- |
+| `npm run test:unit` | 381 ผ่าน |
+| `npm run test:component` | 244 ผ่าน |
+| `npm run test:integration` | 102 ผ่าน / 22 skipped (PostgreSQL opt-in) |
+| `npm run lint` | ผ่าน |
+| `npm run typecheck` | ผ่าน |
+| `npx prisma validate` | ผ่าน |
+| `npm run build` | ผ่าน รวม Prisma generate และ Next.js production build |
+| `git diff --check` | ผ่าน |
+| `npm run test:e2e -- game-api.spec.ts` | เริ่มไม่ได้: `spawnSync docker ENOENT` ก่อนเริ่มเทสต์ |
+
+ปัญหา Prisma DLL ถูกล็อกจากรอบก่อนหน้าไม่เกิดในการรัน build รอบตรวจทานนี้ ส่วน build ยังแจ้งเตือน BETTER_AUTH_SECRET ใน environment ปัจจุบันสั้น/entropy ต่ำ ไม่ได้เปลี่ยนค่า auth configuration ในงานเกมนี้

@@ -1,16 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { GameRepository } from "@/features/game/server/game.repository.port";
+import { createGameRepositoryMock } from "../../../mocks/game.repository.mock";
 import { GameService } from "@/features/game/server/game.service";
 
-const repository = {
-  saveGuess: vi.fn<GameRepository["saveGuess"]>(),
-    findGame: vi.fn<GameRepository["findGame"]>(),
-    openRound: vi.fn<GameRepository["openRound"]>(),
-    findCandidates: vi.fn<GameRepository["findCandidates"]>(),
-    createGame: vi.fn<GameRepository["createGame"]>(),
-    findById: vi.fn<GameRepository["findById"]>(),
-  exitPlayingGame: vi.fn<GameRepository["exitPlayingGame"]>(),
-} satisfies GameRepository;
+const repository = createGameRepositoryMock();
 const service = new GameService(repository);
 const playing = { id: "game-1", userId: "player-1", status: "PLAYING" as const, finishedAt: null };
 const now = new Date("2026-10-27T12:00:00Z");

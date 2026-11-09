@@ -1,5 +1,4 @@
-import type { GameStateRecord } from "../../../../prisma/types/game";
-import type { GameCandidateRecord, GamePlayRecord } from "../../../../prisma/types/game";
+import type { GameStateRecord, GameCandidateRecord, GamePlayRecord } from "../../../../prisma/types/game";
 import type { NewGameRound, SaveGameGuess } from "../game";
 
 export interface GameRepository {

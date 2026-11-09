@@ -1,24 +1,23 @@
-import type { GameExitResult } from "@/features/game/game";
-import { AppError } from "@/shared/errors/app.error";
-import type { GameRepository } from "@/features/game/server/game.repository.port";
-import { GameFactory } from "@/features/game/server/game.factory";
 import { randomInt } from "node:crypto";
-import { GAME_RULES, calculateDistanceMeters, calculateRoundScore, calculateGameSummary } from "../game-scoring";
 import type { GamePlayRecord } from "../../../../prisma/types/game";
-import type { CurrentGameRound, GameGuessResult, GameSummaryResult } from "../game";
+import type { CurrentGameRound, GameExitResult, GameGuessResult, GameSummaryResult } from "../game";
 import type { GuessInput } from "../game.schema";
+import type { GameRepository } from "./game.repository.port";
+import { GAME_RULES, calculateRoundScore, calculateGameSummary } from "../game-scoring";
+import { GameFactory } from "./game.factory";
+import { AppError } from "@/shared/errors/app.error";
+import { haversineDistanceMeters } from "@/shared/lib/calculate-distance";
 
 export class GameService {
   constructor(private readonly gameRepository: GameRepository) {}
 
   async summary(id: string, userId: string): Promise<GameSummaryResult> {
     const game = await this.ownedGame(id, userId);
-    if (game.status !== "COMPLETED" || game.rounds.length !== GAME_RULES.rounds
-      || game.rounds.some((round, index) => round.questionNumber !== index + 1 || round.status !== "COMPLETED"
-        || round.playTimeSeconds === null || round.guessedLatitude === null || round.guessedLongitude === null)) {
+    if (game.status !== "COMPLETED" || game.totalScore === null || game.rounds.length !== GAME_RULES.rounds
+      || game.rounds.some((round, index) => round.questionNumber !== index + 1 || !this.hasCompleteAnswer(round))) {
       throw new AppError("Complete all five rounds before viewing the summary", 409);
     }
-    return calculateGameSummary(game.rounds);
+    return calculateGameSummary(game.rounds, game.totalScore);
   }
 
   async submitGuess(id: string, userId: string, questionNumber: number, input: GuessInput, now = new Date()): Promise<GameGuessResult> {
@@ -26,19 +25,18 @@ export class GameService {
     const round = this.pendingRound(game);
     if (round.questionNumber !== questionNumber) throw new AppError("Round already answered or out of order", 409);
     if (!round.startedAt) throw new AppError("Open the current round before submitting a guess", 409);
-    if (game.rounds.length !== GAME_RULES.rounds || game.rounds.some((r, i) => r.questionNumber !== i + 1 || (i + 1 < questionNumber && r.status !== "COMPLETED"))) {
+    if (game.rounds.length !== GAME_RULES.rounds || game.rounds.some((r, i) => r.questionNumber !== i + 1 || (i + 1 < questionNumber && !this.hasCompleteAnswer(r)))) {
       throw new AppError("Game rounds are incomplete", 409);
     }
-    const distance = calculateDistanceMeters(input.guessedLatitude, input.guessedLongitude, round.location.latitude, round.location.longitude);
+    const distance = haversineDistanceMeters(round.location, {
+      latitude: input.guessedLatitude, longitude: input.guessedLongitude,
+    });
     const score = calculateRoundScore(distance);
     const playTimeSeconds = Math.max(0, Math.floor((now.getTime() - round.startedAt.getTime()) / 1000));
     const results = game.rounds.map((r) => r.questionNumber === questionNumber ? { ...r, score, playTimeSeconds } : r);
-    const summary = calculateGameSummary(results);
-    // Scores before this round are immutable; the repository rechecks the pending
-    // round under a game-row lock before applying this snapshot's final totals.
     await this.gameRepository.saveGuess({
       gameId: id, userId, questionNumber, ...input, score, playTimeSeconds, finishedAt: now,
-      ...(questionNumber === GAME_RULES.rounds ? { totalScore: summary.totalScore } : {}),
+      ...(questionNumber === GAME_RULES.rounds ? { totalScore: calculateGameSummary(results).totalScore } : {}),
     });
     const accumulatedScore = results.filter((r) => r.questionNumber <= questionNumber).reduce((sum, r) => sum + r.score, 0);
     return GameFactory.toGuessResult(round, input, distance, score, accumulatedScore);
@@ -49,6 +47,11 @@ export class GameService {
     if (!game) throw new AppError("Game not found", 404);
     if (game.userId !== userId) throw new AppError("Forbidden", 403);
     return game;
+  }
+
+  private hasCompleteAnswer(round: GamePlayRecord["rounds"][number]): boolean {
+    return round.status === "COMPLETED" && round.playTimeSeconds !== null
+      && round.guessedLatitude !== null && round.guessedLongitude !== null;
   }
 
   private pendingRound(game: GamePlayRecord) {
@@ -64,10 +67,9 @@ export class GameService {
     return GameFactory.toCurrentRound(this.pendingRound(opened));
   }
 
-  async createGame(userId: string) {
+  async createGame(userId: string): Promise<{ gameId: string }> {
     const candidates = await this.gameRepository.findCandidates();
     if (candidates.length < GAME_RULES.rounds) throw new AppError("At least five active locations with images are required", 409);
-    // Partial Fisher–Yates: unique, uniformly selected locations, then one image each.
     for (let i = 0; i < GAME_RULES.rounds; i++) {
       const j = randomInt(i, candidates.length);
       [candidates[i], candidates[j]] = [candidates[j], candidates[i]];

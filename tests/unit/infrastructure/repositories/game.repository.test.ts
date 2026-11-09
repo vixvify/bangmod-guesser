@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GameRepositoryImpl } from "@/features/game/server/game.repository";
 import { gameStateSelect } from "../../../../prisma/types/game";
 
-const { findUnique, updateMany, transaction, findMany, create, queryRaw, findImage, findFirst, roundUpdateMany, findUniqueOrThrow, updateGame } = vi.hoisted(() => ({
+const { findUnique, updateMany, transaction, findMany, create, queryRaw, findImages, findFirst, roundUpdateMany, findUniqueOrThrow, updateGame } = vi.hoisted(() => ({
   findUnique: vi.fn(), updateMany: vi.fn(), transaction: vi.fn(),
-  findMany: vi.fn(), create: vi.fn(), queryRaw: vi.fn(), findImage: vi.fn(),
+  findMany: vi.fn(), create: vi.fn(), queryRaw: vi.fn(), findImages: vi.fn(),
   findFirst: vi.fn(), roundUpdateMany: vi.fn(), findUniqueOrThrow: vi.fn(), updateGame: vi.fn(),
 }));
 vi.mock("@/shared/lib/prisma", () => ({
@@ -19,7 +19,7 @@ beforeEach(() => {
   vi.resetAllMocks();
   findUnique.mockResolvedValue(record);
   updateMany.mockResolvedValue({ count: 1 });
-  transaction.mockImplementation(async (operation) => operation({ game: { findUnique, updateMany, create, findUniqueOrThrow, update: updateGame }, gameRound: { findFirst, updateMany: roundUpdateMany }, locationImage: { findUnique: findImage }, $queryRaw: queryRaw }));
+  transaction.mockImplementation(async (operation) => operation({ game: { findUnique, updateMany, create, findUniqueOrThrow, update: updateGame }, gameRound: { findFirst, updateMany: roundUpdateMany }, locationImage: { findMany: findImages }, $queryRaw: queryRaw }));
 });
 
 describe("GameRepositoryImpl", () => {
@@ -69,14 +69,19 @@ describe("GameRepositoryImpl creation", () => {
     expect(findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { status: "ACTIVE", images: { some: {} } } }));
   });
   it("creates all rounds in one nested transaction after validating selected images", async () => {
-    findImage.mockResolvedValue({ location: { status: "ACTIVE" } });
+    findImages.mockResolvedValue(rounds.map(({locationId, imageNumber}) => ({locationId, imageNumber})));
     create.mockResolvedValue({ id: "new-game" });
     expect(await repository.createGame("player", rounds)).toEqual({ id: "new-game" });
-    expect(queryRaw).toHaveBeenCalledTimes(5);
+    expect(queryRaw).toHaveBeenCalledTimes(1);
+    expect(findImages).toHaveBeenCalledTimes(1);
+    expect(findImages).toHaveBeenCalledWith({
+      where: { OR: rounds.map(({ locationId, imageNumber }) => ({ locationId, imageNumber })), location: { status: "ACTIVE" } },
+      select: { locationId: true, imageNumber: true },
+    });
     expect(create).toHaveBeenCalledWith({ data: { userId: "player", status: "PLAYING", rounds: { create: rounds.map((r) => ({ ...r, status: "PENDING" })) } }, select: { id: true } });
   });
   it("does not create anything if a chosen image disappeared", async () => {
-    findImage.mockResolvedValue(null);
+    findImages.mockResolvedValue([]);
     await expect(repository.createGame("player", rounds)).rejects.toMatchObject({ status: 409 });
     expect(create).not.toHaveBeenCalled();
   });

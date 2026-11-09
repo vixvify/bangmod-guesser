@@ -17,6 +17,7 @@ beforeEach(() => {
   requireAuth.mockResolvedValue({ id: "player-1" });
   const game = createGameRecord();
   game.status = "COMPLETED";
+  game.totalScore = 4500;
   game.rounds.forEach((r) => { r.status = "COMPLETED"; r.score = 800; r.playTimeSeconds = 24; r.guessedLatitude = 13.65; r.guessedLongitude = 100.49; });
   repository.findGame.mockResolvedValue(game);
 });

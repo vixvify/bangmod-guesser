@@ -1,12 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { calculateDistanceMeters, calculateRoundScore, calculateTimeBonus, calculateGameSummary } from "@/features/game/game-scoring";
+import { calculateRoundScore, calculateTimeBonus, calculateGameSummary } from "@/features/game/game-scoring";
 
 describe("game scoring", () => {
-  it("computes Haversine distance in metres and handles coincident and antipodal points", () => {
-    expect(calculateDistanceMeters(13.65, 100.49, 13.65, 100.49)).toBe(0);
-    expect(calculateDistanceMeters(0, 0, 0, 1)).toBeCloseTo(111194.93, 2);
-    expect(calculateDistanceMeters(0, 0, 0, 180)).toBeCloseTo(Math.PI * 6371000, 2);
-  });
   it("decays continuously with distance and gives 700 points at 25 metres", () => {
     expect(calculateRoundScore(0)).toBe(1000);
     expect(calculateRoundScore(25)).toBe(700);

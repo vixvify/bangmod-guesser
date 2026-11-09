@@ -1,8 +1,9 @@
-import { GameStatus, type Prisma } from "@prisma/client";
+import { GameStatus, Prisma } from "@prisma/client";
 import type { GameRepository } from "@/features/game/server/game.repository.port";
 import { prisma } from "@/shared/lib/prisma";
-import { gameStateSelect, type GameStateRecord } from "../../../../prisma/types/game";
-import { gameCandidateSelect, gamePlayInclude } from "../../../../prisma/types/game";
+import { gameStateSelect, gameCandidateSelect, gamePlayInclude,
+  type GameStateRecord, type GamePlayRecord, type GameCandidateRecord,
+} from "../../../../prisma/types/game";
 import type { NewGameRound, SaveGameGuess } from "../game";
 import { AppError } from "@/shared/errors/app.error";
 
@@ -31,20 +32,18 @@ export class GameRepositoryImpl implements GameRepository {
     });
   }
 
-  async findGame(id: string) {
+  async findGame(id: string): Promise<GamePlayRecord | null> {
     return prisma.game.findUnique({ where: { id }, include: gamePlayInclude });
   }
 
   private async lockPlayingGame(transaction: Prisma.TransactionClient, id: string, userId: string) {
-    // The parent-row write locks current-round, guess and the existing exit write
-    // in the same order. A terminal game cannot be reopened by a stale request.
     const result = await transaction.game.updateMany({
       where: { id, userId, status: "PLAYING" }, data: { status: "PLAYING" },
     });
     if (result.count !== 1) throw new AppError("Game is no longer playing", 409);
   }
 
-  async openRound(id: string, userId: string, questionNumber: number, now: Date) {
+  async openRound(id: string, userId: string, questionNumber: number, now: Date): Promise<GamePlayRecord> {
     return prisma.$transaction(async (transaction) => {
       await this.lockPlayingGame(transaction, id, userId);
       const current = await transaction.gameRound.findFirst({
@@ -59,27 +58,29 @@ export class GameRepositoryImpl implements GameRepository {
     });
   }
 
-  async findCandidates() {
+  async findCandidates(): Promise<GameCandidateRecord[]> {
     return prisma.location.findMany({
       where: { status: "ACTIVE", images: { some: {} } },
       select: gameCandidateSelect,
     });
   }
 
-  async createGame(userId: string, rounds: NewGameRound[]) {
+  async createGame(userId: string, rounds: NewGameRound[]): Promise<{ id: string }> {
     return prisma.$transaction(async (transaction) => {
-      // Share locks serialize image edits against selecting this game's images.
-      // Lock in a stable order to avoid deadlocks between simultaneous new games.
-      for (const id of rounds.map((round) => round.locationId).sort()) {
-        await transaction.$queryRaw`SELECT "id" FROM "locations" WHERE "id" = ${id} FOR SHARE`;
-      }
-      for (const round of rounds) {
-        const image = await transaction.locationImage.findUnique({
-          where: { locationId_imageNumber: { locationId: round.locationId, imageNumber: round.imageNumber } },
-          select: { location: { select: { status: true } } },
-        });
-        if (image?.location.status !== "ACTIVE") throw new AppError("Game locations changed; please retry", 409);
-      }
+      const locationIds = rounds.map((round) => round.locationId);
+      await transaction.$queryRaw`
+        SELECT "id" FROM "locations"
+        WHERE "id" IN (${Prisma.join(locationIds)})
+        ORDER BY "id" FOR SHARE
+      `;
+      const images = await transaction.locationImage.findMany({
+        where: {
+          OR: rounds.map(({ locationId, imageNumber }) => ({ locationId, imageNumber })),
+          location: { status: "ACTIVE" },
+        },
+        select: { locationId: true, imageNumber: true },
+      });
+      if (images.length !== rounds.length) throw new AppError("Game locations changed; please retry", 409);
       return transaction.game.create({
         data: { userId, status: "PLAYING", rounds: { create: rounds.map((round) => ({ ...round, status: "PENDING" })) } },
         select: { id: true },
@@ -93,7 +94,6 @@ export class GameRepositoryImpl implements GameRepository {
 
   async exitPlayingGame(id: string, userId: string, finishedAt: Date): Promise<GameStateRecord | null> {
     return prisma.$transaction(async (transaction) => {
-      // Check the status in the write itself: a game may finish after the service reads it.
       await transaction.game.updateMany({
         where: { id, userId, status: GameStatus.PLAYING },
         data: { status: GameStatus.INCOMPLETE, finishedAt },
