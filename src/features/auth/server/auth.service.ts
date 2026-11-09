@@ -46,7 +46,11 @@ export class AuthService {
     }
   }
 
-  updateUsername(headers: Headers, input: UpdateUsernameFormInput): Promise<Headers> {
-    return this.authAdapter.updateUsername(headers, input);
+  async updateUsername(headers: Headers, input: UpdateUsernameFormInput): Promise<Headers> {
+    try {
+      return await this.authAdapter.updateUsername(headers, input);
+    } catch (error) {
+      return handleAuthError(error, "Update username failed");
+    }
   }
 }

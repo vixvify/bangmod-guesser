@@ -32,15 +32,11 @@ export class AuthAdapter implements AuthPort {
   }
 
   async updateUsername(headers: Headers, input: UpdateUsernameFormInput): Promise<Headers> {
-    try {
-      const result = await auth.api.updateUser({
-        body: { name: input.username },
-        headers,
-        returnHeaders: true,
-      });
-      return result.headers;
-    } catch (error) {
-      return authFailure(error, "Update username failed");
-    }
+    const result = await auth.api.updateUser({
+      body: { name: input.username },
+      headers,
+      returnHeaders: true,
+    });
+    return result.headers;
   }
 }
