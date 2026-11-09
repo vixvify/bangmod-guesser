@@ -1,14 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { signInEmail, signUpEmail, signInSocial, signOut } = vi.hoisted(() => ({
+const { signInEmail, signUpEmail, signInSocial, signOut, updateUser } = vi.hoisted(() => ({
   signInEmail: vi.fn(),
   signUpEmail: vi.fn(),
   signInSocial: vi.fn(),
   signOut: vi.fn(),
+  updateUser: vi.fn(),
 }));
 
 vi.mock("@/features/auth/server/auth", () => ({
-  auth: { api: { signInEmail, signUpEmail, signInSocial, signOut } },
+  auth: { api: { signInEmail, signUpEmail, signInSocial, signOut, updateUser } },
 }));
 
 import { AuthAdapter } from "@/features/auth/server/auth.adapter";
@@ -63,5 +64,14 @@ describe("AuthAdapter", () => {
     signOut.mockResolvedValue({ headers: responseHeaders });
     expect(await adapter.signOut(headers)).toBe(responseHeaders);
     expect(signOut).toHaveBeenCalledWith({ headers, returnHeaders: true });
+  });
+
+  it("updates the authenticated user's name and returns refreshed cookies", async () => {
+    const responseHeaders = new Headers({ "set-cookie": "session=updated; HttpOnly" });
+    updateUser.mockResolvedValue({ headers: responseHeaders });
+    expect(await adapter.updateUsername(headers, { username: "New name" })).toBe(responseHeaders);
+    expect(updateUser).toHaveBeenCalledWith({
+      body: { name: "New name" }, headers, returnHeaders: true,
+    });
   });
 });

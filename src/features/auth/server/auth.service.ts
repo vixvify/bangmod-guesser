@@ -3,6 +3,7 @@ import type { CreateUserInput, LoginInput } from "@/features/auth/auth.schema";
 import { getAuthRedirect } from "@/features/auth/auth-redirect";
 import { handleAuthError } from "./auth-error";
 import { AppError } from "@/shared/errors/app.error";
+import type { UpdateUsernameFormInput } from "@/features/profile/profile.schema";
 
 export class AuthService {
   constructor(private readonly authAdapter: AuthPort) {}
@@ -43,5 +44,9 @@ export class AuthService {
     } catch (error) {
       return handleAuthError(error, "Sign out failed");
     }
+  }
+
+  updateUsername(headers: Headers, input: UpdateUsernameFormInput): Promise<Headers> {
+    return this.authAdapter.updateUsername(headers, input);
   }
 }

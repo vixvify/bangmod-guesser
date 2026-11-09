@@ -37,6 +37,10 @@ export function DatePicker({ label, value, onChange }: DatePickerProps) {
                 backgroundColor: "#fff",
                 fontFamily: "var(--font-prompt), sans-serif",
               },
+              "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                borderColor: "var(--color-primary-main)",
+                borderWidth: "0.0625rem",
+              },
               "& .MuiInputLabel-root": {
                 fontFamily: "var(--font-prompt), sans-serif",
               },

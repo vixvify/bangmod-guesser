@@ -10,7 +10,8 @@ import { EditNameModal } from "@/features/profile/components/edit-name-modal";
 import { Button } from "@/shared/components/ui/button";
 import { PROFILE_MESSAGES } from "@/features/profile/profile.constants";
 import type { User } from "@/features/users/user";
-import { authClient } from "@/features/auth/auth-client";
+import httpClient from "@/shared/lib/http";
+import { ProfileRoutes } from "@/features/profile/profile.routes";
 import { getProfileImageUrl } from "@/shared/lib/profile-image";
 import { playSoundEffect } from "@/shared/lib/sound-effect";
 import { AppRoutes } from "@/shared/routes/routes";
@@ -27,12 +28,7 @@ export function ProfileCard({ profile, canManageSystem = false }: ProfileCardPro
 
   async function handleSave(nextUsername: string): Promise<boolean> {
     try {
-      const { error } = await authClient.updateUser({ name: nextUsername });
-
-      if (error) {
-        toast.error(PROFILE_MESSAGES.updateFailed);
-        return false;
-      }
+      await httpClient.patch(ProfileRoutes.update, { username: nextUsername });
 
       setUsername(nextUsername);
       toast.success(PROFILE_MESSAGES.updateSuccess);
