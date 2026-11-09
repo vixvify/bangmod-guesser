@@ -6,6 +6,7 @@ import { UserRole } from "@/features/users/user";
 const { requireAuth, repository } = vi.hoisted(() => ({
   requireAuth: vi.fn(),
   repository: {
+    saveGuess: vi.fn<GameRepository["saveGuess"]>(),
     findGame: vi.fn<GameRepository["findGame"]>(),
     openRound: vi.fn<GameRepository["openRound"]>(),
     findCandidates: vi.fn<GameRepository["findCandidates"]>(),

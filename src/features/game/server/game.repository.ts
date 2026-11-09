@@ -3,10 +3,34 @@ import type { GameRepository } from "@/features/game/server/game.repository.port
 import { prisma } from "@/shared/lib/prisma";
 import { gameStateSelect, type GameStateRecord } from "../../../../prisma/types/game";
 import { gameCandidateSelect, gamePlayInclude } from "../../../../prisma/types/game";
-import type { NewGameRound } from "../game";
+import type { NewGameRound, SaveGameGuess } from "../game";
 import { AppError } from "@/shared/errors/app.error";
 
 export class GameRepositoryImpl implements GameRepository {
+  async saveGuess(input: SaveGameGuess): Promise<void> {
+    await prisma.$transaction(async (transaction) => {
+      await this.lockPlayingGame(transaction, input.gameId, input.userId);
+      const current = await transaction.gameRound.findFirst({
+        where: { gameId: input.gameId, status: "PENDING" }, orderBy: { questionNumber: "asc" },
+      });
+      if (current?.questionNumber !== input.questionNumber) throw new AppError("Round already answered or out of order", 409);
+      const saved = await transaction.gameRound.updateMany({
+        where: { gameId: input.gameId, questionNumber: input.questionNumber, status: "PENDING", startedAt: { not: null } },
+        data: {
+          guessedLatitude: input.guessedLatitude, guessedLongitude: input.guessedLongitude,
+          score: input.score, playTimeSeconds: input.playTimeSeconds, status: "COMPLETED",
+        },
+      });
+      if (saved.count !== 1) throw new AppError("Round already answered or not opened", 409);
+      if (input.totalScore !== undefined) {
+        await transaction.game.update({
+          where: { id: input.gameId },
+          data: { status: "COMPLETED", finishedAt: input.finishedAt, totalScore: input.totalScore },
+        });
+      }
+    });
+  }
+
   async findGame(id: string) {
     return prisma.game.findUnique({ where: { id }, include: gamePlayInclude });
   }

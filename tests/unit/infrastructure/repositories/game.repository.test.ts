@@ -2,10 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GameRepositoryImpl } from "@/features/game/server/game.repository";
 import { gameStateSelect } from "../../../../prisma/types/game";
 
-const { findUnique, updateMany, transaction, findMany, create, queryRaw, findImage, findFirst, roundUpdateMany, findUniqueOrThrow } = vi.hoisted(() => ({
+const { findUnique, updateMany, transaction, findMany, create, queryRaw, findImage, findFirst, roundUpdateMany, findUniqueOrThrow, updateGame } = vi.hoisted(() => ({
   findUnique: vi.fn(), updateMany: vi.fn(), transaction: vi.fn(),
   findMany: vi.fn(), create: vi.fn(), queryRaw: vi.fn(), findImage: vi.fn(),
-  findFirst: vi.fn(), roundUpdateMany: vi.fn(), findUniqueOrThrow: vi.fn(),
+  findFirst: vi.fn(), roundUpdateMany: vi.fn(), findUniqueOrThrow: vi.fn(), updateGame: vi.fn(),
 }));
 vi.mock("@/shared/lib/prisma", () => ({
   prisma: { location: { findMany }, game: { findUnique }, $transaction: transaction },
@@ -19,7 +19,7 @@ beforeEach(() => {
   vi.resetAllMocks();
   findUnique.mockResolvedValue(record);
   updateMany.mockResolvedValue({ count: 1 });
-  transaction.mockImplementation(async (operation) => operation({ game: { findUnique, updateMany, create, findUniqueOrThrow }, gameRound: { findFirst, updateMany: roundUpdateMany }, locationImage: { findUnique: findImage, findFirst, roundUpdateMany, findUniqueOrThrow }, $queryRaw: queryRaw }));
+  transaction.mockImplementation(async (operation) => operation({ game: { findUnique, updateMany, create, findUniqueOrThrow, update: updateGame }, gameRound: { findFirst, updateMany: roundUpdateMany }, locationImage: { findUnique: findImage }, $queryRaw: queryRaw }));
 });
 
 describe("GameRepositoryImpl", () => {
@@ -100,6 +100,34 @@ describe("GameRepositoryImpl.openRound", () => {
   it("rejects a game that exits after the service read", async () => {
     updateMany.mockResolvedValue({count:0});
     await expect(repository.openRound("game-1","player-1",2,now)).rejects.toMatchObject({status:409});
+    expect(roundUpdateMany).not.toHaveBeenCalled();
+  });
+});
+
+
+describe("GameRepositoryImpl.saveGuess", () => {
+  const input = {gameId:"game-1",userId:"player-1",questionNumber:5,guessedLatitude:13.65,guessedLongitude:100.49,score:1000,playTimeSeconds:20,finishedAt:now,totalScore:4500};
+  it("conditionally saves a pending answer and finishes the game in the same transaction", async () => {
+    findFirst.mockResolvedValue({questionNumber:5});roundUpdateMany.mockResolvedValue({count:1});
+    await repository.saveGuess(input);
+    expect(transaction).toHaveBeenCalledOnce();
+    expect(roundUpdateMany).toHaveBeenCalledWith({where:{gameId:"game-1",questionNumber:5,status:"PENDING",startedAt:{not:null}},data:{guessedLatitude:13.65,guessedLongitude:100.49,score:1000,playTimeSeconds:20,status:"COMPLETED"}});
+    expect(updateGame).toHaveBeenCalledWith({where:{id:"game-1"},data:{status:"COMPLETED",finishedAt:now,totalScore:4500}});
+    expect(updateMany.mock.invocationCallOrder[0]).toBeLessThan(roundUpdateMany.mock.invocationCallOrder[0]);
+  });
+  it("throws and never finishes the game if a conditional write loses", async () => {
+    findFirst.mockResolvedValue({questionNumber:5});roundUpdateMany.mockResolvedValue({count:0});
+    await expect(repository.saveGuess(input)).rejects.toMatchObject({status:409});
+    expect(updateGame).not.toHaveBeenCalled();
+  });
+  it("rejects an already answered round before writing", async () => {
+    findFirst.mockResolvedValue(null);
+    await expect(repository.saveGuess(input)).rejects.toMatchObject({status:409});
+    expect(roundUpdateMany).not.toHaveBeenCalled();
+  });
+  it("cannot submit after exit wins the game lock", async () => {
+    updateMany.mockResolvedValue({count:0});
+    await expect(repository.saveGuess(input)).rejects.toMatchObject({status:409});
     expect(roundUpdateMany).not.toHaveBeenCalled();
   });
 });

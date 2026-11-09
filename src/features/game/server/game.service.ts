@@ -3,12 +3,36 @@ import { AppError } from "@/shared/errors/app.error";
 import type { GameRepository } from "@/features/game/server/game.repository.port";
 import { GameFactory } from "@/features/game/server/game.factory";
 import { randomInt } from "node:crypto";
-import { GAME_RULES } from "../game-scoring";
+import { GAME_RULES, calculateDistanceMeters, calculateRoundScore, calculateGameSummary } from "../game-scoring";
 import type { GamePlayRecord } from "../../../../prisma/types/game";
-import type { CurrentGameRound } from "../game";
+import type { CurrentGameRound, GameGuessResult } from "../game";
+import type { GuessInput } from "../game.schema";
 
 export class GameService {
   constructor(private readonly gameRepository: GameRepository) {}
+
+  async submitGuess(id: string, userId: string, questionNumber: number, input: GuessInput, now = new Date()): Promise<GameGuessResult> {
+    const game = await this.ownedGame(id, userId);
+    const round = this.pendingRound(game);
+    if (round.questionNumber !== questionNumber) throw new AppError("Round already answered or out of order", 409);
+    if (!round.startedAt) throw new AppError("Open the current round before submitting a guess", 409);
+    if (game.rounds.length !== GAME_RULES.rounds || game.rounds.some((r, i) => r.questionNumber !== i + 1 || (i + 1 < questionNumber && r.status !== "COMPLETED"))) {
+      throw new AppError("Game rounds are incomplete", 409);
+    }
+    const distance = calculateDistanceMeters(input.guessedLatitude, input.guessedLongitude, round.location.latitude, round.location.longitude);
+    const score = calculateRoundScore(distance);
+    const playTimeSeconds = Math.max(0, Math.floor((now.getTime() - round.startedAt.getTime()) / 1000));
+    const results = game.rounds.map((r) => r.questionNumber === questionNumber ? { ...r, score, playTimeSeconds } : r);
+    const summary = calculateGameSummary(results);
+    // Scores before this round are immutable; the repository rechecks the pending
+    // round under a game-row lock before applying this snapshot's final totals.
+    await this.gameRepository.saveGuess({
+      gameId: id, userId, questionNumber, ...input, score, playTimeSeconds, finishedAt: now,
+      ...(questionNumber === GAME_RULES.rounds ? { totalScore: summary.totalScore } : {}),
+    });
+    const accumulatedScore = results.filter((r) => r.questionNumber <= questionNumber).reduce((sum, r) => sum + r.score, 0);
+    return GameFactory.toGuessResult(round, input, distance, score, accumulatedScore);
+  }
 
   private async ownedGame(id: string, userId: string): Promise<GamePlayRecord> {
     const game = await this.gameRepository.findGame(id);
