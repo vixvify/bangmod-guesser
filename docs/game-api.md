@@ -143,10 +143,10 @@ Backend ตรวจเจ้าของเกมและผลครบ 5 ร
 
 ```json
 {
-  "baseScore": 400,
+  "baseScore": 4000,
   "totalTimeSeconds": 120,
-  "bonusScore": 50,
-  "totalScore": 450
+  "bonusScore": 500,
+  "totalScore": 4500
 }
 ```
 
@@ -187,3 +187,24 @@ JSON response ใช้รูปแบบกลางของโปรเจก
 - ล็อกแถว Game ก่อนเปลี่ยนรอบ แล้ว conditional update ด้วย gameId + questionNumber + PENDING ภายใน transaction เดียวกันกับผลรวมรอบสุดท้าย ป้องกัน guess ซ้ำและการแข่งขันกับ exit
 - schema คง imageNumber nullable ตามระบบจัดการรูปเดิม (ล้าง relation ของประวัติเกมเมื่อแอดมินลบรูป) แต่ Game API สร้างรอบใหม่พร้อม imageNumber เสมอ เกมเก่าที่ไม่มีรูปประจำรอบตอบ 409 ต้องเริ่มเกมใหม่
 - ภาพ game-api.png เป็นแผนภาพเดิมก่อน BE-008: ข้อความการสุ่มใน API 02 และฟิลด์ API 03 ให้ยึดสัญญา Markdown นี้
+
+## ตรวจสอบและนำไปใช้
+
+- ใช้ migration `20261110000000_add_round_started_at` ผ่านขั้นตอน deploy ของทีม แล้วรัน `npx prisma generate`
+- ทุก endpoint ต้องมี session: 401 เมื่อไม่ล็อกอิน, 403 เมื่อไม่ใช่เจ้าของ, 404 เมื่อไม่พบเกม, 400 เมื่อ input ไม่ถูกต้อง และ 409 เมื่อสถานะหรือรอบไม่ตรง
+- Unit: `npx vitest run tests/unit/core/service/game-*.service.test.ts tests/unit/core/domain/game-scoring.test.ts tests/unit/core/schema/game-guess.schema.test.ts`
+- Route integration ใช้ service/factory จริงและ mock เฉพาะ auth/repository: `npx vitest run tests/integration/api/game-*.route.test.ts`
+- PostgreSQL integration (ฐานข้อมูลทดสอบเฉพาะ port 5439 ที่ migrate แล้ว): ตั้ง `RUN_GAME_DATABASE_TESTS=1` แล้วรัน `npx vitest run tests/integration/repositories/game-play.repository.integration.test.ts`
+- HTTP E2E พร้อม session จริงและฐานข้อมูลแยก: `npm run test:e2e -- game-api.spec.ts` ต้องมี Docker และ Playwright browser
+- งานนี้ครอบคลุม Backend เท่านั้น หน้าเล่นเกมเดิมยังใช้ข้อมูล mock และยังไม่ได้เชื่อมต่อ API ใหม่
+
+### ผลตรวจในเครื่องสำหรับ BE-008
+
+- `npm run test:unit`: 377 ผ่าน
+- `npm run test:component`: 244 ผ่าน (ใช้เทสต์ UI เดิม ไม่มีการเปลี่ยน component)
+- `npm run test:integration`: 102 ผ่าน / 22 skipped โดยชุด PostgreSQL opt-in ยังไม่รันจริง
+- `npm run lint`, `npm run typecheck`, `npx prisma validate`, `git diff --check`: ผ่าน
+- `npx next build`: ผ่าน โดยใช้ Prisma client ที่ generate แล้ว
+- `npm run build`: ติด EPERM ตอนแทนที่ Prisma engine DLL บน Windows จึงไม่ถือว่าคำสั่งนี้ผ่าน
+- Playwright discovery ของ `game-api.spec.ts`: พบเทสต์ครบ 1 flow แต่การรันผ่าน `npm run test:e2e -- --list` ติด `docker ENOENT` ก่อนสร้างฐานข้อมูล จึงยังไม่ยืนยัน E2E/PostgreSQL จริง
+- migration ถูกสร้างไว้ใน repository แต่ยังไม่ได้ apply กับฐานข้อมูลใด และไม่ได้ deploy หรือ push

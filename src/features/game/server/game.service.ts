@@ -5,11 +5,21 @@ import { GameFactory } from "@/features/game/server/game.factory";
 import { randomInt } from "node:crypto";
 import { GAME_RULES, calculateDistanceMeters, calculateRoundScore, calculateGameSummary } from "../game-scoring";
 import type { GamePlayRecord } from "../../../../prisma/types/game";
-import type { CurrentGameRound, GameGuessResult } from "../game";
+import type { CurrentGameRound, GameGuessResult, GameSummaryResult } from "../game";
 import type { GuessInput } from "../game.schema";
 
 export class GameService {
   constructor(private readonly gameRepository: GameRepository) {}
+
+  async summary(id: string, userId: string): Promise<GameSummaryResult> {
+    const game = await this.ownedGame(id, userId);
+    if (game.status !== "COMPLETED" || game.rounds.length !== GAME_RULES.rounds
+      || game.rounds.some((round, index) => round.questionNumber !== index + 1 || round.status !== "COMPLETED"
+        || round.playTimeSeconds === null || round.guessedLatitude === null || round.guessedLongitude === null)) {
+      throw new AppError("Complete all five rounds before viewing the summary", 409);
+    }
+    return calculateGameSummary(game.rounds);
+  }
 
   async submitGuess(id: string, userId: string, questionNumber: number, input: GuessInput, now = new Date()): Promise<GameGuessResult> {
     const game = await this.ownedGame(id, userId);

@@ -16,6 +16,8 @@ export type SaveGameGuess = {
 
 export type CurrentGameRound = { questionNumber: number; imageUrl: string };
 
+export type GameSummaryResult = { baseScore: number; totalTimeSeconds: number; bonusScore: number; totalScore: number };
+
 export type GameGuessResult = {
   guessedLatitude: number;
   guessedLongitude: number;
