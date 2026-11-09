@@ -1,12 +1,40 @@
-import { GameStatus } from "@prisma/client";
+import { GameStatus, type Prisma } from "@prisma/client";
 import type { GameRepository } from "@/features/game/server/game.repository.port";
 import { prisma } from "@/shared/lib/prisma";
 import { gameStateSelect, type GameStateRecord } from "../../../../prisma/types/game";
-import { gameCandidateSelect } from "../../../../prisma/types/game";
+import { gameCandidateSelect, gamePlayInclude } from "../../../../prisma/types/game";
 import type { NewGameRound } from "../game";
 import { AppError } from "@/shared/errors/app.error";
 
 export class GameRepositoryImpl implements GameRepository {
+  async findGame(id: string) {
+    return prisma.game.findUnique({ where: { id }, include: gamePlayInclude });
+  }
+
+  private async lockPlayingGame(transaction: Prisma.TransactionClient, id: string, userId: string) {
+    // The parent-row write locks current-round, guess and the existing exit write
+    // in the same order. A terminal game cannot be reopened by a stale request.
+    const result = await transaction.game.updateMany({
+      where: { id, userId, status: "PLAYING" }, data: { status: "PLAYING" },
+    });
+    if (result.count !== 1) throw new AppError("Game is no longer playing", 409);
+  }
+
+  async openRound(id: string, userId: string, questionNumber: number, now: Date) {
+    return prisma.$transaction(async (transaction) => {
+      await this.lockPlayingGame(transaction, id, userId);
+      const current = await transaction.gameRound.findFirst({
+        where: { gameId: id, status: "PENDING" }, orderBy: { questionNumber: "asc" },
+      });
+      if (current?.questionNumber !== questionNumber) throw new AppError("Current round changed; please retry", 409);
+      await transaction.gameRound.updateMany({
+        where: { gameId: id, questionNumber, status: "PENDING", startedAt: null },
+        data: { startedAt: now },
+      });
+      return transaction.game.findUniqueOrThrow({ where: { id }, include: gamePlayInclude });
+    });
+  }
+
   async findCandidates() {
     return prisma.location.findMany({
       where: { status: "ACTIVE", images: { some: {} } },

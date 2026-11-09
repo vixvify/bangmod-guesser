@@ -3,6 +3,8 @@ import type { GameRepository } from "@/features/game/server/game.repository.port
 
 export function createGameRepositoryMock() {
   return {
+    findGame: vi.fn<GameRepository["findGame"]>(),
+    openRound: vi.fn<GameRepository["openRound"]>(),
     findCandidates: vi.fn<GameRepository["findCandidates"]>(),
     createGame: vi.fn<GameRepository["createGame"]>(),
     findById: vi.fn<GameRepository["findById"]>(),

@@ -4,9 +4,31 @@ import type { GameRepository } from "@/features/game/server/game.repository.port
 import { GameFactory } from "@/features/game/server/game.factory";
 import { randomInt } from "node:crypto";
 import { GAME_RULES } from "../game-scoring";
+import type { GamePlayRecord } from "../../../../prisma/types/game";
+import type { CurrentGameRound } from "../game";
 
 export class GameService {
   constructor(private readonly gameRepository: GameRepository) {}
+
+  private async ownedGame(id: string, userId: string): Promise<GamePlayRecord> {
+    const game = await this.gameRepository.findGame(id);
+    if (!game) throw new AppError("Game not found", 404);
+    if (game.userId !== userId) throw new AppError("Forbidden", 403);
+    return game;
+  }
+
+  private pendingRound(game: GamePlayRecord) {
+    if (game.status !== "PLAYING") throw new AppError("Game is no longer playing", 409);
+    const round = game.rounds.find((round) => round.status === "PENDING");
+    if (!round?.locationImage) throw new AppError("No playable round available", 409);
+    return round;
+  }
+
+  async currentRound(id: string, userId: string, now = new Date()): Promise<CurrentGameRound> {
+    const round = this.pendingRound(await this.ownedGame(id, userId));
+    const opened = await this.gameRepository.openRound(id, userId, round.questionNumber, now);
+    return GameFactory.toCurrentRound(this.pendingRound(opened));
+  }
 
   async createGame(userId: string) {
     const candidates = await this.gameRepository.findCandidates();
