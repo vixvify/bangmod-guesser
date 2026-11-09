@@ -172,5 +172,61 @@ describe.skipIf(process.env.RUN_LOCATION_DATABASE_TESTS !== "1")(
         "https://example.test/image-3.jpg",
       ]);
     });
+
+    it.each([GameStatus.PLAYING, GameStatus.COMPLETED])(
+      "handles replacement of an image used by a %s game",
+      async (status) => {
+        const game = await createGameWithRound(status);
+        const images = await prisma.locationImage.findMany({ where: { locationId } });
+        const replacement = images.map(({ imageNumber, imageUrl }) => ({
+          imageNumber,
+          imageUrl: imageNumber === 2 ? "https://example.test/replacement.jpg" : imageUrl,
+        }));
+        const update = repository.update(locationId, {}, replacement, images);
+        if (status === GameStatus.PLAYING) {
+          await expect(update).rejects.toThrow("Cannot delete an image used by a game in progress");
+        } else {
+          await update;
+        }
+        const round = await prisma.gameRound.findFirstOrThrow({ where: { gameId: game.id } });
+        const image = await prisma.locationImage.findUniqueOrThrow({ where: { locationId_imageNumber: { locationId, imageNumber: 2 } } });
+        expect(round.imageNumber).toBe(status === GameStatus.PLAYING ? 2 : null);
+        expect(image.imageUrl).toBe(status === GameStatus.PLAYING ? "https://example.test/image-2.jpg" : "https://example.test/replacement.jpg");
+      },
+    );
+
+    it("rejects a change based on an outdated image snapshot", async () => {
+      const snapshot = await prisma.locationImage.findMany({ where: { locationId } });
+      await prisma.locationImage.update({
+        where: { locationId_imageNumber: { locationId, imageNumber: 2 } },
+        data: { imageUrl: "https://example.test/other.jpg" },
+      });
+      await expect(repository.update(locationId, {}, snapshot.slice(0, 2), snapshot))
+        .rejects.toThrow("Location images have changed");
+      expect((await prisma.locationImage.findMany({ where: { locationId } })).length).toBe(3);
+    });
+
+    it("does not allow simultaneous updates from the same snapshot to overwrite each other", async () => {
+      const snapshot = await prisma.locationImage.findMany({ where: { locationId } });
+      const first = snapshot.filter((image) => image.imageNumber !== 2);
+      const second = snapshot.filter((image) => image.imageNumber !== 3);
+      const results = await Promise.allSettled([
+        repository.update(locationId, {}, first, snapshot),
+        repository.update(locationId, {}, second, snapshot),
+      ]);
+      expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+      expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
+      expect(await prisma.locationImage.count({ where: { locationId } })).toBe(2);
+    });
+
+    it("enforces the image relation while allowing an unknown image", async () => {
+      const game = await createGameWithRound(GameStatus.COMPLETED);
+      await expect(prisma.gameRound.updateMany({
+        where: { gameId: game.id }, data: { imageNumber: 5 },
+      })).rejects.toThrow();
+      await prisma.gameRound.updateMany({ where: { gameId: game.id }, data: { imageNumber: null } });
+      expect(await prisma.gameRound.findFirstOrThrow({ where: { gameId: game.id } }))
+        .toMatchObject({ locationId, imageNumber: null });
+    });
   },
 );

@@ -10,7 +10,10 @@ import type {
   UploadImageInput,
   UpdateLocationImagesInput,
 } from "../../images/image.schema";
-import { LocationImageRecordSchema } from "../../images/image.schema";
+import {
+  ImageNumberSchema,
+  LocationImageRecordSchema,
+} from "../../images/image.schema";
 import type {
   CreateLocationInput,
   SearchLocationQueryInput,
@@ -19,6 +22,10 @@ import type {
 import type { ImageService } from "../../images/server/image.service";
 import { LocationFactory } from "@/features/locations/server/location.factory";
 import { extractImageKey } from "@/features/images/server/image-key";
+import {
+  LocationImagesChangedError,
+  LocationImagesInUseError,
+} from "./location.errors";
 
 export class LocationService {
   constructor(
@@ -98,7 +105,32 @@ export class LocationService {
     const existingImages = [...existing.images].sort(
       (first, second) => first.imageNumber - second.imageNumber,
     );
+    if (
+      imageChanges.expectedImages &&
+      (existingImages.length !== imageChanges.expectedImages.length ||
+        existingImages.some(
+          (image) =>
+            !imageChanges.expectedImages?.some(
+              (expected) =>
+                expected.imageNumber === image.imageNumber &&
+                expected.imageUrl === image.imageUrl,
+            ),
+        ))
+    ) {
+      throw new AppError(
+        "Location images have changed. Please reload and try again",
+        409,
+      );
+    }
+
     const keepNumbers = imageChanges.keepImageNumbers;
+    if (
+      keepNumbers?.some(
+        (number) => !ImageNumberSchema.safeParse(number).success,
+      )
+    ) {
+      throw new AppError("Invalid image number", 400);
+    }
     if (
       keepNumbers?.some(
         (number) =>
@@ -118,8 +150,7 @@ export class LocationService {
             keepNumbers.includes(image.imageNumber),
           );
     const newImages = imageChanges.newImages ?? [];
-    const hasImageChanges =
-      keepNumbers !== undefined || newImages.length > 0;
+    const hasImageChanges = keepNumbers !== undefined || newImages.length > 0;
 
     const imageCount = keptImages.length + newImages.length;
     if (
@@ -135,9 +166,7 @@ export class LocationService {
         imageNumber: image.imageNumber,
         imageUrl: image.imageUrl,
       }));
-      const usedNumbers = new Set(
-        images.map((image) => image.imageNumber),
-      );
+      const usedNumbers = new Set(images.map((image) => image.imageNumber));
       for (const image of newImages) {
         const imageNumber = Array.from(
           { length: LOCATION_MAX_IMAGES },
@@ -165,11 +194,15 @@ export class LocationService {
         id,
         input,
         hasImageChanges ? images : undefined,
+        hasImageChanges
+          ? existingImages.map(({ imageNumber, imageUrl }) => ({
+              imageNumber,
+              imageUrl,
+            }))
+          : undefined,
       );
 
-      const keptNumbers = new Set(
-        keptImages.map((image) => image.imageNumber),
-      );
+      const keptNumbers = new Set(keptImages.map((image) => image.imageNumber));
 
       const removedKeys = existingImages
         .filter((image) => !keptNumbers.has(image.imageNumber))
@@ -178,6 +211,15 @@ export class LocationService {
       return LocationFactory.toDomain(record);
     } catch (error) {
       await this.deleteImagesFromStorage(uploadedKeys);
+      if (error instanceof LocationImagesInUseError) {
+        throw new AppError(error.message, 409);
+      }
+      if (error instanceof LocationImagesChangedError) {
+        throw new AppError(
+          "Location images have changed. Please reload and try again",
+          409,
+        );
+      }
       throw error;
     }
   }
@@ -201,6 +243,10 @@ export class LocationService {
         keepImageNumbers: existing.images
           .filter((image) => image.imageNumber !== imageNumber)
           .map((image) => image.imageNumber),
+        expectedImages: existing.images.map(({ imageNumber, imageUrl }) => ({
+          imageNumber,
+          imageUrl,
+        })),
       },
     );
   }

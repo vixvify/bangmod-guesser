@@ -22,6 +22,7 @@ export interface LocationRepository {
     id: string,
     input: UpdateLocationInput,
     images?: LocationImageRecordInput[],
+    expectedImages?: LocationImageRecordInput[],
   ): Promise<LocationModelWithImages>;
   delete(id: string): Promise<void>;
 }

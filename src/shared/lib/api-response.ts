@@ -24,17 +24,6 @@ export function errorResponse(error: unknown) {
     );
   }
 
-  if (error instanceof SyntaxError) {
-    return NextResponse.json(
-      {
-        error: "Invalid JSON payload",
-        status: 400,
-        statusCode: "ERROR",
-      },
-      { status: 400 },
-    );
-  }
-
   return NextResponse.json(
     {
       error: "Internal server error",

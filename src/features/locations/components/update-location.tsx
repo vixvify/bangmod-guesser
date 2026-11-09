@@ -8,7 +8,7 @@ import { LOCATION_MESSAGES } from "@/features/locations/location.constants";
 import type { Location } from "@/features/locations/location";
 import type { UpdateLocationFormImagesInput } from "@/features/images/image.schema";
 import type { UpdateLocationFormInput } from "@/features/locations/location.schema";
-import httpClient from "@/shared/lib/http";
+import httpClient, { HttpError } from "@/shared/lib/http";
 import { LocationRoutes } from "@/features/locations/location.routes";
 import { AppRoutes } from "@/shared/routes/routes";
 
@@ -36,6 +36,7 @@ export function UpdateLocation({
       form.append("keepImageNumbers", String(number)),
     );
     images.newImages.forEach((image) => form.append("newImages", image));
+    form.append("expectedImages", JSON.stringify(location.images.map(({ imageNumber, url }) => ({ imageNumber, imageUrl: url }))));
 
     try {
       await httpClient.put<Location>(LocationRoutes.update(location.id), form, {
@@ -43,8 +44,10 @@ export function UpdateLocation({
       });
       toast.success(LOCATION_MESSAGES.updateSuccess);
       router.push(AppRoutes.adminLocations);
-    } catch {
-      toast.error(LOCATION_MESSAGES.updateFailed);
+    } catch (error) {
+      toast.error(error instanceof HttpError && error.status === 409
+        ? LOCATION_MESSAGES.updateConflict
+        : LOCATION_MESSAGES.updateFailed);
     }
   }
 

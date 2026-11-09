@@ -5,6 +5,7 @@ import { createLocationRepositoryMock } from "../../../mocks/location.repository
 import { createImageRepositoryMock } from "../../../mocks/image.repository.mock";
 import { ImageService } from "@/features/images/server/image.service";
 import { AppError } from "@/shared/errors/app.error";
+import { LocationImagesChangedError, LocationImagesInUseError } from "@/features/locations/server/location.errors";
 
 const sampleImageBuffer = new Uint8Array([1, 2, 3, 4]);
 
@@ -205,6 +206,50 @@ describe("LocationService", () => {
   });
 
   describe("updateLocation", () => {
+    it("rejects an edit based on an outdated form before uploading files", async () => {
+      const { locationService, locationRepository, imageRepository } = createTestService();
+      locationRepository.findById.mockResolvedValue({
+        id: "loc_1", name: "CB2", description: null, latitude: 13.65,
+        longitude: 100.49, status: LocationStatus.ACTIVE, createdAt: new Date(),
+        updatedAt: null, images: [{ locationId: "loc_1", imageNumber: 1,
+          imageUrl: "https://example.com/new.jpg", createdAt: new Date() }],
+      });
+      await expect(locationService.updateLocation("loc_1", {}, {
+        expectedImages: [{ imageNumber: 1, imageUrl: "https://example.com/old.jpg" }],
+        newImages: [{ contentType: "image/jpeg", content: sampleImageBuffer }],
+      })).rejects.toMatchObject({ status: 409 });
+      expect(imageRepository.upload).not.toHaveBeenCalled();
+    });
+    it("rejects image numbers outside the allowed range before saving", async () => {
+      const { locationService, locationRepository } = createTestService();
+      locationRepository.findById.mockResolvedValue({
+        id: "loc_1", name: "CB2", description: null, latitude: 13.65,
+        longitude: 100.49, status: LocationStatus.ACTIVE, createdAt: new Date(),
+        updatedAt: null, images: [],
+      });
+      await expect(locationService.updateLocation("loc_1", {}, { keepImageNumbers: [6] }))
+        .rejects.toMatchObject({ status: 400 });
+      expect(locationRepository.update).not.toHaveBeenCalled();
+    });
+    it.each([new LocationImagesChangedError(), new LocationImagesInUseError()])(
+      "returns a conflict and removes uploaded files when the repository rejects the update",
+      async (error) => {
+        const { locationService, locationRepository, imageRepository } = createTestService();
+        locationRepository.findById.mockResolvedValue({
+          id: "loc_1", name: "CB2", description: null, latitude: 13.65,
+          longitude: 100.49, status: LocationStatus.ACTIVE, createdAt: new Date(),
+          updatedAt: null, images: [{ locationId: "loc_1", imageNumber: 1,
+            imageUrl: "https://example.com/images/old.jpg", createdAt: new Date() }],
+        });
+        imageRepository.getPublicUrl.mockImplementation((key) => `https://example.com/${key}`);
+        locationRepository.update.mockRejectedValue(error);
+
+        await expect(locationService.updateLocation("loc_1", {}, {
+          newImages: [{ contentType: "image/jpeg", content: sampleImageBuffer }],
+        })).rejects.toMatchObject({ status: 409 });
+        expect(imageRepository.delete).toHaveBeenCalledTimes(1);
+      },
+    );
     it("throws 404 if location to update does not exist", async () => {
       const { locationService, locationRepository } = createTestService();
       locationRepository.findById.mockResolvedValue(null);
@@ -272,6 +317,11 @@ describe("LocationService", () => {
             imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3303.jpg",
           },
         ],
+        expect.arrayContaining([
+          expect.objectContaining({ imageNumber: 1 }),
+          expect.objectContaining({ imageNumber: 2 }),
+          expect.objectContaining({ imageNumber: 3 }),
+        ]),
       );
     });
 
@@ -359,6 +409,9 @@ describe("LocationService", () => {
               imageUrl: "https://example.com/images/new.jpg",
             }),
           ]),
+          expect.arrayContaining(existingNumbers.map((imageNumber) =>
+            expect.objectContaining({ imageNumber }),
+          )),
         );
       },
     );
@@ -552,6 +605,11 @@ describe("LocationService", () => {
             imageUrl: "https://example.com/images/3f2504e0-4f89-11d3-9a0c-0305e82c3303.jpg",
           },
         ],
+        expect.arrayContaining([
+          expect.objectContaining({ imageNumber: 1 }),
+          expect.objectContaining({ imageNumber: 2 }),
+          expect.objectContaining({ imageNumber: 3 }),
+        ]),
       );
     });
   });

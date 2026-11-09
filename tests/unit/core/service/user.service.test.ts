@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { UserRole } from "@/features/users/user";
 import { AppError } from "@/shared/errors/app.error";
+import { APIError } from "better-auth/api";
 import type { UserAdminPort } from "@/features/users/server/user-admin.port";
 import type { UserRepository } from "@/features/users/server/user.repository.port";
 import { UserService } from "@/features/users/server/user.service";
@@ -105,5 +106,11 @@ describe("UserService", () => {
     const headers = new Headers();
     await service.deleteUser(headers, record.id);
     expect(admin.removeUser).toHaveBeenCalledWith(headers, { userId: record.id });
+  });
+
+  it("maps an admin provider error to an application error", async () => {
+    admin.removeUser.mockRejectedValueOnce(new APIError("FORBIDDEN"));
+    await expect(service.deleteUser(new Headers(), record.id))
+      .rejects.toMatchObject({ name: "AppError", status: 403, message: "User deletion failed" });
   });
 });

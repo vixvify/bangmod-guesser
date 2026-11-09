@@ -6,6 +6,7 @@ import { AppError } from "@/shared/errors/app.error";
 import { LocationIdSchema, UpdateLocationSchema } from "@/features/locations/location.schema";
 import { locationService } from "@/container";
 import { errorResponse, successResponse } from "@/shared/lib/api-response";
+import { parseJson, readJson } from "@/shared/lib/json";
 import { requireAuth } from "@/features/auth/server/auth-check";
 import { roleCheck } from "@/shared/lib/role-check";
 import { parseSchema } from "@/shared/lib/validation";
@@ -29,7 +30,7 @@ export async function PUT(request: Request, context: RouteContext) {
     const id = parseSchema(LocationIdSchema, (await context.params).id);
 
     if (!request.headers.get("content-type")?.includes("multipart/form-data")) {
-      const body = await request.json();
+      const body = await readJson(request);
       const input = parseSchema(UpdateLocationSchema, body);
       const images = parseSchema(UpdateLocationImagesSchema, body);
       return successResponse(await locationService.updateLocation(id, input, images));
@@ -60,6 +61,9 @@ export async function PUT(request: Request, context: RouteContext) {
         ? form.getAll("keepImageNumbers").filter((value) => value !== "")
         : undefined,
       newImages,
+      expectedImages: form.has("expectedImages")
+        ? parseJson(String(form.get("expectedImages")))
+        : undefined,
     };
     const input = parseSchema(UpdateLocationSchema, body);
     const images = parseSchema(UpdateLocationImagesSchema, body);

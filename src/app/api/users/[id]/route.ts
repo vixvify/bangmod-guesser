@@ -6,6 +6,7 @@ import { userService } from "@/container";
 import { requireAuth } from "@/features/auth/server/auth-check";
 import { roleCheck } from "@/shared/lib/role-check";
 import { errorResponse, successResponse } from "@/shared/lib/api-response";
+import { readJson } from "@/shared/lib/json";
 import { parseSchema } from "@/shared/lib/validation";
 
 type RouteContext = {
@@ -34,7 +35,7 @@ export async function PATCH(
             id,
         );
 
-        const body = await request.json();
+        const body = await readJson(request);
 
         const data = parseSchema(
             UserFormSchema,

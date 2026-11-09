@@ -8,6 +8,7 @@ import type {
 } from "@/features/users/user.schema";
 import { UserFactory } from "@/features/users/server/user.factory";
 import { formatDateOnly } from "@/shared/lib/utils";
+import { handleAuthError } from "@/features/auth/server/auth-error";
 
 export class UserService {
   constructor(
@@ -36,6 +37,7 @@ export class UserService {
     id: string,
     input: UserFormInput,
   ): Promise<UserAccount> {
+    try {
     const existing = await this.userRepository.findById(id);
     if (!existing) throw new AppError("User not found", 404);
 
@@ -83,12 +85,19 @@ export class UserService {
         await this.userRepository.updateStatus(id, input.status);
     }
 
-    return this.getUser(id);
+    return await this.getUser(id);
+    } catch (error) {
+      return handleAuthError(error, "User update failed");
+    }
   }
 
   async deleteUser(headers: Headers, id: string): Promise<void> {
+    try {
     const existing = await this.userRepository.findById(id);
     if (!existing) throw new AppError("User not found", 404);
     await this.userAdmin.removeUser(headers, { userId: id });
+    } catch (error) {
+      handleAuthError(error, "User deletion failed");
+    }
   }
 }
