@@ -2,6 +2,8 @@
 
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -9,20 +11,45 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { AUTH_MESSAGES } from "@/features/auth/auth.constants";
 import { ResetPasswordSchema, type ResetPasswordInput } from "@/features/auth/auth.schema";
+import { AppRoutes } from "@/shared/routes/routes";
+import { SessionRoutes } from "@/features/auth/session.routes";
+import httpClient, { HttpError } from "@/shared/lib/http";
 
 export default function ResetPasswordPage() {
+  const router = useRouter();
   const {
     register,
     handleSubmit,
-    formState: { errors, isValid },
+    formState: { errors, isValid, isSubmitting },
   } = useForm<ResetPasswordInput>({
     resolver: zodResolver(ResetPasswordSchema),
     mode: "onChange",
     defaultValues: { password: "", confirmPassword: "" },
   });
 
-  function onSubmit() {
-    toast.info(AUTH_MESSAGES.submit.passwordResetUnavailable);
+  async function onSubmit(input: ResetPasswordInput) {
+    const token = new URLSearchParams(window.location.search).get("token");
+    if (!token) {
+      toast.error(AUTH_MESSAGES.submit.passwordResetInvalidLink);
+      return;
+    }
+
+    try {
+      await httpClient.post<null>(SessionRoutes.resetPassword, {
+        token,
+        password: input.password,
+        confirmPassword: input.confirmPassword,
+      });
+
+      toast.success(AUTH_MESSAGES.submit.passwordResetSuccess);
+      router.push(AppRoutes.login);
+    } catch (error) {
+      toast.error(
+        error instanceof HttpError && error.status === undefined
+          ? AUTH_MESSAGES.submit.networkError
+          : AUTH_MESSAGES.submit.passwordResetFailed,
+      );
+    }
   }
 
   return (
@@ -63,12 +90,19 @@ export default function ResetPasswordPage() {
           required
         />
         <div className="pt-6">
-          <Button type="submit" variant="primary" disabled={!isValid} className="min-h-12 w-full">
-            บันทึกรหัสผ่านใหม่
+          <Button type="submit" variant="primary" disabled={!isValid || isSubmitting} className="min-h-12 w-full">
+            {isSubmitting ? "กำลังบันทึกรหัสผ่าน" : "บันทึกรหัสผ่านใหม่"}
           </Button>
         </div>
       </form>
-
+      <p className="mt-8 text-center text-sm">
+        <Link
+          href={AppRoutes.login}
+          className="font-bold text-primary-ink transition-colors hover:text-secondary-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-ink"
+        >
+          กลับไปหน้าเข้าสู่ระบบ
+        </Link>
+      </p>
     </>
   );
 }

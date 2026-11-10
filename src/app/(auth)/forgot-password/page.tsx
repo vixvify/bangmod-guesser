@@ -1,8 +1,8 @@
 "use client";
 
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
-import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/shared/components/ui/button";
@@ -13,20 +13,32 @@ import {
   type RequestPasswordResetInput,
 } from "@/features/auth/auth.schema";
 import { AppRoutes } from "@/shared/routes/routes";
+import { SessionRoutes } from "@/features/auth/session.routes";
+import httpClient, { HttpError } from "@/shared/lib/http";
 
 export default function ForgotPasswordPage() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isValid },
+    formState: { errors, isValid, isSubmitting },
   } = useForm<RequestPasswordResetInput>({
     resolver: zodResolver(RequestPasswordResetSchema),
     mode: "onChange",
     defaultValues: { email: "" },
   });
 
-  function onSubmit() {
-    toast.info(AUTH_MESSAGES.submit.passwordResetUnavailable);
+  async function onSubmit({ email }: RequestPasswordResetInput) {
+    try {
+      await httpClient.post<null>(SessionRoutes.forgotPassword, { email });
+
+      toast.success(AUTH_MESSAGES.submit.passwordResetRequestSuccess);
+    } catch (error) {
+      toast.error(
+        error instanceof HttpError && error.status === undefined
+          ? AUTH_MESSAGES.submit.networkError
+          : AUTH_MESSAGES.submit.passwordResetRequestFailed,
+      );
+    }
   }
 
   return (
@@ -56,8 +68,8 @@ export default function ForgotPasswordPage() {
           required
         />
         <div className="pt-6">
-          <Button type="submit" variant="primary" disabled={!isValid} className="min-h-12 w-full">
-            ขอลิงก์เปลี่ยนรหัสผ่าน
+          <Button type="submit" variant="primary" disabled={!isValid || isSubmitting} className="min-h-12 w-full">
+            {isSubmitting ? "กำลังส่งคำขอ..." : "ขอลิงก์เปลี่ยนรหัสผ่าน"}
           </Button>
         </div>
       </form>
