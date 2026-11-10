@@ -17,8 +17,11 @@ interface RouteContext {
 
 export async function GET(_request: Request, context: RouteContext) {
   try {
+    roleCheck(await requireAuth(), [UserRole.ADMIN]);
     const id = parseSchema(LocationIdSchema, (await context.params).id);
-    return successResponse(await locationService.getLocationById(id));
+    const response = successResponse(await locationService.getLocationById(id));
+    response.headers.set("Cache-Control", "private, no-store");
+    return response;
   } catch (error) {
     return errorResponse(error);
   }

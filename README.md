@@ -58,6 +58,13 @@ Set `NEXT_PUBLIC_API_URL` to the API base URL, for example
 `http://localhost:3000/api`. API route constants append their endpoint paths
 to this value.
 
+## Location API permissions
+
+All `/api/locations` endpoints, including list and detail reads, require an
+authenticated `ADMIN` session. Unauthenticated requests return 401; ordinary
+users return 403. Location reads return `Cache-Control: private, no-store`.
+Players receive questions and recorded answers through the Game API instead.
+
 ## Google sign-in
 
 Create a Google OAuth client of type **Web application** and set the authorized
