@@ -2,7 +2,7 @@
 
 สัญญา Backend สำหรับระบบทายสถานที่ 5 รอบ (BE-008)
 
-![Game API ทั้ง 4 เส้น](./game-api.png)
+![แผนภาพ Game API เดิมก่อนเพิ่มเส้นอ่านผลรอบ](./game-api.png)
 
 ## ลำดับการเล่น
 
@@ -14,6 +14,7 @@
 | 02 ขอรูปของรอบปัจจุบัน | GET | `/api/games/{gameId}/current-round` |
 | 03 ส่งคำตอบและเฉลย | POST | `/api/games/{gameId}/rounds/{questionNumber}/guess` |
 | 04 สรุปคะแนน | GET | `/api/games/{gameId}/summary` |
+| 05 อ่านผลรอบที่บันทึกแล้ว | GET | `/api/games/{gameId}/rounds/{questionNumber}/result` |
 
 `gameId` คือรหัสเกมที่ได้จาก API 01 ส่วน `questionNumber` คือเลขรอบ 1–5 Frontend แทนค่าลงใน URL เช่น `POST /api/games/g7/rounds/2/guess` และส่งพิกัดที่ทายใน JSON body
 
@@ -50,18 +51,20 @@ Backend ตรวจเจ้าของเกมและสถานะ PLAYI
 ```json
 {
   "questionNumber": 2,
-  "imageUrl": "https://images.example.invalid/question-image.webp"
+  "imageUrl": "https://images.example.invalid/question-image.webp",
+  "deadlineAt": "2026-11-10T01:00:40.000Z"
 }
 ```
 
 | ฟิลด์ | ชนิด | การใช้งาน |
 | --- | --- | --- |
 | imageUrl | string | แสดงรูปของคำถาม และเก็บไว้ใช้กับปุ่ม ⓘ หลังเฉลย |
+| deadlineAt | string (ISO 8601 UTC) | startedAt ที่ server บันทึก + 40 วินาที ใช้อ้างอิงเวลาหมดรอบ |
 | questionNumber | integer | รอบปัจจุบันที่ Backend กำหนด Frontend ใช้แสดงเลขรอบและส่งกลับใน path ของ API 03 |
 
 บันทึก startedAt ครั้งแรกของแต่ละรอบเท่านั้น การรีเฟรชไม่เริ่มเวลาใหม่และไม่รวมเวลาพักหน้าเฉลย
 
-Response เส้นนี้มีเลขรอบและ URL รูป โดยคัดกรองพิกัดจริง ชื่อสถานที่ และข้อมูลเฉลยออกก่อนส่ง
+Response เส้นนี้มีเลขรอบ URL รูป และ deadline โดยคัดกรองพิกัดจริง ชื่อสถานที่ และข้อมูลเฉลยออกก่อนส่ง
 
 ## 03 ส่งคำตอบและเฉลย
 
@@ -85,8 +88,8 @@ Frontend ส่ง JSON body พร้อม `Content-Type: application/json`
 
 | Body field | ชนิด | ความหมาย |
 | --- | --- | --- |
-| guessedLatitude | number | ละติจูดที่ผู้เล่นทาย |
-| guessedLongitude | number | ลองจิจูดที่ผู้เล่นทาย |
+| guessedLatitude | number หรือ null | พิกัดที่ทาย; null ทั้งคู่เมื่อขอบันทึกรอบหมดเวลา |
+| guessedLongitude | number หรือ null | ต้องส่งพิกัดทั้งคู่หรือ null ทั้งคู่ |
 
 Backend ตรวจเจ้าของเกม ตรวจว่าเกมยังมีสถานะ PLAYING และ questionNumber ตรงกับรอบปัจจุบันที่เปิดให้เล่น รวมถึงตรวจพิกัดและรอบที่ยังไม่บันทึกคำตอบ จากนั้นคำนวณระยะห่างกับคะแนน บันทึกคำตอบ คะแนน และเวลาเล่น แล้วรวมคะแนนตั้งแต่รอบ 1 ถึงรอบปัจจุบัน เมื่อจบรอบ 5 บันทึกผลรวมและปิดเกม
 
@@ -99,6 +102,7 @@ Backend ตรวจเจ้าของเกม ตรวจว่าเก�
   "guessedLatitude": 13.65,
   "guessedLongitude": 100.49,
   "distanceMeters": 15.5,
+  "timedOut": false,
   "score": 881,
   "accumulatedScore": 1681,
   "imageUrl": "https://images.example.invalid/question-image.webp",
@@ -113,12 +117,13 @@ Backend ตรวจเจ้าของเกม ตรวจว่าเก�
 
 | ฟิลด์ | ชนิด | การใช้งาน |
 | --- | --- | --- |
-| distanceMeters | number | ระยะจากหมุดที่ทายถึงจุดจริง หน่วยเมตร |
-| guessedLatitude | number | ละติจูดที่ผู้เล่นปักและ Backend บันทึก ใช้วาดหมุดที่ทาย |
-| guessedLongitude | number | ลองจิจูดที่ผู้เล่นปักและ Backend บันทึก ใช้วาดหมุดที่ทาย |
+| distanceMeters | number หรือ null | ระยะจากหมุดที่ทายถึงจุดจริง หน่วยเมตร; null เมื่อหมดเวลา |
+| timedOut | boolean | true เมื่อบันทึกผลหมดเวลาโดยไม่รับพิกัดที่ส่งช้า |
+| guessedLatitude | number หรือ null | พิกัดที่บันทึก; null เมื่อหมดเวลา จึงไม่วาดหมุดผู้เล่น |
+| guessedLongitude | number หรือ null | พิกัดที่บันทึก; null เมื่อหมดเวลา |
 | score | integer | คะแนนของรอบนี้ |
 | accumulatedScore | integer | คะแนนสะสมรอบ 1 ถึงรอบปัจจุบัน |
-| imageUrl | string | รูปเดิมของรอบนี้สำหรับหน้าเฉลย |
+| imageUrl | string หรือ null | รูปประจำรอบ; อาจเป็น null ใน API 05 หากแอดมินลบรูปประวัติแล้ว |
 | location.latitude | number | ละติจูดเฉลย |
 | location.longitude | number | ลองจิจูดเฉลย |
 | location.name | string | ชื่อสถานที่ |
@@ -159,6 +164,32 @@ Backend ตรวจเจ้าของเกม สถานะ COMPLETED แ
 | bonusScore | integer | โบนัสที่คำนวณจากเวลารวม ก่อนจำกัดคะแนนสุดท้าย |
 | totalScore | integer | คะแนนสุดท้ายรวมโบนัส จำกัดไม่เกิน 5000 |
 
+## 05 อ่านผลรอบที่บันทึกแล้ว
+
+**GET `/api/games/{gameId}/rounds/{questionNumber}/result`**
+
+ตรวจ session และเจ้าของเกม แล้วคืนรูปแบบเดียวกับ API 03 จากผลที่บันทึกไว้ ใช้ได้แม้เกมเป็น COMPLETED หรือ INCOMPLETE ตราบใดที่รอบนั้นบันทึกผลสมบูรณ์แล้ว ไม่มีการบันทึกคะแนนซ้ำหรือคำนวณ score ใหม่
+
+- ถ้า POST สำเร็จแต่ response หาย ให้เรียกเส้นนี้ด้วย gameId และ questionNumber เดิม
+- หาก network error แล้ว GET result ตอบ 409 แปลว่ายังไม่มีผลที่อ่านได้ ให้ retry POST เดิม; หลัง deadline สามารถส่ง null ทั้งคู่เพื่อบันทึกหมดเวลาได้
+- หากรอบยังไม่บันทึก ตอบ 409 โดยไม่เปิดเฉลยและไม่เปลี่ยนข้อมูล; ไม่พบเกม/รอบตอบ 404 และไม่ใช่เจ้าของตอบ 403
+- POST ซ้ำยังคงตอบ 409 เพื่อป้องกันการเขียนทับ ให้ใช้ GET result เพื่อกู้ผลแทน
+- GET นี้เป็นการอ่านอย่างเดียว การเรียกซ้ำไม่เปลี่ยนคะแนน เวลา หรือสถานะรอบ
+- คะแนนและพิกัดที่ทายอ่านจาก GameRound; ข้อมูลสถานที่และรูปอ่านจาก relation ปัจจุบัน จึงอาจเปลี่ยนตามการแก้สถานที่ของแอดมิน และ imageUrl อาจเป็น null ถ้ารูปประวัติถูกลบ
+
+## Deadline และวิธีบันทึกรอบหมดเวลา
+
+- ใช้ `GAME_DEFAULTS.roundDurationSeconds` เดิม (40 วินาที) ร่วมกันทั้ง UI และ Backend ไม่เชื่อเวลาหรือคะแนนที่ Client ส่งมา
+- เริ่มนับเมื่อ current-round เปิดรอบครั้งแรก และคืน deadlineAt จากเวลาที่บันทึกไว้ การรีเฟรชไม่ต่อเวลา
+- ก่อน deadline รับคำตอบปกติ; ตั้งแต่ deadline เป็นต้นไปไม่รับพิกัดมาคิดคะแนน แม้พิกัดจะถูกต้องที่สุด
+- เมื่อหมดเวลา Frontend เรียก POST guess เดิมด้วย `{ "guessedLatitude": null, "guessedLongitude": null }`; หากยังไม่หมดเวลา คำขอนี้ตอบ 409
+- หาก POST ใดเข้าหลัง deadline จะบันทึก COMPLETED, score = 0, playTimeSeconds = 40 และพิกัดทั้งคู่ = null แล้วตอบ 200 พร้อม timedOut = true และเฉลยเดิม
+- ตรวจช่วง startedAt ซ้ำใน conditional write ภายใต้ game-row lock พร้อมปิดเกมรอบที่ 5 ใน transaction เดียวกัน
+- ไม่มี timer/job เบื้องหลัง สถานะหมดเวลาถูกบันทึกเมื่อ POST guess เข้ามาเท่านั้น หากไม่มี request แถวยังคง PENDING แต่ POST ที่มาช้าจะไม่มีสิทธิ์ได้คะแนน
+- current-round หลัง deadline ยังคงคืนรอบเดิมและ deadline ที่ผ่านแล้วจนกว่าจะบันทึกผลหมดเวลา Frontend ต้อง finalize รอบนั้นก่อนเปิดรอบถัดไป
+- API 05 อ่านผลหมดเวลาได้เหมือนผลปกติ และ summary รวมเวลา 40 วินาทีของรอบนั้น
+- ไม่เพิ่มตาราง คอลัมน์ enum หรือ dependency: ใช้ nullable coordinates, score, playTimeSeconds, status และ startedAt เดิม
+
 ## รูปแบบการรับส่งร่วมกัน
 
 ระบบใช้ session cookie ระบุตัวผู้เล่น เมื่อล็อกอินสำเร็จ Backend ส่ง `Set-Cookie` เบราว์เซอร์เก็บแล้วแนบ `Cookie` เมื่อเรียก API ตามเงื่อนไขของ cookie ส่วน Backend ตรวจ session เพื่ออ่าน `user.id` และตรวจเจ้าของเกม
@@ -175,7 +206,7 @@ JSON response ใช้รูปแบบกลางของโปรเจก
 }
 ```
 
-คำขอสำเร็จของ API 02–04 ใช้ `status: 200` และ `statusCode: "SUCCESS"` ส่วนข้อผิดพลาดใช้รูปแบบกลาง `{ error, status, statusCode: "ERROR" }`
+คำขอสำเร็จของ API 02–05 ใช้ `status: 200` และ `statusCode: "SUCCESS"` ส่วนข้อผิดพลาดใช้รูปแบบกลาง `{ error, status, statusCode: "ERROR" }`
 
 ## กติกาคะแนนและความเข้ากันได้ (BE-008)
 
@@ -220,9 +251,9 @@ JSON response ใช้รูปแบบกลางของโปรเจก
 
 | คำสั่ง | ผล |
 | --- | --- |
-| `npm run test:unit` | 407 ผ่านหลังเปลี่ยนสูตร |
+| `npm run test:unit` | 431 ผ่านหลังเพิ่ม deadline และอ่านผลรอบ |
 | `npm run test:component` | 244 ผ่าน |
-| `npm run test:integration` | 102 ผ่าน / 22 skipped (PostgreSQL opt-in) |
+| `npm run test:integration` | 118 ผ่าน / 23 skipped (PostgreSQL opt-in) |
 | `npm run lint` | ผ่าน |
 | `npm run typecheck` | ผ่าน |
 | `npx prisma validate` | ผ่าน |
@@ -240,7 +271,9 @@ src/
 │   ├── route.ts
 │   └── [id]/
 │       ├── current-round/route.ts
-│       ├── rounds/[questionNumber]/guess/route.ts
+│       ├── rounds/[questionNumber]/
+│       │   ├── guess/route.ts
+│       │   └── result/route.ts
 │       └── summary/route.ts
 ├── features/game/
 │   ├── game.ts
@@ -264,12 +297,17 @@ prisma/
 | ส่วน | การทำงาน |
 | --- | --- |
 | API 01 `POST /api/games` | `route.ts` ตรวจ session → `GameService.createGame` สุ่ม 5 สถานที่พร้อมรูป → `GameRepositoryImpl.createGame` ตรวจข้อมูลและสร้าง Game + 5 GameRound ใน transaction → คืน gameId |
-| API 02 `GET /api/games/{gameId}/current-round` | `current-round/route.ts` ตรวจ input/session → `GameService.currentRound` ตรวจเจ้าของและ PLAYING → repository ล็อกเกมและตั้ง startedAt หากยังว่าง → factory คืนเฉพาะ questionNumber + imageUrl เดิม |
+| API 02 `GET /api/games/{gameId}/current-round` | `current-round/route.ts` ตรวจ input/session → `GameService.currentRound` ตรวจเจ้าของและ PLAYING → repository ล็อกเกมและตั้ง startedAt หากยังว่าง → factory คืน questionNumber + imageUrl เดิม + deadlineAt |
 | API 03 `POST /api/games/{gameId}/rounds/{questionNumber}/guess` | `guess/route.ts` ใช้ schema ตรวจพิกัด/เลขรอบ → `GameService.submitGuess` ตรวจเจ้าของและรอบ → shared Haversine คิดระยะ → lib คิดคะแนน → repository บันทึกแบบ conditional ภายใน transaction → factory คืนเฉลยพร้อมรูป; รอบ 5 เรียก lib รวมคะแนน/เวลา/โบนัสและปิดเกม |
 | API 04 `GET /api/games/{gameId}/summary` | `summary/route.ts` ตรวจ session/input → `GameService.summary` ตรวจเจ้าของ/COMPLETED/ผลครบ 5 รอบ → lib รวม baseScore และเวลา โดยใช้ totalScore ที่บันทึกแล้ว → คืน baseScore, totalTimeSeconds, bonusScore, totalScore |
+| API 05 `GET /api/games/{gameId}/rounds/{questionNumber}/result` | `result/route.ts` ตรวจ session/input → `GameService.roundResult` ตรวจเจ้าของ/ผลรอบสมบูรณ์ → factory คืนผลจากข้อมูลที่บันทึกโดยไม่เขียนซ้ำ |
 
 `game.schema.ts` เป็นขอบเขต validation, `game.ts` เป็นสัญญาข้อมูลสาธารณะ, `game.repository.port.ts` เป็นสัญญา persistence, `prisma/types/game.ts` เป็นชนิดข้อมูลจาก Prisma และ `container.ts` ประกอบ instance เดิมให้ routes เรียกใช้
 
 `src/shared/lib/game-scoring.ts` เป็นฟังก์ชันคำนวณล้วน ไม่มี Prisma, session, HTTP, state หรือ dependency กลับเข้า features ส่วน Haversine ใช้ `src/shared/lib/calculate-distance.ts` เดิม ไม่มีโฟลเดอร์ lib ภายในฟีเจอร์เกม
 
 การเปลี่ยนสูตรนี้ใช้กับเกมที่เล่นต่อจากโค้ดรุ่นนี้ ไม่ย้อนแก้คะแนนรอบที่บันทึกแล้วหรือ totalScore ของเกมที่จบไปแล้ว
+
+ชุด regression สำหรับ deadline/กู้ผล: `tests/unit/core/service/game-round-lifecycle.service.test.ts` และ `tests/integration/api/game-round-result.route.test.ts` ครอบคลุมก่อน deadline 1 ms, ตรง deadline, หลัง deadline, payload ปลอมเวลา, null ก่อนหมดเวลา, timeout รอบสุดท้าย, response หาย, POST ซ้ำ, อ่านหลังจบเกม, ownership และการไม่เปิดเฉลยของรอบที่ยังไม่ตอบ
+
+รอบตรวจ deadline/result: production build ผ่านหลังอนุญาตเครือข่ายให้ดาวน์โหลด Google Fonts เดิมของ layout; ไม่เปลี่ยนโค้ด UI หรือฟอนต์ มีผลทดสอบ unit 431, component 244, integration 118 ผ่าน ส่วน PostgreSQL opt-in 23 เทสต์ยัง skipped และ E2E เริ่มไม่ได้เพราะไม่มี Docker

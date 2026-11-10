@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppError } from "@/shared/errors/app.error";
 import { createGameRecord, gameNow } from "../../fixtures/game";
 const { requireAuth, repository } = await vi.hoisted(async () => {
@@ -15,10 +15,13 @@ const guess = {guessedLatitude:13.65,guessedLongitude:100.49};
 const request = (body: unknown = guess, questionNumber = "1", raw = false) => POST(new Request("http://localhost/api/games/game-1/rounds/1/guess", {method:"POST",body:raw ? String(body) : JSON.stringify(body),headers:{"Content-Type":"application/json"}}), {params:Promise.resolve({id:"game-1",questionNumber})});
 beforeEach(() => {
   vi.resetAllMocks();
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date(gameNow.getTime() + 20000));
   requireAuth.mockResolvedValue({id:"player-1"});
   const game = createGameRecord();game.rounds[0].startedAt=gameNow;
   repository.findGame.mockResolvedValue(game);
 });
+afterEach(() => vi.useRealTimers());
 describe("POST guess", () => {
   it("returns the answer with its original image in the standard envelope", async () => {
     const response = await request({...guess,userId:"attacker",score:999999});

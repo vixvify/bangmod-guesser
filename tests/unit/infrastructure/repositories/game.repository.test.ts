@@ -116,7 +116,7 @@ describe("GameRepositoryImpl.saveGuess", () => {
     findFirst.mockResolvedValue({questionNumber:5});roundUpdateMany.mockResolvedValue({count:1});
     await repository.saveGuess(input);
     expect(transaction).toHaveBeenCalledOnce();
-    expect(roundUpdateMany).toHaveBeenCalledWith({where:{gameId:"game-1",questionNumber:5,status:"PENDING",startedAt:{not:null}},data:{guessedLatitude:13.65,guessedLongitude:100.49,score:1000,playTimeSeconds:20,status:"COMPLETED"}});
+    expect(roundUpdateMany).toHaveBeenCalledWith({where:{gameId:"game-1",questionNumber:5,status:"PENDING",startedAt:{gt:new Date(now.getTime()-40000)}},data:{guessedLatitude:13.65,guessedLongitude:100.49,score:1000,playTimeSeconds:20,status:"COMPLETED"}});
     expect(updateGame).toHaveBeenCalledWith({where:{id:"game-1"},data:{status:"COMPLETED",finishedAt:now,totalScore:4500}});
     expect(updateMany.mock.invocationCallOrder[0]).toBeLessThan(roundUpdateMany.mock.invocationCallOrder[0]);
   });
@@ -135,4 +135,14 @@ describe("GameRepositoryImpl.saveGuess", () => {
     await expect(repository.saveGuess(input)).rejects.toMatchObject({status:409});
     expect(roundUpdateMany).not.toHaveBeenCalled();
   });
+  it("only records a timeout once the persisted server deadline has passed", async () => {
+    findFirst.mockResolvedValue({ questionNumber: 5 });
+    roundUpdateMany.mockResolvedValue({ count: 1 });
+    await repository.saveGuess({ ...input, guessedLatitude: null, guessedLongitude: null, score: 0, playTimeSeconds: 40 });
+    expect(roundUpdateMany).toHaveBeenCalledWith({
+      where: { gameId: "game-1", questionNumber: 5, status: "PENDING", startedAt: { lte: new Date(now.getTime() - 40000) } },
+      data: { guessedLatitude: null, guessedLongitude: null, score: 0, playTimeSeconds: 40, status: "COMPLETED" },
+    });
+  });
+
 });

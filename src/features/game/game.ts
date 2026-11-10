@@ -6,25 +6,26 @@ export type SaveGameGuess = {
   gameId: string;
   userId: string;
   questionNumber: number;
-  guessedLatitude: number;
-  guessedLongitude: number;
+  guessedLatitude: number | null;
+  guessedLongitude: number | null;
   score: number;
   playTimeSeconds: number;
   finishedAt: Date;
   totalScore?: number;
 };
 
-export type CurrentGameRound = { questionNumber: number; imageUrl: string };
+export type CurrentGameRound = { questionNumber: number; imageUrl: string; deadlineAt: string };
 
 export type GameSummaryResult = { baseScore: number; totalTimeSeconds: number; bonusScore: number; totalScore: number };
 
 export type GameGuessResult = {
-  guessedLatitude: number;
-  guessedLongitude: number;
-  distanceMeters: number;
+  guessedLatitude: number | null;
+  guessedLongitude: number | null;
+  distanceMeters: number | null;
+  timedOut: boolean;
   score: number;
   accumulatedScore: number;
-  imageUrl: string;
+  imageUrl: string | null;
   location: { latitude: number; longitude: number; name: string; description: string | null };
 };
 

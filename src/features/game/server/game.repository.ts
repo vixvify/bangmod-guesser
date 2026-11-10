@@ -6,6 +6,7 @@ import { gameStateSelect, gameCandidateSelect, gamePlayInclude,
 } from "../../../../prisma/types/game";
 import type { NewGameRound, SaveGameGuess } from "../game";
 import { AppError } from "@/shared/errors/app.error";
+import { GAME_DEFAULTS } from "../game.constants";
 
 export class GameRepositoryImpl implements GameRepository {
   async saveGuess(input: SaveGameGuess): Promise<void> {
@@ -15,8 +16,10 @@ export class GameRepositoryImpl implements GameRepository {
         where: { gameId: input.gameId, status: "PENDING" }, orderBy: { questionNumber: "asc" },
       });
       if (current?.questionNumber !== input.questionNumber) throw new AppError("Round already answered or out of order", 409);
+      const deadlineCutoff = new Date(input.finishedAt.getTime() - GAME_DEFAULTS.roundDurationSeconds * 1000);
+      const startedAt = input.guessedLatitude === null ? { lte: deadlineCutoff } : { gt: deadlineCutoff };
       const saved = await transaction.gameRound.updateMany({
-        where: { gameId: input.gameId, questionNumber: input.questionNumber, status: "PENDING", startedAt: { not: null } },
+        where: { gameId: input.gameId, questionNumber: input.questionNumber, status: "PENDING", startedAt },
         data: {
           guessedLatitude: input.guessedLatitude, guessedLongitude: input.guessedLongitude,
           score: input.score, playTimeSeconds: input.playTimeSeconds, status: "COMPLETED",

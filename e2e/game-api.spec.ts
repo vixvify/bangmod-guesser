@@ -22,13 +22,14 @@ test("an authenticated player completes five persisted rounds and reads their su
     for (let question = 1; question <= 5; question++) {
       const url = `/api/games/${gameId}`;
       const current = await (await page.request.get(`${url}/current-round`)).json();
-      expect(current.data).toEqual({ questionNumber: question, imageUrl: selected.rounds[question - 1].locationImage?.imageUrl });
+      expect(current.data).toEqual({ questionNumber: question, imageUrl: selected.rounds[question - 1].locationImage?.imageUrl, deadlineAt: expect.any(String) });
       expect(await (await page.request.get(`${url}/current-round`)).json()).toEqual(current);
       const location = selected.rounds[question - 1].location;
       const data = { guessedLatitude: location.latitude, guessedLongitude: location.longitude };
       const guesses = await Promise.all([page.request.post(`${url}/rounds/${question}/guess`, { data }), page.request.post(`${url}/rounds/${question}/guess`, { data })]);
       expect(guesses.map((r) => r.status()).sort()).toEqual([200, 409]);
       const result = await guesses.find((r) => r.status() === 200)!.json();
+      expect(await (await page.request.get(`${url}/rounds/${question}/result`)).json()).toEqual(result);
       expect(result.data).toMatchObject({ score: 1000, accumulatedScore: question * 1000, imageUrl: current.data.imageUrl, location: { name: location.name } });
     }
     const summary = await (await page.request.get(`/api/games/${gameId}/summary`)).json();

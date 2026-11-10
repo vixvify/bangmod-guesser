@@ -3,7 +3,7 @@ import type { GamePlayRecord } from "../../../../prisma/types/game";
 import type { CurrentGameRound, GameExitResult, GameGuessResult, GameSummaryResult } from "../game";
 import type { GuessInput } from "../game.schema";
 import type { GameRepository } from "./game.repository.port";
-import { GAME_ROUND_COUNT } from "../game.constants";
+import { GAME_DEFAULTS, GAME_ROUND_COUNT } from "../game.constants";
 import { calculateRoundScore, calculateGameSummary } from "@/shared/lib/game-scoring";
 import { GameFactory } from "./game.factory";
 import { AppError } from "@/shared/errors/app.error";
@@ -29,18 +29,37 @@ export class GameService {
     if (game.rounds.length !== GAME_ROUND_COUNT || game.rounds.some((r, i) => r.questionNumber !== i + 1 || (i + 1 < questionNumber && !this.hasCompleteAnswer(r)))) {
       throw new AppError("Game rounds are incomplete", 409);
     }
-    const distance = haversineDistanceMeters(round.location, {
-      latitude: input.guessedLatitude, longitude: input.guessedLongitude,
-    });
-    const score = calculateRoundScore(distance);
-    const playTimeSeconds = Math.max(0, Math.floor((now.getTime() - round.startedAt.getTime()) / 1000));
+    const elapsedMilliseconds = now.getTime() - round.startedAt.getTime();
+    const durationSeconds = GAME_DEFAULTS.roundDurationSeconds;
+    const timedOut = elapsedMilliseconds >= durationSeconds * 1000;
+    if (!timedOut && (input.guessedLatitude === null || input.guessedLongitude === null)) {
+      throw new AppError("A guess is required before the deadline", 409);
+    }
+    const guess = timedOut ? { guessedLatitude: null, guessedLongitude: null } : input;
+    const distance = guess.guessedLatitude === null || guess.guessedLongitude === null ? null
+      : haversineDistanceMeters(round.location, { latitude: guess.guessedLatitude, longitude: guess.guessedLongitude });
+    const score = distance === null ? 0 : calculateRoundScore(distance);
+    const playTimeSeconds = timedOut ? durationSeconds : Math.max(0, Math.floor(elapsedMilliseconds / 1000));
     const results = game.rounds.map((r) => r.questionNumber === questionNumber ? { ...r, score, playTimeSeconds } : r);
     await this.gameRepository.saveGuess({
-      gameId: id, userId, questionNumber, ...input, score, playTimeSeconds, finishedAt: now,
+      gameId: id, userId, questionNumber, ...guess, score, playTimeSeconds, finishedAt: now,
       ...(questionNumber === GAME_ROUND_COUNT ? { totalScore: calculateGameSummary(results).totalScore } : {}),
     });
     const accumulatedScore = results.filter((r) => r.questionNumber <= questionNumber).reduce((sum, r) => sum + r.score, 0);
-    return GameFactory.toGuessResult(round, input, distance, score, accumulatedScore);
+    return GameFactory.toGuessResult(round, guess, distance, score, accumulatedScore);
+  }
+
+  async roundResult(id: string, userId: string, questionNumber: number): Promise<GameGuessResult> {
+    const game = await this.ownedGame(id, userId);
+    const round = game.rounds.find((round) => round.questionNumber === questionNumber);
+    if (!round) throw new AppError("Round not found", 404);
+    if (!this.hasCompleteAnswer(round)) throw new AppError("Round result is not available", 409);
+    const guess = { guessedLatitude: round.guessedLatitude, guessedLongitude: round.guessedLongitude };
+    const distance = guess.guessedLatitude === null || guess.guessedLongitude === null ? null
+      : haversineDistanceMeters(round.location, { latitude: guess.guessedLatitude, longitude: guess.guessedLongitude });
+    const accumulatedScore = game.rounds.filter((result) => result.questionNumber <= questionNumber)
+      .reduce((sum, result) => sum + result.score, 0);
+    return GameFactory.toGuessResult(round, guess, distance, round.score, accumulatedScore);
   }
 
   private async ownedGame(id: string, userId: string): Promise<GamePlayRecord> {
@@ -51,8 +70,11 @@ export class GameService {
   }
 
   private hasCompleteAnswer(round: GamePlayRecord["rounds"][number]): boolean {
-    return round.status === "COMPLETED" && round.playTimeSeconds !== null
-      && round.guessedLatitude !== null && round.guessedLongitude !== null;
+    if (round.status !== "COMPLETED" || round.playTimeSeconds === null) return false;
+    const timedOut = round.startedAt !== null && round.score === 0
+      && round.playTimeSeconds === GAME_DEFAULTS.roundDurationSeconds
+      && round.guessedLatitude === null && round.guessedLongitude === null;
+    return timedOut || (round.guessedLatitude !== null && round.guessedLongitude !== null);
   }
 
   private pendingRound(game: GamePlayRecord) {

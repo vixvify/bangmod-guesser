@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AppError } from "@/shared/errors/app.error";
-import { createGameRecord } from "../../fixtures/game";
+import { createGameRecord, gameNow } from "../../fixtures/game";
 const { requireAuth, repository } = await vi.hoisted(async () => {
   const { createGameRepositoryMock } = await import("../../mocks/game.repository.mock");
   return { requireAuth: vi.fn(), repository: createGameRepositoryMock() };
@@ -16,14 +16,16 @@ beforeEach(() => {
   vi.resetAllMocks();
   requireAuth.mockResolvedValue({ id: "player-1" });
   repository.findGame.mockResolvedValue(createGameRecord());
-  repository.openRound.mockResolvedValue(createGameRecord());
+  const opened = createGameRecord();
+  opened.rounds[0].startedAt = gameNow;
+  repository.openRound.mockResolvedValue(opened);
 });
 describe("GET current-round", () => {
   it("returns the same question and image on repeated reads without leaking the answer", async () => {
     const response = await request();
     expect(response.headers.get("cache-control")).toBe("private, no-store");
     const body = await response.json();
-    expect(body).toEqual({data:{questionNumber:1,imageUrl:"https://example.test/image-0.webp"},status:200,statusCode:"SUCCESS"});
+    expect(body).toEqual({data:{questionNumber:1,imageUrl:"https://example.test/image-0.webp",deadlineAt:new Date(gameNow.getTime()+40000).toISOString()},status:200,statusCode:"SUCCESS"});
     expect(await (await request()).json()).toEqual(body);
   });
   it("requires authentication before querying", async () => {

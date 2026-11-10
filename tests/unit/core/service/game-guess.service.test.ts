@@ -13,7 +13,7 @@ beforeEach(() => {
 });
 describe("GameService.submitGuess", () => {
   it("scores an exact guess, measures time from first open and returns the answer and original image", async () => {
-    expect(await service.submitGuess("game-1", "player-1", 1, guess, now)).toEqual({ ...guess, distanceMeters: 0, score: 1000, accumulatedScore: 1000, imageUrl: "https://example.test/image-0.webp", location: { latitude: 13.65, longitude: 100.49, name: "Secret answer", description: "Secret description" } });
+    expect(await service.submitGuess("game-1", "player-1", 1, guess, now)).toEqual({ ...guess, distanceMeters: 0, timedOut: false, score: 1000, accumulatedScore: 1000, imageUrl: "https://example.test/image-0.webp", location: { latitude: 13.65, longitude: 100.49, name: "Secret answer", description: "Secret description" } });
     expect(repository.saveGuess).toHaveBeenCalledWith({gameId:"game-1",userId:"player-1",questionNumber:1,...guess,score:1000,playTimeSeconds:20,finishedAt:now});
   });
   it("completes round five with base plus time bonus and ignores time on intermediate result pages", async () => {

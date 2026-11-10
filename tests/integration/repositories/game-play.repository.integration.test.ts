@@ -79,4 +79,17 @@ describe.skipIf(process.env.RUN_GAME_DATABASE_TESTS !== "1")("Game API persisten
     await expect(repository.createGame(userId,locationIds.map((locationId,i)=>({locationId,questionNumber:i+1,imageNumber:i===4?999:2})))).rejects.toMatchObject({status:409});
     expect(await prisma.game.count({where:{userId}})).toBe(before);
   });
+  it("makes concurrent timeout submissions save zero only once and allows result recovery", async () => {
+    await service.currentRound(gameId, userId, now);
+    const expiredAt = new Date(now.getTime() + 40000);
+    const outcomes = await Promise.allSettled([
+      service.submitGuess(gameId, userId, 1, guess, expiredAt),
+      service.submitGuess(gameId, userId, 1, guess, expiredAt),
+    ]);
+    expect(outcomes.filter((outcome) => outcome.status === "fulfilled")).toHaveLength(1);
+    const game = await repository.findGame(gameId);
+    expect(game?.rounds[0]).toMatchObject({ status: "COMPLETED", score: 0, playTimeSeconds: 40, guessedLatitude: null, guessedLongitude: null });
+    expect(await service.roundResult(gameId, userId, 1)).toMatchObject({ timedOut: true, score: 0, guessedLatitude: null });
+  });
+
 });
