@@ -99,7 +99,7 @@ describe("Better Auth configuration", () => {
         emailAndPassword: expect.objectContaining({
           enabled: true,
           autoSignIn: false,
-          resetPasswordTokenExpiresIn: 3600,
+          resetPasswordTokenExpiresIn: 900,
           sendResetPassword: expect.any(Function),
         }),
       }),
@@ -129,12 +129,19 @@ describe("Better Auth configuration", () => {
     } as never);
 
     expect(Resend).toHaveBeenCalledWith("test-resend-api-key");
-    expect(mockSend).toHaveBeenCalledWith({
-      from: "onboarding@resend.dev",
-      to: "student@example.com",
-      subject: "Reset your Bangmod Guesser password",
-      text: expect.stringContaining("http://localhost:3000/reset-password/token123"),
-    });
+    expect(mockSend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        from: "onboarding@resend.dev",
+        to: "student@example.com",
+        subject: "เปลี่ยนรหัสผ่าน | Bangmod Guesser",
+        text: expect.stringContaining(
+          "http://localhost:3000/reset-password/token123",
+        ),
+        html: expect.stringContaining(
+          'href="http://localhost:3000/reset-password/token123"',
+        ),
+      }),
+    );
   });
 
   it("logs an error when Resend returns an error", async () => {

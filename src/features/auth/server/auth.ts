@@ -12,6 +12,7 @@ import { adminAccessControl, authRoles } from "@/features/auth/auth-permissions"
 import { config } from "@/shared/config/runtime";
 import { prisma } from "@/shared/lib/prisma";
 import { AdminPaths } from "@/features/users/admin.routes";
+import { createPasswordResetEmail } from "@/features/auth/server/email-templates/password-reset-email";
 
 const googleOAuth = config.googleOAuth;
 
@@ -30,24 +31,17 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     autoSignIn: false,
-    resetPasswordTokenExpiresIn: 3600,
+    resetPasswordTokenExpiresIn: 900,
     sendResetPassword: async ({ user, url }: SendResetPasswordData) => {
       const resendConfig = config.resend;
       const resend = new Resend(resendConfig.apiKey);
+      const email = createPasswordResetEmail(url);
 
       return resend.emails
         .send({
           from: resendConfig.fromEmail,
           to: user.email,
-          subject: "Reset your Bangmod Guesser password",
-          text: [
-            "We received a request to reset your Bangmod Guesser password.",
-            "",
-            "Click the link below to reset your password:",
-            url,
-            "",
-            "If you did not request a password reset, you can ignore this email.",
-          ].join("\n"),
+          ...email,
         })
         .then(({ error }) => {
           if (error) {
