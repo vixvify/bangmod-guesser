@@ -15,11 +15,14 @@ import { parseSchema } from "@/shared/lib/validation";
 
 export async function GET(request: Request) {
   try {
+    roleCheck(await requireAuth(), [UserRole.ADMIN]);
     const query = parseSchema(
       SearchLocationQuerySchema,
       Object.fromEntries(new URL(request.url).searchParams),
     );
-    return successResponse(await locationService.getLocations(query));
+    const response = successResponse(await locationService.getLocations(query));
+    response.headers.set("Cache-Control", "private, no-store");
+    return response;
   } catch (error) {
     return errorResponse(error);
   }

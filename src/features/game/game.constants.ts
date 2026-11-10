@@ -14,7 +14,7 @@ export const GAME_DEFAULTS = {
   roundDurationSeconds: 40,
 } as const;
 
-export const GAME_MAX_SCORE = 5000;
+export { MAX_GAME_SCORE as GAME_MAX_SCORE } from "@/shared/lib/game-scoring";
 
 export const MAP_CONFIG = {
   center: { lat: 13.6513, lng: 100.4943 },
@@ -32,3 +32,5 @@ export const MAP_CONFIG = {
     shadowSize: [41, 41] as [number, number],
   },
 } as const;
+
+export const GAME_ROUND_COUNT = 5;

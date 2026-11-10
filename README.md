@@ -4,6 +4,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 - [Architecture](docs/architecture.md)
 - [Writing rules](docs/writing-rules.md)
+- [Game API (BE-008)](docs/game-api.md)
 
 ## Getting Started
 
@@ -57,6 +58,13 @@ Set `NEXT_PUBLIC_API_URL` to the API base URL, for example
 `http://localhost:3000/api`. API route constants append their endpoint paths
 to this value.
 
+## Location API permissions
+
+All `/api/locations` endpoints, including list and detail reads, require an
+authenticated `ADMIN` session. Unauthenticated requests return 401; ordinary
+users return 403. Location reads return `Cache-Control: private, no-store`.
+Players receive questions and recorded answers through the Game API instead.
+
 ## Google sign-in
 
 Create a Google OAuth client of type **Web application** and set the authorized
@@ -92,8 +100,9 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 Run the full test suite with `npm test`. Install the Playwright browser once with
 `npx playwright install chromium`, or run only the browser tests with
-`npm run test:e2e`. The signup/login E2E tests in `e2e/` mock Auth API responses,
-so they do not require a running database.
+`npm run test:e2e`. Some signup/login browser tests mock Auth API responses, but the E2E runner
+starts a disposable PostgreSQL database through Docker and applies migrations.
+The Game API flow uses real sessions and database records.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

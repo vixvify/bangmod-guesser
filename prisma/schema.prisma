@@ -159,6 +159,7 @@ model GameRound {
   playTimeSeconds  Int?
   status           RoundStatus? @default(PENDING)
   createdAt        DateTime     @default(now())
+  startedAt        DateTime?
 
   gameId String
   game   Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
