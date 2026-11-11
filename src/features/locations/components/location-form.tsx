@@ -245,6 +245,7 @@ export function LocationForm(props: LocationFormProps) {
         <ConfirmModal
           open={confirmationOpen}
           busy={isSubmitting}
+          busyLabel="กำลังบันทึกสถานที่..."
           title={confirmation.title}
           description={confirmation.description}
           confirmLabel={confirmation.confirm}

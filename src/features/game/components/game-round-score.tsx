@@ -14,6 +14,9 @@ import { GAME_RESULT_MESSAGES as MESSAGES } from "@/features/game/game-result.co
 import { AppRoutes } from "@/shared/routes/routes";
 import { useRouter } from "next/navigation";
 import { formatScore } from "@/shared/lib/utils";
+import { httpClient } from "@/shared/lib/http";
+import { GameRoutes } from "@/features/game/game.routes";
+import { toast } from "sonner";
 import styles from "./game-results.module.css";
 
 type GameRoundScoreProps = {
@@ -21,6 +24,7 @@ type GameRoundScoreProps = {
   result: GameRoundResult;
   totalRounds: number;
   accumulatedScore: number;
+  imageUrl?: string | null;
 };
 
 export function GameRoundScore({
@@ -28,6 +32,7 @@ export function GameRoundScore({
   result,
   totalRounds,
   accumulatedScore,
+  imageUrl,
 }: GameRoundScoreProps) {
   const router = useRouter();
   const [showInfo, setShowInfo] = useState(false);
@@ -109,8 +114,10 @@ export function GameRoundScore({
               <div className={styles.statCard}>
                 <dt>{MESSAGES.distance}</dt>
                 <dd className="mt-2 text-2xl font-bold text-primary-light">
-                  {formatScore(result.distanceMeters)}{" "}
-                  <span className="text-sm font-normal">{MESSAGES.meters}</span>
+                  {result.distanceMeters === null ? "หมดเวลา" : <>
+                    {formatScore(result.distanceMeters)}{" "}
+                    <span className="text-sm font-normal">{MESSAGES.meters}</span>
+                  </>}
                 </dd>
               </div>
               <div className={styles.statCard}>
@@ -140,6 +147,7 @@ export function GameRoundScore({
       </article>
       <LocationInfoModal
         location={result.location}
+        imageUrl={imageUrl}
         open={showInfo}
         onClose={() => setShowInfo(false)}
       />
@@ -151,7 +159,14 @@ export function GameRoundScore({
         description="ต้องการกลับหน้าแรกและจบเกมนี้หรือไม่?"
         confirmLabel="กลับหน้าแรก"
         cancelLabel="อยู่ต่อ"
-        onConfirm={() => router.push(AppRoutes.home)}
+        onConfirm={async () => {
+          try {
+            await httpClient.post(GameRoutes.exit(gameId));
+            router.push(AppRoutes.home);
+          } catch {
+            toast.error("ออกจากเกมไม่สำเร็จ กรุณาลองอีกครั้ง");
+          }
+        }}
         onCancel={() => setShowExit(false)}
       />
     </GameLayout>

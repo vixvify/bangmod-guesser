@@ -12,7 +12,11 @@ import { Button } from "@/shared/components/ui/button";
 import { Countdown } from "@/shared/components/ui/countdown";
 import { AppRoutes } from "@/shared/routes/routes";
 import { GAME_RESULT_MESSAGES as MESSAGES } from "@/features/game/game-result.constants";
-import type { GameSummary as GameSummaryData } from "@/features/game/game";
+import type { GameSummaryResult } from "@/features/game/game";
+import { GAME_MAX_SCORE } from "@/features/game/game.constants";
+import { GameRoutes } from "@/features/game/game.routes";
+import { httpClient } from "@/shared/lib/http";
+import { toast } from "sonner";
 import { formatScore, formatTime, formatTimeForSpeech } from "@/shared/lib/utils";
 import styles from "./game-results.module.css";
 
@@ -21,19 +25,21 @@ export function GameSummary({
   summary,
 }: {
   gameId: string;
-  summary: GameSummaryData;
+  summary: GameSummaryResult;
 }) {
   const router = useRouter();
   const [isStarting, setIsStarting] = useState(false);
-  const totalSeconds = summary.rounds.reduce(
-    (sum, round) => sum + round.elapsedSeconds,
-    0,
-  );
+  const totalSeconds = summary.totalTimeSeconds;
 
-  const enterGame = useCallback(
-    () => router.push(AppRoutes.game(gameId)),
-    [gameId, router],
-  );
+  const enterGame = useCallback(async () => {
+    try {
+      const { data } = await httpClient.post<{ gameId: string }>(GameRoutes.create);
+      router.push(AppRoutes.game(data.gameId));
+    } catch {
+      setIsStarting(false);
+      toast.error("ไม่สามารถเริ่มเกมได้ กรุณาลองอีกครั้ง");
+    }
+  }, [router]);
 
   return (
     <GameLayout scrollable onExit={() => router.push(AppRoutes.home)}>
@@ -49,7 +55,8 @@ export function GameSummary({
           <GameScoreReveal
             baseScore={summary.baseScore}
             bonusScore={summary.bonusScore}
-            maxScore={summary.maxScore}
+            maxScore={GAME_MAX_SCORE}
+            totalScore={summary.totalScore}
           />
           <dl className="mx-auto mb-7 mt-3 grid max-w-lg grid-cols-2 gap-3">
             <div className={styles.statCard}>

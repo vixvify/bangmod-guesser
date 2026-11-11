@@ -27,7 +27,7 @@ export type DashboardGameLog = {
   finishedAt: string | null;
   totalScore: number | null;
   roundScoreTotal: number;
-  bonusScore: null;
+  bonusScore: number | null;
   rounds: {
     questionNumber: number;
     status: "PENDING" | "COMPLETED" | null;

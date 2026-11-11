@@ -32,7 +32,7 @@ describe("ProfileRepositoryImpl", () => {
         skip: 4,
         take: 4,
         where: expect.objectContaining({
-          status: "COMPLETED",
+          OR: [{ status: "COMPLETED", totalScore: { not: null } }, { status: "INCOMPLETE" }],
           startedAt: {
             gte: new Date("2026-09-30T17:00:00.000Z"),
             lt: new Date("2026-10-31T17:00:00.000Z"),
@@ -41,7 +41,7 @@ describe("ProfileRepositoryImpl", () => {
       }) }),
     }));
     expect(mocks.gameCount).toHaveBeenCalledWith({ where: expect.objectContaining({
-      userId: "user-1", status: "COMPLETED",
+      userId: "user-1", OR: [{ status: "COMPLETED", totalScore: { not: null } }, { status: "INCOMPLETE" }],
       startedAt: {
         gte: new Date("2026-09-30T17:00:00.000Z"),
         lt: new Date("2026-10-31T17:00:00.000Z"),

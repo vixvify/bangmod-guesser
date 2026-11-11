@@ -7,17 +7,24 @@ import { Button } from "@/shared/components/ui/button";
 import { Countdown } from "@/shared/components/ui/countdown";
 import { getSession } from "@/features/auth/auth-client";
 import { AppRoutes } from "@/shared/routes/routes";
-import { GAME_DEFAULTS } from "@/features/game/game.constants";
+import { GameRoutes } from "@/features/game/game.routes";
+import { httpClient } from "@/shared/lib/http";
+import { toast } from "sonner";
 
 export function LobbyMenu() {
   const [isStarting, setIsStarting] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const router = useRouter();
 
-  const enterGame = useCallback(
-    () => router.push(AppRoutes.game(GAME_DEFAULTS.demoGameId)),
-    [router],
-  );
+  const enterGame = useCallback(async () => {
+    try {
+      const { data } = await httpClient.post<{ gameId: string }>(GameRoutes.create);
+      router.push(AppRoutes.game(data.gameId));
+    } catch {
+      setIsStarting(false);
+      toast.error("ไม่สามารถเริ่มเกมได้ กรุณาลองอีกครั้ง");
+    }
+  }, [router]);
 
   const handlePlay = useCallback(async () => {
     setIsChecking(true);
@@ -28,6 +35,8 @@ export function LobbyMenu() {
         return;
       }
       setIsStarting(true);
+    } catch {
+      toast.error("ไม่สามารถตรวจสอบบัญชีได้ กรุณาลองอีกครั้ง");
     } finally {
       setIsChecking(false);
     }

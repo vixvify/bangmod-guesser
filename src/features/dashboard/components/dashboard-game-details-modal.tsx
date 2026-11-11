@@ -100,10 +100,10 @@ export function DashboardGameDetailsModal({
           <div className="rounded-xl bg-orange-50 px-4 py-3">
             <p className="text-xs text-slate-600">คะแนนโบนัส</p>
             <p className="text-xl font-bold">
-              {game?.bonusScore === null ? "—" : game?.bonusScore}
+              {game?.bonusScore == null ? "—" : `+${format(game.bonusScore)}`}
             </p>
             <p className="text-xs text-slate-500">
-              ระบบยังไม่มีข้อมูลโบนัสแยกต่างหาก
+              {game?.bonusScore == null ? "ไม่มีข้อมูลเวลาครบสำหรับคำนวณโบนัส" : "คำนวณจากเวลาเล่นรวม"}
             </p>
           </div>
           <div className="rounded-xl bg-secondary-dark px-4 py-3 text-white">

@@ -27,7 +27,12 @@ export function GameMap({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
+  const onMapClickRef = useRef(onMapClick);
   const instructionsId = useId();
+
+  useEffect(() => {
+    onMapClickRef.current = onMapClick;
+  }, [onMapClick]);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -46,7 +51,7 @@ export function GameMap({
     L.control.zoom({ position: "bottomright", zoomInTitle: "ขยายแผนที่", zoomOutTitle: "ย่อแผนที่" }).addTo(map);
 
     map.on("click", (e: L.LeafletMouseEvent) => {
-      onMapClick(e.latlng.lat, e.latlng.lng);
+      onMapClickRef.current(e.latlng.lat, e.latlng.lng);
     });
 
     mapRef.current = map;
@@ -56,7 +61,7 @@ export function GameMap({
       mapRef.current = null;
       markerRef.current = null;
     };
-  }, [latitude, longitude, zoom, onMapClick]);
+  }, [latitude, longitude, zoom]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -100,7 +105,6 @@ export function GameMap({
         }}
         className="h-full w-full"
       />
-      <span aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 z-400 -translate-x-1/2 -translate-y-1/2 rounded-full bg-secondary-main px-1 text-sm font-bold text-secondary-light">+</span>
       <button type="button" onClick={selectCenter} className="absolute bottom-6 left-2 z-500 rounded-md border border-surface-border bg-secondary-main px-2 py-2 text-xs font-semibold text-surface-text shadow-lg">
         ปักหมุดกลางแผนที่
       </button>

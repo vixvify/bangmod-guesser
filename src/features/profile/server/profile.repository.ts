@@ -4,15 +4,17 @@ import type { ProfileRepository } from "./profile.repository.port";
 import { profileGameSelect, profileUserSelect, type GetProfileRecordsResult } from "../../../../prisma/types/profile";
 import { prisma } from "@/shared/lib/prisma";
 
-const completedGameWhere = {
-  status: "COMPLETED",
-  totalScore: { not: null },
+const historyGameWhere = {
+  OR: [
+    { status: "COMPLETED", totalScore: { not: null } },
+    { status: "INCOMPLETE" },
+  ],
 } satisfies Prisma.GameWhereInput;
 
 export class ProfileRepositoryImpl implements ProfileRepository {
   async findProfile(userId: string, filter: ProfileHistoryFilter): Promise<GetProfileRecordsResult> {
     const dateFilter: Prisma.GameWhereInput = {
-      ...completedGameWhere,
+      ...historyGameWhere,
       ...(filter.from || filter.toExclusive
         ? {
             startedAt: {

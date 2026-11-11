@@ -9,8 +9,6 @@ export const GAME_MESSAGES = {
 } as const;
 
 export const GAME_DEFAULTS = {
-  demoGameId: "demo",
-  currentRound: 1,
   roundDurationSeconds: 40,
 } as const;
 

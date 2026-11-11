@@ -7,11 +7,11 @@ import { useScoreReveal } from "@/features/game/hooks/use-score-reveal";
 import { formatScore } from "@/shared/lib/utils";
 import styles from "./game-results.module.css";
 
-type GameScoreRevealProps = { baseScore: number; bonusScore: number; maxScore: number };
+type GameScoreRevealProps = { baseScore: number; bonusScore: number; maxScore: number; totalScore?: number };
 
-export function GameScoreReveal({ baseScore, bonusScore, maxScore }: GameScoreRevealProps) {
-  const { score, phase, skip } = useScoreReveal(baseScore, bonusScore);
-  const total = baseScore + bonusScore;
+export function GameScoreReveal({ baseScore, bonusScore, maxScore, totalScore = baseScore + bonusScore }: GameScoreRevealProps) {
+  const { score, phase, skip } = useScoreReveal(baseScore, bonusScore, maxScore, totalScore);
+  const total = Math.min(maxScore, totalScore);
   const percentage = Math.min(100, Math.max(0, score / maxScore * 100));
 
   return (

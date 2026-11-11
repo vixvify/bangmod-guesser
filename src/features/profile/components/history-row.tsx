@@ -9,11 +9,8 @@ export function HistoryRow({ game }: { game: GameHistoryItem }) {
     <li className="flex flex-col gap-4 rounded-2xl border border-surface-border bg-surface-overlay p-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
       <div className="min-w-0 space-y-2">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-md border border-surface-border bg-surface-overlay px-2 py-1 font-mono text-xs font-bold text-primary-light">
-            #{game.id}
-          </span>
-          <span className="rounded-md bg-emerald-400/10 px-2 py-1 text-xs font-semibold text-emerald-300">
-            เล่นจบแล้ว
+          <span className={`rounded-md px-2 py-1 text-xs font-semibold ${game.status === "COMPLETED" ? "bg-emerald-400/10 text-emerald-300" : "bg-amber-400/10 text-amber-300"}`}>
+            {game.status === "COMPLETED" ? "เล่นจบแล้ว" : "ออกกลางคัน"}
           </span>
         </div>
         <p className="flex items-center gap-1.5 text-xs text-surface-muted sm:text-sm">
@@ -26,7 +23,7 @@ export function HistoryRow({ game }: { game: GameHistoryItem }) {
         <div>
           <p className="text-xs text-surface-muted">คะแนนรวม</p>
           <p className="text-lg font-bold text-primary-light">
-            {numberFormatter.format(game.totalScore)}
+            {game.totalScore === null ? "—" : numberFormatter.format(game.totalScore)}
           </p>
         </div>
         <div>

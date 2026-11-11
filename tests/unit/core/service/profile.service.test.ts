@@ -57,4 +57,17 @@ describe("ProfileService", () => {
     await expect(new ProfileService(repository).getProfile("missing", { page: 1 }))
       .rejects.toMatchObject({ status: 404 });
   });
+
+  it("preserves missing final score for games exited early", async () => {
+    const repository = createRepository();
+    vi.mocked(repository.findProfile).mockResolvedValue({
+      user: {
+        id: "user-1", name: "Alice", email: "alice@example.com",
+        games: [{ id: "unfinished", status: "INCOMPLETE", startedAt: new Date("2026-10-20T10:00:00.000Z"), totalScore: null, rounds: [] }],
+      },
+      totalGames: 1,
+    });
+    const profile = await new ProfileService(repository).getProfile("user-1", { page: 1 });
+    expect(profile.games[0]).toMatchObject({ status: "INCOMPLETE", totalScore: null, grade: null });
+  });
 });

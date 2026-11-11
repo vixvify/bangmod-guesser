@@ -1,8 +1,10 @@
 import { expect, test } from "@playwright/test";
 import { signInGamePlayer } from "../tests/helpers/sign-in-game-player";
+import { mockGameApi } from "./helpers/mock-game";
 
 test.beforeEach(async ({ page }, testInfo) => {
   await signInGamePlayer(page, testInfo);
+  await mockGameApi(page);
 });
 
 for (const viewport of [

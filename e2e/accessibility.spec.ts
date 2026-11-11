@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { expect, test, type Page } from "@playwright/test";
 import { E2E_BASE_URL, E2E_DATABASE_URL } from "./config";
 import { signInGamePlayer } from "../tests/helpers/sign-in-game-player";
+import { mockGameApi } from "./helpers/mock-game";
 
 async function expectAccessible(page: Page) {
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -35,12 +36,13 @@ for (const path of ["/", "/login", "/register", "/forgot-password", "/reset-pass
 for (const path of [
   "/profile",
   "/leaderboard",
-  "/game/demo/round-score",
+  "/game/demo/round-score?round=2",
   "/game/demo/summary",
   "/game/demo",
 ]) {
   test(`authenticated page ${path} passes automated accessibility checks`, async ({ page }, testInfo) => {
     await signInGamePlayer(page, testInfo);
+    await mockGameApi(page);
     await page.goto(path, { waitUntil: "domcontentloaded" });
     await expectAccessible(page);
   });

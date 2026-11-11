@@ -14,12 +14,16 @@ const { push, router, getSession } = vi.hoisted(() => {
   const push = vi.fn();
   return { push, router: { push }, getSession: vi.fn() };
 });
+const post = vi.hoisted(() => vi.fn());
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
 vi.mock("@/features/auth/auth-client", () => ({ getSession }));
+vi.mock("@/shared/lib/http", () => ({ httpClient: { post } }));
+vi.mock("@/features/game/game.routes", () => ({ GameRoutes: { create: "/games" } }));
 
 beforeEach(() => {
   push.mockReset();
   getSession.mockResolvedValue({ data: { user: { id: "user-1" } } });
+  post.mockResolvedValue({ data: { gameId: "game-123" } });
 });
 
 afterEach(() => {
@@ -51,10 +55,11 @@ describe("LobbyMenu", () => {
       vi.advanceTimersByTime(2999);
     });
     expect(push).not.toHaveBeenCalled();
-    act(() => {
+    await act(async () => {
       vi.advanceTimersByTime(701);
     });
-    expect(push).toHaveBeenCalledExactlyOnceWith("/game/demo");
+    expect(post).toHaveBeenCalledWith("/games");
+    expect(push).toHaveBeenCalledExactlyOnceWith("/game/game-123");
   });
 
   it("keeps instructions and credits out of the lobby actions", () => {

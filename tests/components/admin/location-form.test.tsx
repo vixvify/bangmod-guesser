@@ -65,6 +65,26 @@ afterEach(() => {
 });
 
 describe("location editor", () => {
+  it.each(["create", "update"])("shows progress in the confirmation while %s is pending", async (mode) => {
+    let finish!: () => void;
+    const onSave = vi.fn(() => new Promise<void>((resolve) => { finish = resolve; }));
+    render(mode === "create" ? <LocationForm onSave={onSave} /> : <LocationForm location={mockLocations[0]} onSave={onSave} />);
+    fireEvent.change(screen.getByRole("textbox", { name: "ชื่อสถานที่ *" }), { target: { value: "ลานกิจกรรมใหม่" } });
+    if (mode === "create") {
+      fireEvent.change(screen.getByRole("textbox", { name: "ละติจูด *" }), { target: { value: "13.6516" } });
+      fireEvent.change(screen.getByRole("textbox", { name: "ลองจิจูด *" }), { target: { value: "100.4952" } });
+      fireEvent.change(screen.getByLabelText("เลือกรูปภาพสถานที่"), { target: { files: [new File(["image"], "campus.jpg", { type: "image/jpeg" })] } });
+    }
+    const button = screen.getByRole("button", { name: mode === "create" ? "สร้างสถานที่" : "แก้ไขสถานที่" });
+    await waitFor(() => expect(button.hasAttribute("disabled")).toBe(false));
+    fireEvent.click(button);
+    const dialog = await screen.findByRole("dialog", { name: mode === "create" ? "ยืนยันการสร้างสถานที่" : "ยืนยันการแก้ไขสถานที่" });
+    fireEvent.click(within(dialog).getByRole("button", { name: "ยืนยัน" }));
+    expect((await within(dialog).findByRole("status")).textContent).toContain("กำลังบันทึกสถานที่");
+    expect(within(dialog).getByRole("button", { name: /กำลังบันทึกสถานที่/ }).hasAttribute("disabled")).toBe(true);
+    await act(async () => finish());
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  });
   it("confirms discarding changes before navigating from the navbar", async () => {
     render(
       <NavigationGuardProvider>

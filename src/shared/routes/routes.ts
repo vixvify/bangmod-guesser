@@ -2,8 +2,8 @@ export const AppRoutes = {
   home: "/",
   gameBase: "/game",
   game: (gameId: string) => `/game/${encodeURIComponent(gameId)}`,
-  gameRoundScore: (gameId: string) =>
-    `/game/${encodeURIComponent(gameId)}/round-score`,
+  gameRoundScore: (gameId: string, round?: number) =>
+    `/game/${encodeURIComponent(gameId)}/round-score${round ? `?round=${round}` : ""}`,
   gameSummary: (gameId: string) => `/game/${encodeURIComponent(gameId)}/summary`,
   leaderboard: "/leaderboard",
   login: "/login",

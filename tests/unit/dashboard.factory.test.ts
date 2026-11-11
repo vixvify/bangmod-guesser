@@ -23,4 +23,15 @@ describe("DashboardFactory", () => {
     expect(result.rounds[1]).toMatchObject({ score: null, distanceMeters: null });
     expect(result.bonusScore).toBeNull();
   });
+
+  it("calculates the completed game's bonus from total round time", () => {
+    const rounds = Array.from({ length: 5 }, (_, index) => ({
+      ...dashboardRound, questionNumber: index + 1, playTimeSeconds: 12,
+    }));
+    expect(DashboardFactory.toGame({ ...dashboardGame, rounds }).bonusScore).toBe(221);
+    expect(DashboardFactory.toGame({ ...dashboardGame, rounds: rounds.map((round, index) =>
+      index === 0 ? { ...round, playTimeSeconds: null } : round,
+    ) }).bonusScore).toBeNull();
+    expect(DashboardFactory.toGame({ ...dashboardGame, status: "INCOMPLETE", rounds }).bonusScore).toBeNull();
+  });
 });

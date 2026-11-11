@@ -1,10 +1,11 @@
 import { expect, test } from "@playwright/test";
 import { E2E_BASE_URL } from "./config";
+import { mockGameApi } from "./helpers/mock-game";
 
 test("guests are sent to login and return to their game after signing in", async ({ page }) => {
   for (const destination of [
     "/game/demo?mode=practice",
-    "/game/demo/round-score",
+    "/game/demo/round-score?round=2",
     "/game/demo/summary",
   ]) {
     await page.goto(destination, { waitUntil: "domcontentloaded" });
@@ -29,11 +30,12 @@ test("guests are sent to login and return to their game after signing in", async
   await page.getByLabel("รหัสผ่าน", { exact: true }).fill(account.password);
   const loginButton = page.getByRole("button", { name: "เข้าสู่ระบบ", exact: true });
   await expect(loginButton).toBeEnabled();
+  await mockGameApi(page);
   await loginButton.click();
   await expect(page).toHaveURL(/\/game\/demo\?mode=practice$/);
   await expect(page.getByRole("heading", { name: "ทายสถานที่" })).toBeVisible();
 
-  await page.goto("/game/demo/round-score", { waitUntil: "domcontentloaded" });
+  await page.goto("/game/demo/round-score?round=2", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await page.goto("/game/demo/summary", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();

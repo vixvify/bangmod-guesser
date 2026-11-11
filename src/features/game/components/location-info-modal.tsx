@@ -9,15 +9,16 @@ import type { Location } from "@/features/locations/location";
 import { GAME_RESULT_MESSAGES as MESSAGES } from "@/features/game/game-result.constants";
 
 type LocationInfoModalProps = {
-  location: Location;
+  location: Pick<Location, "name" | "description"> & { images?: Location["images"] };
+  imageUrl?: string | null;
   open: boolean;
   onClose: () => void;
 };
 
-export function LocationInfoModal({ location, open, onClose }: LocationInfoModalProps) {
+export function LocationInfoModal({ location, imageUrl, open, onClose }: LocationInfoModalProps) {
   const titleId = useId();
   const descriptionId = useId();
-  const image = location.images[0];
+  const image = imageUrl ?? location.images?.[0]?.url;
 
   return (
     <Modal open={open} onClose={onClose} sx={{ display: "flex", alignItems: "center", justifyContent: "center", p: 2 }}>
@@ -29,7 +30,7 @@ export function LocationInfoModal({ location, open, onClose }: LocationInfoModal
           </div>
           <Button variant="outline" size="icon" sound="click" onClick={onClose} aria-label={MESSAGES.closeLocation}><CloseRoundedIcon /></Button>
         </header>
-        {image && <div className="relative mt-6 aspect-video overflow-hidden rounded-xl"><Image src={image.url} alt={location.name} fill sizes="(min-width: 640px) 40rem, 90vw" className="object-cover" /></div>}
+        {image && <div className="relative mt-6 aspect-video overflow-hidden rounded-xl"><Image src={image} alt={location.name} fill unoptimized sizes="(min-width: 640px) 40rem, 90vw" className="object-cover" /></div>}
         <p id={descriptionId} className="mt-5 text-sm leading-7 text-surface-muted">{location.description || "ยังไม่มีรายละเอียดสถานที่"}</p>
       </section>
     </Modal>

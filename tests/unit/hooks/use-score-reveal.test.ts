@@ -44,4 +44,10 @@ describe("score reveal", () => {
     unmount();
     expect(vi.getTimerCount()).toBe(0);
   });
+
+  it("uses the server's capped total instead of displaying the full bonus sum", () => {
+    const { result } = renderHook(() => useScoreReveal(4900, 300, 5000, 5000));
+    act(() => result.current.skip());
+    expect(result.current.score).toBe(5000);
+  });
 });
