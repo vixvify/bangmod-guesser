@@ -5,6 +5,7 @@ import { GameRoundScore } from "./game-round-score";
 import { GameLayout } from "./game-layout";
 import { GAME_ROUND_COUNT } from "@/features/game/game.constants";
 import { GameRoutes } from "@/features/game/game.routes";
+import { GAME_RESULT_MESSAGES } from "@/features/game/game-result.constants";
 import type { GameGuessResult } from "@/features/game/game";
 import { httpClient } from "@/shared/lib/http";
 import { AppRoutes } from "@/shared/routes/routes";
@@ -29,6 +30,7 @@ export function GameRoundScoreScreen({ gameId, questionNumber }: { gameId: strin
   }, [gameId, questionNumber]);
 
   if (!result) return <GameLayout onExit={() => router.push(AppRoutes.home)}>
+    <h1 className="sr-only">{GAME_RESULT_MESSAGES.roundTitle}</h1>
     <p role={failed ? "alert" : "status"} className="text-surface-text">
       {failed ? "ไม่สามารถโหลดผลรอบนี้ได้ กรุณาลองอีกครั้ง" : "กำลังโหลดผลรอบ…"}
     </p>

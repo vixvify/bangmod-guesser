@@ -44,12 +44,19 @@ for (const path of [
     await signInGamePlayer(page, testInfo);
     await mockGameApi(page);
     await page.goto(path, { waitUntil: "domcontentloaded" });
+    if (path.includes("/round-score")) {
+      await expect(page.getByRole("heading", { level: 1, name: "สรุปคะแนนรอบนี้" })).toBeVisible();
+      await expect(page.getByRole("link", { name: "รอบถัดไป" })).toBeVisible();
+    } else if (path.includes("/summary")) {
+      await expect(page.getByRole("heading", { level: 1, name: "คะแนนของคุณ" })).toBeVisible();
+      await expect(page.getByRole("meter", { name: "คะแนนรวมโบนัส" })).toBeVisible();
+    }
     await expectAccessible(page);
   });
 }
 
 test("skip link, settings modal, and keyboard focus work on the home page", async ({ page }) => {
-  await page.goto("/", { waitUntil: "networkidle" });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
   await page.keyboard.press("Tab");
   const skipLink = page.getByRole("link", { name: "ข้ามไปเนื้อหาหลัก" });
   await expect(skipLink).toBeFocused();

@@ -24,6 +24,19 @@ import { GameSummaryScreen } from "@/features/game/components/game-summary-scree
 afterEach(() => { cleanup(); vi.clearAllMocks(); });
 
 describe("game result API screens", () => {
+  it.each([
+    ["round", "สรุปคะแนนรอบนี้"],
+    ["summary", "คะแนนของคุณ"],
+  ])("keeps a page heading while %s data is loading or fails", async (screenType, heading) => {
+    api.get.mockRejectedValueOnce(new Error("offline"));
+    render(screenType === "round"
+      ? <GameRoundScoreScreen gameId="g1" questionNumber={2} />
+      : <GameSummaryScreen gameId="g1" />);
+    expect(screen.getByRole("heading", { level: 1, name: heading })).toBeTruthy();
+    expect(await screen.findByRole("alert")).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 1, name: heading })).toBeTruthy();
+  });
+
   it("loads the saved round and does not show a guess marker for timeout", async () => {
     api.get.mockResolvedValueOnce({ data: { guessedLatitude: null, guessedLongitude: null, distanceMeters: null, score: 0, accumulatedScore: 123, imageUrl: null, location: { name: "หอสมุด", latitude: 13, longitude: 100, description: null } } });
     render(<GameRoundScoreScreen gameId="g1" questionNumber={2} />);
