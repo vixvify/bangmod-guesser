@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   GAME_MESSAGES,
   GAME_DEFAULTS,
+  GAME_ROUND_COUNT,
   MAP_CONFIG,
 } from "@/features/game/game.constants";
 
@@ -16,8 +17,8 @@ describe("GAME_MESSAGES", () => {
 });
 
 describe("GAME_DEFAULTS", () => {
-  it("starts the mock game at round one", () => {
-    expect(GAME_DEFAULTS.currentRound).toBe(1);
+  it("sets the number of rounds in a game", () => {
+    expect(GAME_ROUND_COUNT).toBe(5);
   });
 
   it("defines a positive round duration", () => {
