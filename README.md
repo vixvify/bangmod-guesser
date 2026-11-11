@@ -75,6 +75,24 @@ for example `http://localhost:3000`. The Google button on `/login` uses Better
 Auth's OAuth flow. Without both credentials, Google sign-in is unavailable;
 email/password sign-in still works.
 
+## API security and rate limits
+
+Set `BETTER_AUTH_URL` to the HTTPS application origin in production and set
+`BETTER_AUTH_SECRET` to a unique random secret of at least 32 characters.
+Optional `AUTH_TRUSTED_ORIGINS` is a comma-separated list of additional exact
+origins; add only frontend origins that should be allowed to send requests.
+Google's OAuth callback continues to use Better Auth's own validation.
+
+Set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` on the server (not
+as `NEXT_PUBLIC_*` variables). On Vercel the limiter uses the platform's
+`x-vercel-forwarded-for`; arbitrary forwarded headers are not trusted outside
+Vercel. Authentication, admin and mutation requests fail closed with HTTP 503
+when a trusted IP or Redis is unavailable in production. Read requests fail
+open when Redis is unavailable. In development without Redis, limiting is
+disabled; when Redis is configured, local requests share a development IP bucket.
+Policies and limits are defined in `src/shared/config/security.ts`. A rate-limited
+response returns HTTP 429 and a `Retry-After` header.
+
 ## Cloudflare R2 image storage
 
 Image upload and deletion use a Cloudflare R2 bucket through the server-side

@@ -3,6 +3,16 @@ import { config } from "@/shared/config/runtime";
 
 afterEach(() => vi.unstubAllEnvs());
 
+describe("rate limit configuration", () => {
+  it("rejects incomplete credentials and insecure Redis URLs", () => {
+    vi.stubEnv("UPSTASH_REDIS_REST_URL", "http://redis.example.com");
+    vi.stubEnv("UPSTASH_REDIS_REST_TOKEN", "");
+    expect(() => config.rateLimitRedis).toThrow("configuration is incomplete");
+    vi.stubEnv("UPSTASH_REDIS_REST_TOKEN", "token");
+    expect(() => config.rateLimitRedis).toThrow("must use HTTPS");
+  });
+});
+
 describe("Google OAuth configuration", () => {
   it("leaves Google disabled when credentials are absent", () => {
     vi.stubEnv("GOOGLE_CLIENT_ID", "");

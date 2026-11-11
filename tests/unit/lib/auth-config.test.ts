@@ -18,6 +18,8 @@ vi.mock("@/shared/config/runtime", () => ({
     authSecret: "test-secret",
     authUrl: "http://localhost:3000",
     googleOAuth: { clientId: "google-client-id", clientSecret: "google-client-secret" },
+    trustedOrigins: ["http://localhost:3000"],
+    isProduction: false,
   },
 }));
 vi.mock("@/shared/lib/prisma", () => ({ prisma: {} }));
@@ -25,6 +27,15 @@ vi.mock("@/shared/lib/prisma", () => ({ prisma: {} }));
 import "@/features/auth/server/auth";
 
 describe("Better Auth configuration", () => {
+  it("uses trusted origins and secure cookie defaults", () => {
+    expect(betterAuth).toHaveBeenCalledWith(expect.objectContaining({
+      trustedOrigins: ["http://localhost:3000"],
+      advanced: expect.objectContaining({
+        useSecureCookies: false,
+        defaultCookieAttributes: { httpOnly: true, sameSite: "lax", secure: false },
+      }),
+    }));
+  });
   it("registers admin endpoints with the existing uppercase roles", () => {
     const options = vi.mocked(betterAuth).mock.calls[0]?.[0];
     const adminPlugin = options?.plugins?.find((plugin) => plugin.id === "admin");

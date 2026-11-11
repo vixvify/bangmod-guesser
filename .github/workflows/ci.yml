@@ -43,6 +43,10 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          BETTER_AUTH_SECRET: ci-only-build-secret-at-least-32-characters
+          BETTER_AUTH_URL: https://ci.example.invalid
+          NEXT_PUBLIC_API_URL: https://ci.example.invalid
 
       - name: Install Chromium
         run: npx playwright install --with-deps chromium

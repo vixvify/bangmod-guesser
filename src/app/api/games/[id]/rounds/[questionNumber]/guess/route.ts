@@ -1,13 +1,11 @@
 import { gameService } from "@/container";
-import { requireAuth } from "@/features/auth/server/auth-check";
 import { GameIdSchema, GuessSchema, QuestionNumberSchema } from "@/features/game/game.schema";
-import { errorResponse, successResponse } from "@/shared/lib/api-response";
+import { successResponse } from "@/shared/lib/api-response";
+import { secureRoute } from "@/shared/lib/security/route";
 import { readJson } from "@/shared/lib/json";
 import { parseSchema } from "@/shared/lib/validation";
 
-export async function POST(request: Request, context: { params: Promise<{ id: string; questionNumber: string }> }) {
-  try {
-    const user = await requireAuth();
+export const POST = secureRoute<{ params: Promise<{ id: string; questionNumber: string }> }>({ access: "authenticated", rateLimit: "mutation" }, async (request, context, user) => {
     const params = await context.params;
     const id = parseSchema(GameIdSchema, params.id);
     const questionNumber = parseSchema(QuestionNumberSchema, params.questionNumber);
@@ -15,7 +13,4 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const response = successResponse(await gameService.submitGuess(id, user.id, questionNumber, input));
     response.headers.set("Cache-Control", "private, no-store");
     return response;
-  } catch (error) {
-    return errorResponse(error);
-  }
-}
+});

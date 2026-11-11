@@ -1,98 +1,55 @@
 import { headers } from "next/headers";
 
-import { UserRole } from "@/features/users/user";
 import { UserFormSchema, UserIdSchema } from "@/features/users/user.schema";
 import { userService } from "@/container";
-import { requireAuth } from "@/features/auth/server/auth-check";
-import { roleCheck } from "@/shared/lib/role-check";
-import { errorResponse, successResponse } from "@/shared/lib/api-response";
+import { successResponse } from "@/shared/lib/api-response";
+import { secureRoute } from "@/shared/lib/security/route";
 import { readJson } from "@/shared/lib/json";
 import { parseSchema } from "@/shared/lib/validation";
 
 type RouteContext = {
-    params: Promise<{
-        id: string;
-    }>;
+  params: Promise<{
+    id: string;
+  }>;
 };
 
-export async function PATCH(
-    request: Request,
-    context: RouteContext,
-) {
-    try {
-        const currentUser =
-            await requireAuth();
+export const PATCH = secureRoute<RouteContext>(
+  { access: "admin", rateLimit: "admin" },
+  async (request, context) => {
+    const { id } = await context.params;
 
-        roleCheck(
-            currentUser,
-            [UserRole.ADMIN],
-        );
+    const userId = parseSchema(UserIdSchema, id);
 
-        const { id } = await context.params;
+    const body = await readJson(request);
 
-        const userId = parseSchema(
-            UserIdSchema,
-            id,
-        );
+    const data = parseSchema(UserFormSchema, body);
 
-        const body = await readJson(request);
+    const requestHeaders = await headers();
 
-        const data = parseSchema(
-            UserFormSchema,
-            body,
-        );
+    const updatedUser = await userService.updateUser(
+      requestHeaders,
+      userId,
+      data,
+    );
 
-        const requestHeaders =
-            await headers();
+    return successResponse(updatedUser);
+  },
+);
 
-        const updatedUser =
-            await userService.updateUser(
-                requestHeaders,
-                userId,
-                data,
-            );
+export const DELETE = secureRoute<RouteContext>(
+  { access: "admin", rateLimit: "admin" },
+  async (request, context) => {
+    const { id } = await context.params;
 
-        return successResponse(
-            updatedUser,
-        );
-    } catch (error) {
-        return errorResponse(error);
-    }
-}
+    const userId = parseSchema(UserIdSchema, id);
 
-export async function DELETE(
-    request: Request,
-    context: RouteContext,
-) {
-    try {
-        const currentUser =
-            await requireAuth();
+    const requestHeaders = await headers();
 
-        roleCheck(
-            currentUser,
-            [UserRole.ADMIN],
-        );
+    await userService.deleteUser(requestHeaders, userId);
 
-        const { id } = await context.params;
-
-        const userId = parseSchema(
-            UserIdSchema,
-            id,
-        );
-
-        const requestHeaders =
-            await headers();
-
-        await userService.deleteUser(
-            requestHeaders,
-            userId,
-        );
-
-        return successResponse({
-            success: true,
-            userId,
-        });
-    } catch (error) {
-        return errorResponse(error);
-    }
-}
+    return successResponse({
+      success: true,
+      userId,
+    });
+  },
+);
