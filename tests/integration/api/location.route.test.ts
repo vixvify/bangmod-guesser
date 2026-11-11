@@ -75,6 +75,7 @@ describe("Locations API routes", () => {
 
       expect(response.status).toBe(200);
       expect(json.data.items[0].name).toBe("CB2");
+      expect(response.headers.get("cache-control")).toBe("private, no-store");
       expect(mockLocationService.getLocations).toHaveBeenCalledWith({
         search: "CB2",
         searchBy: "description",
@@ -173,6 +174,7 @@ describe("Locations API routes", () => {
 
       expect(response.status).toBe(200);
       expect(json.data.id).toBe("loc_1");
+      expect(response.headers.get("cache-control")).toBe("private, no-store");
     });
 
     it("rejects an empty location id before calling the service", async () => {
@@ -362,4 +364,41 @@ describe("Locations API routes", () => {
       expect(mockLocationService.updateLocation).not.toHaveBeenCalled();
     });
   });
+  describe("location read permissions", () => {
+    const reads = [
+      { name: "list", call: () => getLocations(new Request("http://localhost/api/locations?role=ADMIN&userId=admin_1")) },
+      { name: "detail", call: () => getLocationById(new Request("http://localhost/api/locations/loc_1?role=ADMIN"), { params: Promise.resolve({ id: "loc_1" }) }) },
+    ];
+
+    it.each(reads)("rejects unauthenticated $name reads before accessing location data", async ({ call }) => {
+      mockRequireAuth.mockRejectedValueOnce(new AppError("Unauthorized", 401));
+      const response = await call();
+      expect(response.status).toBe(401);
+      expect(await response.json()).toEqual({ error: "Unauthorized", status: 401, statusCode: "ERROR" });
+      expect(mockLocationService.getLocations).not.toHaveBeenCalled();
+      expect(mockLocationService.getLocationById).not.toHaveBeenCalled();
+    });
+
+    it.each(reads)("rejects ordinary users on $name reads even when the query claims ADMIN", async ({ call }) => {
+      mockRequireAuth.mockResolvedValueOnce({ id: "player-1", name: "Player", email: "player@example.test", image: null, role: UserRole.USER });
+      const response = await call();
+      expect(response.status).toBe(403);
+      expect(await response.json()).toEqual({ error: "Forbidden", status: 403, statusCode: "ERROR" });
+      expect(mockLocationService.getLocations).not.toHaveBeenCalled();
+      expect(mockLocationService.getLocationById).not.toHaveBeenCalled();
+    });
+
+    it("checks permission before validating the list query", async () => {
+      mockRequireAuth.mockRejectedValueOnce(new AppError("Unauthorized", 401));
+      expect((await getLocations(new Request("http://localhost/api/locations?page=invalid"))).status).toBe(401);
+      expect(mockLocationService.getLocations).not.toHaveBeenCalled();
+    });
+
+    it("checks permission before validating the location ID", async () => {
+      mockRequireAuth.mockResolvedValueOnce({ id: "player-1", name: "Player", email: "player@example.test", image: null, role: UserRole.USER });
+      expect((await getLocationById(new Request("http://localhost/api/locations/"), { params: Promise.resolve({ id: "" }) })).status).toBe(403);
+      expect(mockLocationService.getLocationById).not.toHaveBeenCalled();
+    });
+  });
+
 });

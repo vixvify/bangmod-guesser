@@ -2,11 +2,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GameRepositoryImpl } from "@/features/game/server/game.repository";
 import { gameStateSelect } from "../../../../prisma/types/game";
 
-const { findUnique, updateMany, transaction } = vi.hoisted(() => ({
+const { findUnique, updateMany, transaction, findMany, create, queryRaw, findImages, findFirst, roundUpdateMany, findUniqueOrThrow, updateGame } = vi.hoisted(() => ({
   findUnique: vi.fn(), updateMany: vi.fn(), transaction: vi.fn(),
+  findMany: vi.fn(), create: vi.fn(), queryRaw: vi.fn(), findImages: vi.fn(),
+  findFirst: vi.fn(), roundUpdateMany: vi.fn(), findUniqueOrThrow: vi.fn(), updateGame: vi.fn(),
 }));
 vi.mock("@/shared/lib/prisma", () => ({
-  prisma: { game: { findUnique }, $transaction: transaction },
+  prisma: { location: { findMany }, game: { findUnique }, $transaction: transaction },
 }));
 
 const repository = new GameRepositoryImpl();
@@ -17,7 +19,7 @@ beforeEach(() => {
   vi.resetAllMocks();
   findUnique.mockResolvedValue(record);
   updateMany.mockResolvedValue({ count: 1 });
-  transaction.mockImplementation(async (operation) => operation({ game: { findUnique, updateMany } }));
+  transaction.mockImplementation(async (operation) => operation({ game: { findUnique, updateMany, create, findUniqueOrThrow, update: updateGame }, gameRound: { findFirst, updateMany: roundUpdateMany }, locationImage: { findMany: findImages }, $queryRaw: queryRaw }));
 });
 
 describe("GameRepositoryImpl", () => {
@@ -56,4 +58,91 @@ describe("GameRepositoryImpl", () => {
     await expect(repository.exitPlayingGame("game-1", "player-1", now)).rejects.toThrow("write failed");
     expect(findUnique).not.toHaveBeenCalled();
   });
+});
+
+
+describe("GameRepositoryImpl creation", () => {
+  const rounds = Array.from({ length: 5 }, (_, i) => ({ questionNumber: i + 1, locationId: `l-${i}`, imageNumber: 2 }));
+  it("queries only active locations with at least one image", async () => {
+    findMany.mockResolvedValue([]);
+    await repository.findCandidates();
+    expect(findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { status: "ACTIVE", images: { some: {} } } }));
+  });
+  it("creates all rounds in one nested transaction after validating selected images", async () => {
+    findImages.mockResolvedValue(rounds.map(({locationId, imageNumber}) => ({locationId, imageNumber})));
+    create.mockResolvedValue({ id: "new-game" });
+    expect(await repository.createGame("player", rounds)).toEqual({ id: "new-game" });
+    expect(queryRaw).toHaveBeenCalledTimes(1);
+    expect(findImages).toHaveBeenCalledTimes(1);
+    expect(findImages).toHaveBeenCalledWith({
+      where: { OR: rounds.map(({ locationId, imageNumber }) => ({ locationId, imageNumber })), location: { status: "ACTIVE" } },
+      select: { locationId: true, imageNumber: true },
+    });
+    expect(create).toHaveBeenCalledWith({ data: { userId: "player", status: "PLAYING", rounds: { create: rounds.map((r) => ({ ...r, status: "PENDING" })) } }, select: { id: true } });
+  });
+  it("does not create anything if a chosen image disappeared", async () => {
+    findImages.mockResolvedValue([]);
+    await expect(repository.createGame("player", rounds)).rejects.toMatchObject({ status: 409 });
+    expect(create).not.toHaveBeenCalled();
+  });
+});
+
+
+describe("GameRepositoryImpl.openRound", () => {
+  it("sets startedAt only when absent under the parent game lock", async () => {
+    findFirst.mockResolvedValue({ questionNumber: 2 });
+    findUniqueOrThrow.mockResolvedValue({ id: "game-1" });
+    await repository.openRound("game-1", "player-1", 2, now);
+    expect(updateMany).toHaveBeenCalledWith({where:{id:"game-1",userId:"player-1",status:"PLAYING"},data:{status:"PLAYING"}});
+    expect(roundUpdateMany).toHaveBeenCalledWith({where:{gameId:"game-1",questionNumber:2,status:"PENDING",startedAt:null},data:{startedAt:now}});
+    expect(updateMany.mock.invocationCallOrder[0]).toBeLessThan(roundUpdateMany.mock.invocationCallOrder[0]);
+  });
+  it("rejects a stale current-round request after another round advances", async () => {
+    findFirst.mockResolvedValue({questionNumber:3});
+    await expect(repository.openRound("game-1","player-1",2,now)).rejects.toMatchObject({status:409});
+    expect(roundUpdateMany).not.toHaveBeenCalled();
+  });
+  it("rejects a game that exits after the service read", async () => {
+    updateMany.mockResolvedValue({count:0});
+    await expect(repository.openRound("game-1","player-1",2,now)).rejects.toMatchObject({status:409});
+    expect(roundUpdateMany).not.toHaveBeenCalled();
+  });
+});
+
+
+describe("GameRepositoryImpl.saveGuess", () => {
+  const input = {gameId:"game-1",userId:"player-1",questionNumber:5,guessedLatitude:13.65,guessedLongitude:100.49,score:1000,playTimeSeconds:20,finishedAt:now,totalScore:4500};
+  it("conditionally saves a pending answer and finishes the game in the same transaction", async () => {
+    findFirst.mockResolvedValue({questionNumber:5});roundUpdateMany.mockResolvedValue({count:1});
+    await repository.saveGuess(input);
+    expect(transaction).toHaveBeenCalledOnce();
+    expect(roundUpdateMany).toHaveBeenCalledWith({where:{gameId:"game-1",questionNumber:5,status:"PENDING",startedAt:{gt:new Date(now.getTime()-40000)}},data:{guessedLatitude:13.65,guessedLongitude:100.49,score:1000,playTimeSeconds:20,status:"COMPLETED"}});
+    expect(updateGame).toHaveBeenCalledWith({where:{id:"game-1"},data:{status:"COMPLETED",finishedAt:now,totalScore:4500}});
+    expect(updateMany.mock.invocationCallOrder[0]).toBeLessThan(roundUpdateMany.mock.invocationCallOrder[0]);
+  });
+  it("throws and never finishes the game if a conditional write loses", async () => {
+    findFirst.mockResolvedValue({questionNumber:5});roundUpdateMany.mockResolvedValue({count:0});
+    await expect(repository.saveGuess(input)).rejects.toMatchObject({status:409});
+    expect(updateGame).not.toHaveBeenCalled();
+  });
+  it("rejects an already answered round before writing", async () => {
+    findFirst.mockResolvedValue(null);
+    await expect(repository.saveGuess(input)).rejects.toMatchObject({status:409});
+    expect(roundUpdateMany).not.toHaveBeenCalled();
+  });
+  it("cannot submit after exit wins the game lock", async () => {
+    updateMany.mockResolvedValue({count:0});
+    await expect(repository.saveGuess(input)).rejects.toMatchObject({status:409});
+    expect(roundUpdateMany).not.toHaveBeenCalled();
+  });
+  it("only records a timeout once the persisted server deadline has passed", async () => {
+    findFirst.mockResolvedValue({ questionNumber: 5 });
+    roundUpdateMany.mockResolvedValue({ count: 1 });
+    await repository.saveGuess({ ...input, guessedLatitude: null, guessedLongitude: null, score: 0, playTimeSeconds: 40 });
+    expect(roundUpdateMany).toHaveBeenCalledWith({
+      where: { gameId: "game-1", questionNumber: 5, status: "PENDING", startedAt: { lte: new Date(now.getTime() - 40000) } },
+      data: { guessedLatitude: null, guessedLongitude: null, score: 0, playTimeSeconds: 40, status: "COMPLETED" },
+    });
+  });
+
 });

@@ -1,11 +1,11 @@
 import { LoginSchema } from "@/features/auth/auth.schema";
 import { authService } from "@/container";
-import { errorResponse, successResponse } from "@/shared/lib/api-response";
+import { successResponse } from "@/shared/lib/api-response";
+import { secureRoute } from "@/shared/lib/security/route";
 import { readJson } from "@/shared/lib/json";
 import { parseSchema } from "@/shared/lib/validation";
 
-export async function POST(request: Request) {
-  try {
+export const POST = secureRoute({ access: "public", rateLimit: "auth" }, async (request) => {
     const input = parseSchema(LoginSchema, await readJson(request));
     const authHeaders = await authService.signIn(request.headers, input);
     const response = successResponse(null);
@@ -13,7 +13,4 @@ export async function POST(request: Request) {
       response.headers.append("set-cookie", cookie);
     }
     return response;
-  } catch (error) {
-    return errorResponse(error);
-  }
-}
+});

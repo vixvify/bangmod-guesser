@@ -1,17 +1,12 @@
 import { leaderboardService } from "@/container";
-import { requireAuth } from "@/features/auth/server/auth-check";
-import { errorResponse, successResponse } from "@/shared/lib/api-response";
+import { successResponse } from "@/shared/lib/api-response";
+import { secureRoute } from "@/shared/lib/security/route";
 
-export async function GET() {
-  try {
-    const currentUser = await requireAuth();
+export const GET = secureRoute({ access: "authenticated", rateLimit: "read" }, async (_request, _context, currentUser) => {
 
     const result = await leaderboardService.getLeaderboard(
       currentUser.id,
     );
 
     return successResponse(result);
-  } catch (error) {
-    return errorResponse(error);
-  }
-}
+});

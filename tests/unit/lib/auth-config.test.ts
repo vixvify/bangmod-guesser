@@ -39,6 +39,8 @@ vi.mock("@/shared/config/runtime", () => ({
       apiKey: "test-resend-api-key",
       fromEmail: "onboarding@resend.dev",
     },
+    trustedOrigins: ["http://localhost:3000"],
+    isProduction: false,
   },
 }));
 vi.mock("@/shared/lib/prisma", () => ({ prisma: {} }));
@@ -63,6 +65,16 @@ describe("Better Auth configuration", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it("uses trusted origins and secure cookie defaults", () => {
+    expect(betterAuth).toHaveBeenCalledWith(expect.objectContaining({
+      trustedOrigins: ["http://localhost:3000"],
+      advanced: expect.objectContaining({
+        useSecureCookies: false,
+        defaultCookieAttributes: { httpOnly: true, sameSite: "lax", secure: false },
+      }),
+    }));
   });
 
   it("registers admin endpoints with the existing uppercase roles", () => {

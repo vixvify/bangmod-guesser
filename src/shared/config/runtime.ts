@@ -71,7 +71,11 @@ function getApiUrl() {
 }
 
 function getAuthSecret() {
-  return process.env.BETTER_AUTH_SECRET || "development-fallback-secret-key-min-32-chars";
+  const secret = process.env.BETTER_AUTH_SECRET?.trim();
+  if (process.env.NODE_ENV === "production" && (!secret || secret.length < 32)) {
+    throw new Error("BETTER_AUTH_SECRET must contain at least 32 characters in production");
+  }
+  return secret || "development-fallback-secret-key-min-32-chars";
 }
 
 function getAuthUrl() {
@@ -121,6 +125,29 @@ function getResendConfig(): ResendConfig {
 }
 
 export const config = {
+  get trustedOrigins(): string[] {
+    const values = [getAuthUrl(), ...(process.env.AUTH_TRUSTED_ORIGINS?.split(",") ?? [])];
+    return [...new Set(values.filter(Boolean).map((value) => {
+      const url = new URL(value.trim());
+      if (url.protocol !== "https:" && !(url.protocol === "http:" && !config.isProduction)) {
+        throw new Error("Trusted origins must use HTTPS in production");
+      }
+      return url.origin;
+    }))];
+  },
+
+  get rateLimitRedis(): { url: string; token: string } | null {
+    const url = process.env.UPSTASH_REDIS_REST_URL;
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+    if (!url && !token) return null;
+    if (!url || !token) throw new Error("Upstash Redis configuration is incomplete");
+    if (new URL(url).protocol !== "https:") throw new Error("Upstash Redis URL must use HTTPS");
+    return { url, token };
+  },
+
+  get isVercel(): boolean {
+    return process.env.VERCEL === "1";
+  },
   get apiUrl() {
     return getApiUrl();
   },

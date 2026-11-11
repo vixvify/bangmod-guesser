@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// Opt in only against the project's dedicated disposable E2E database.
 vi.mock("@/shared/lib/prisma", async () => {
   const { PrismaClient } = await import("@prisma/client");
   const { E2E_DATABASE_URL } = await import("../../../e2e/config");

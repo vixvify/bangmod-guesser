@@ -1,13 +1,11 @@
 import { AppError } from "@/shared/errors/app.error";
 import { ProfileQuerySchema, UpdateUsernameFormSchema } from "@/features/profile/profile.schema";
 import { authService, profileService } from "@/container";
-import { requireAuth } from "@/features/auth/server/auth-check";
-import { errorResponse, successResponse } from "@/shared/lib/api-response";
+import { successResponse } from "@/shared/lib/api-response";
+import { secureRoute } from "@/shared/lib/security/route";
 import { parseSchema } from "@/shared/lib/validation";
 
-export async function PATCH(request: Request) {
-  try {
-    await requireAuth();
+export const PATCH = secureRoute({ access: "authenticated", rateLimit: "mutation" }, async (request) => {
     const input = parseSchema(UpdateUsernameFormSchema, await request.json());
     const authHeaders = await authService.updateUsername(request.headers, input);
     const response = successResponse({ username: input.username });
@@ -15,14 +13,9 @@ export async function PATCH(request: Request) {
       response.headers.append("set-cookie", cookie);
     }
     return response;
-  } catch (error) {
-    return errorResponse(error);
-  }
-}
+});
 
-export async function GET(request: Request) {
-  try {
-    const currentUser = await requireAuth();
+export const GET = secureRoute({ access: "authenticated", rateLimit: "read" }, async (request, _context, currentUser) => {
     const url = new URL(request.url);
 
     const queryResult = ProfileQuerySchema.safeParse({
@@ -44,7 +37,4 @@ export async function GET(request: Request) {
     );
 
     return successResponse(result);
-  } catch (error) {
-    return errorResponse(error);
-  }
-}
+});
