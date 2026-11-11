@@ -1,8 +1,10 @@
 import { expect, test } from "@playwright/test";
 import { signInGamePlayer } from "../tests/helpers/sign-in-game-player";
+import { mockGameApi } from "./helpers/mock-game";
 
 test.beforeEach(async ({ page }, testInfo) => {
   await signInGamePlayer(page, testInfo);
+  await mockGameApi(page);
 });
 
 for (const viewport of [
@@ -11,7 +13,7 @@ for (const viewport of [
 ]) {
   test(`round score remains readable at ${viewport.width}px`, async ({ page }, testInfo) => {
     await page.setViewportSize(viewport);
-    await page.goto("/game/demo/round-score", { waitUntil: "domcontentloaded" });
+    await page.goto("/game/demo/round-score?round=2", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(page.getByRole("region", { name: "แผนที่ผลการทายสถานที่" })).toBeVisible();
     await expect(page.getByRole("link", { name: "รอบถัดไป" })).toBeVisible();

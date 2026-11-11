@@ -7,6 +7,7 @@ import { GameRoundScore } from "@/features/game/components/game-round-score";
 import { GameSummary } from "@/features/game/components/game-summary";
 import { mockRoundResult, mockGameSummary } from "@/features/game/game.mock";
 
+vi.mock("@/features/game/game.routes", () => ({ GameRoutes: { create: "/games", exit: (id: string) => `/games/${id}/exit` } }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/features/game/components/game-result-map", () => ({ GameResultMap: () => <div>Map</div> }));
 vi.mock("next/image", () => ({ default: ({ fill, sizes, ...props }: Record<string, unknown>) => {
@@ -44,7 +45,7 @@ describe("game results", () => {
   });
 
   it("shows final totals and starts a countdown before replay", async () => {
-    render(<GameSummary gameId="game-123" summary={mockGameSummary} />);
+    render(<GameSummary gameId="game-123" summary={{ ...mockGameSummary, totalTimeSeconds: 87 }} />);
     expect(screen.getByRole("meter").getAttribute("aria-valuenow")).toBe("4321");
     expect(screen.getByRole("meter").getAttribute("aria-valuemax")).toBe(String(mockGameSummary.maxScore));
     expect(screen.getByText("01:27")).toBeTruthy();

@@ -32,7 +32,11 @@ export function clientIp(request: Request): string | null {
   return value && isIP(value) ? value : null;
 }
 
-export async function enforceRateLimit(group: RateLimitGroup, kind: "ip" | "user", identifier: string): Promise<void> {
+export async function enforceRateLimit(
+  group: RateLimitGroup,
+  kind: "ip" | "user",
+  identifier: string,
+): Promise<void> {
   const policy = RATE_LIMITS[group];
   let result;
   try {
@@ -41,16 +45,24 @@ export async function enforceRateLimit(group: RateLimitGroup, kind: "ip" | "user
       if (!config.isProduction) return;
       throw new Error("Rate limiter unavailable");
     }
-    const digest = createHmac("sha256", config.authSecret).update(`${kind}:${identifier}`).digest("hex");
+    const digest = createHmac("sha256", config.authSecret)
+      .update(`${kind}:${identifier}`)
+      .digest("hex");
     result = await limiter.limit(`${kind}:${digest}`);
     if (result.reason === "timeout") throw new Error("Rate limiter timed out");
   } catch (error) {
-    if (policy.failure === "closed") throw new AppError("Service temporarily unavailable", 503);
-    console.error("Rate limit unavailable", error instanceof Error ? error.name : "unknown");
+    if (policy.failure === "closed")
+      throw new AppError("Service temporarily unavailable", 503);
+    console.error(
+      "Rate limit unavailable",
+      error instanceof Error ? error.name : "unknown",
+    );
     return;
   }
   if (!result.success) {
-    throw new RateLimitError(Math.max(1, Math.ceil((result.reset - Date.now()) / 1000)));
+    throw new RateLimitError(
+      Math.max(1, Math.ceil((result.reset - Date.now()) / 1000)),
+    );
   }
 }
 

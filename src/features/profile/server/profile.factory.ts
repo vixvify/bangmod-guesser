@@ -49,13 +49,13 @@ export const ProfileFactory = {
       }
     }
 
-    const totalScore = game.totalScore ?? 0;
+    const totalScore = game.totalScore;
 
     return {
       id: game.id,
       status: game.status,
       totalScore,
-      grade: calculateScoreTier(totalScore),
+      grade: totalScore === null ? null : calculateScoreTier(totalScore),
       playedAt: game.startedAt.toISOString(),
       ...(bestDistanceMeters !== undefined ? { bestDistanceMeters } : {}),
       ...(bestRoundScore !== undefined ? { bestRoundScore } : {}),

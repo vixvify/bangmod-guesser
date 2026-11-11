@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import { SCORE_REVEAL_TIMING } from "@/features/game/game-result.constants";
 
-export function useScoreReveal(baseScore: number, bonusScore: number) {
+export function useScoreReveal(baseScore: number, bonusScore: number, maxScore = Infinity, finalScore = baseScore + bonusScore) {
   const [skipped, setSkipped] = useState(false);
   const [score, setScore] = useState(0);
   const [phase, setPhase] = useState<"base" | "bonus" | "complete">("base");
-  const total = baseScore + bonusScore;
+  const total = Math.min(maxScore, finalScore);
+  const displayedBonus = total - baseScore;
 
   useEffect(() => {
     if (skipped) return;
@@ -30,12 +31,12 @@ export function useScoreReveal(baseScore: number, bonusScore: number) {
         : elapsed / SCORE_REVEAL_TIMING.base);
       const eased = 1 - Math.pow(1 - progress, 3);
       setPhase(addingBonus ? "bonus" : "base");
-      setScore(Math.round(addingBonus ? baseScore + bonusScore * eased : baseScore * eased));
+      setScore(Math.round(addingBonus ? baseScore + displayedBonus * eased : baseScore * eased));
       frame = requestAnimationFrame(tick);
     }
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [baseScore, bonusScore, skipped, total]);
+  }, [baseScore, displayedBonus, skipped, total]);
 
   return {
     score: skipped ? total : score,

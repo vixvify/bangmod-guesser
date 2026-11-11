@@ -21,7 +21,6 @@ export function ResultMap({ rounds, showGuesses = true }: { rounds: GameRoundRes
 
     for (const round of rounds) {
       const actual: L.LatLngTuple = [round.location.latitude, round.location.longitude];
-      const guess: L.LatLngTuple = [round.guess.latitude, round.guess.longitude];
       points.push(actual);
       const marker = L.marker(actual, {
         icon: L.divIcon({ className: styles.actualMarker, html: String(round.round), iconSize: [36, 36], iconAnchor: [18, 18] }),
@@ -31,7 +30,8 @@ export function ResultMap({ rounds, showGuesses = true }: { rounds: GameRoundRes
       const tooltip = document.createElement("span");
       tooltip.textContent = round.location.name;
       marker.bindTooltip(tooltip);
-      if (showGuesses) {
+      if (showGuesses && round.guess) {
+        const guess: L.LatLngTuple = [round.guess.latitude, round.guess.longitude];
         points.push(guess);
         L.marker(guess, {
           icon: L.divIcon({ className: styles.guessMarker, html: "●", iconSize: [28, 28], iconAnchor: [14, 14] }),

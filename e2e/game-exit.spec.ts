@@ -1,9 +1,11 @@
 import { expect, test } from "@playwright/test";
 import { GAME_MESSAGES } from "@/features/game/game.constants";
 import { signInGamePlayer } from "../tests/helpers/sign-in-game-player";
+import { mockGameApi } from "./helpers/mock-game";
 
 test.beforeEach(async ({ page }, testInfo) => {
   await signInGamePlayer(page, testInfo);
+  await mockGameApi(page);
 });
 
 test("asks before leaving the game with its exit button", async ({ page }) => {

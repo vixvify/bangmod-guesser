@@ -37,11 +37,11 @@ export type GameExitResult = {
 
 export type GameRoundResult = {
   round: number;
-  location: Location;
-  guess: { latitude: number; longitude: number };
-  distanceMeters: number;
+  location: Pick<Location, "name" | "description" | "latitude" | "longitude"> & { images?: Location["images"] };
+  guess: { latitude: number; longitude: number } | null;
+  distanceMeters: number | null;
   score: number;
-  elapsedSeconds: number;
+  elapsedSeconds?: number;
 };
 
 export type GameSummary = {

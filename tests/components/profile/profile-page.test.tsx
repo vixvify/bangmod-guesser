@@ -52,7 +52,7 @@ describe("ProfilePage", () => {
     expect(markup).toContain("เลือกช่วงเวลา");
     expect(profileService.getProfile).toHaveBeenCalledWith("user_1", { page: 1 });
     expect(markup).not.toContain("ตั้งแต่วันที่");
-    expect(markup).toContain("#persisted-game");
+    expect(markup).not.toContain("persisted-game");
     expect(markup).not.toContain("#GAME-0001");
     expect(markup).toContain("bg-secondary-main text-surface-text");
     expect(markup).not.toContain("data-game-backdrop");

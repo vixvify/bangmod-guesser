@@ -81,6 +81,7 @@ export function GameImageViewer({
           {mainContent === "image" ? (
             <Image
               src={imageSrc}
+              unoptimized
               alt={imageAlt}
               fill
               priority
@@ -125,6 +126,7 @@ export function GameImageViewer({
             ) : (
               <Image
                 src={imageSrc}
+                unoptimized
                 alt={imageAlt}
                 fill
                 sizes="(min-width: 768px) 18rem, (min-width: 640px) 16rem, 13rem"
@@ -187,6 +189,7 @@ export function GameImageViewer({
           >
             <Image
               src={imageSrc}
+              unoptimized
               alt={imageAlt}
               fill
               priority

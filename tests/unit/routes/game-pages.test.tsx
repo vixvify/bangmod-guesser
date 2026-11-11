@@ -7,11 +7,11 @@ vi.mock("@/features/auth/server/auth-check", () => ({ requireAuth: vi.fn().mockR
 vi.mock("@/features/game/components/game-session", () => ({
   GameSession: () => <div data-testid="game-session" />,
 }));
-vi.mock("@/features/game/components/game-round-score", () => ({
-  GameRoundScore: ({ gameId }: { gameId: string }) => <main data-game-id={gameId}>round score</main>,
+vi.mock("@/features/game/components/game-round-score-screen", () => ({
+  GameRoundScoreScreen: ({ gameId }: { gameId: string }) => <main data-game-id={gameId}>round score</main>,
 }));
-vi.mock("@/features/game/components/game-summary", () => ({
-  GameSummary: ({ gameId }: { gameId: string }) => <main data-game-id={gameId}>summary</main>,
+vi.mock("@/features/game/components/game-summary-screen", () => ({
+  GameSummaryScreen: ({ gameId }: { gameId: string }) => <main data-game-id={gameId}>summary</main>,
 }));
 
 import GamePage from "@/app/game/[gameId]/page";
@@ -21,7 +21,7 @@ import GameSummaryPage from "@/app/game/[gameId]/summary/page";
 describe("game pages", () => {
   it.each([GamePage, RoundScorePage, GameSummaryPage])("rejects direct rendering without an authenticated user", async (Page) => {
     vi.mocked(requireAuth).mockRejectedValueOnce(new Error("Unauthorized"));
-    await expect(Page({ params: Promise.resolve({ gameId: "demo" }) })).rejects.toThrow("Unauthorized");
+    await expect(Page({ params: Promise.resolve({ gameId: "demo" }), searchParams: Promise.resolve({ round: "2" }) })).rejects.toThrow("Unauthorized");
   });
   it("uses the route game ID as the session key", async () => {
     const session = await GamePage({ params: Promise.resolve({ gameId: "game-123" }) });
@@ -33,6 +33,7 @@ describe("game pages", () => {
     const score = renderToStaticMarkup(
       await RoundScorePage({
         params: Promise.resolve({ gameId: "game-123" }),
+        searchParams: Promise.resolve({ round: "2" }),
       }),
     );
     const summary = renderToStaticMarkup(

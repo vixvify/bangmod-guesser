@@ -1,8 +1,8 @@
 export interface GameHistoryItem {
   id: string;
   status: string;
-  totalScore: number;
-  grade: "SSS" | "S" | "A" | "B" | "C" | "D";
+  totalScore: number | null;
+  grade: "SSS" | "S" | "A" | "B" | "C" | "D" | null;
   playedAt: string;
   bestDistanceMeters?: number;
   bestRoundScore?: number;

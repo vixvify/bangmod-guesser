@@ -25,4 +25,11 @@ describe("game map keyboard access", () => {
     expect(screen.getByRole("status").textContent).toContain("13.65000, 100.49000");
     expect(screen.getByRole("button", { name: "ขยายแผนที่" })).toBeTruthy();
   });
+
+  it("keeps the map instance when a marker and callback change", () => {
+    const { rerender } = render(<GameMap latitude={13.6513} longitude={100.4943} markerPosition={null} onMapClick={() => {}} />);
+    const zoom = screen.getByRole("button", { name: "ขยายแผนที่" });
+    rerender(<GameMap latitude={13.6513} longitude={100.4943} markerPosition={{ lat: 13.65, lng: 100.49 }} onMapClick={() => {}} />);
+    expect(screen.getByRole("button", { name: "ขยายแผนที่" })).toBe(zoom);
+  });
 });

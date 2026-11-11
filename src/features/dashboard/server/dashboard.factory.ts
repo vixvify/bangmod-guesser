@@ -1,4 +1,6 @@
 import { GameStatus, RoundStatus } from "@prisma/client";
+import { GAME_ROUND_COUNT } from "@/features/game/game.constants";
+import { calculateTimeBonus } from "@/shared/lib/game-scoring";
 import type {
   DashboardGameCounts,
   DashboardGameLog,
@@ -45,7 +47,12 @@ export const DashboardFactory = {
           sum + (round.status === RoundStatus.COMPLETED ? round.score : 0),
         0,
       ),
-      bonusScore: null,
+      bonusScore:
+        record.status === GameStatus.COMPLETED &&
+        record.rounds.length === GAME_ROUND_COUNT &&
+        record.rounds.every((round) => round.status === RoundStatus.COMPLETED && round.playTimeSeconds !== null)
+          ? calculateTimeBonus(record.rounds.reduce((sum, round) => sum + (round.playTimeSeconds ?? 0), 0))
+          : null,
       rounds: record.rounds.map((round) => {
         const completed = round.status === RoundStatus.COMPLETED;
         const distance = completed ? dashboardDistance(round) : null;

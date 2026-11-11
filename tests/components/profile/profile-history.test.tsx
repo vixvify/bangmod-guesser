@@ -36,13 +36,14 @@ describe("ProfileHistory", () => {
   it("renders the server result without another request", () => {
     render(<ProfileHistory initialProfile={initialProfile} initialQuery={{ page: 1 }} />);
 
-    expect(screen.getByText("#first-game")).toBeTruthy();
+    expect(screen.getByText("100")).toBeTruthy();
+    expect(screen.queryByText("#first-game")).toBeNull();
     expect(httpClient.get).not.toHaveBeenCalled();
   });
 
   it("loads a completed date range from the profile API and resets pagination", async () => {
     vi.mocked(httpClient.get).mockResolvedValue({
-      data: { ...initialProfile, games: [{ ...initialProfile.games[0], id: "filtered-game" }], pagination: { ...initialProfile.pagination, totalGames: 1, totalPages: 1 } },
+      data: { ...initialProfile, games: [{ ...initialProfile.games[0], id: "filtered-game", totalScore: 200 }], pagination: { ...initialProfile.pagination, totalGames: 1, totalPages: 1 } },
       status: 200,
       statusCode: "SUCCESS",
     });
@@ -52,20 +53,20 @@ describe("ProfileHistory", () => {
     expect(httpClient.get).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "เลือกช่วงวันที่" }));
 
-    await waitFor(() => expect(screen.getByText("#filtered-game")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText("200")).toBeTruthy());
     expect(httpClient.get).toHaveBeenCalledWith(
       expect.stringContaining("/profile?page=1&from=2026-10-01&to=2026-10-31"),
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
     expect(window.location.search).toBe("?page=1&from=2026-10-01&to=2026-10-31");
-    expect(screen.queryByText("#first-game")).toBeNull();
+    expect(screen.queryByText("100")).toBeNull();
   });
 
   it("loads the selected page and allows retry after a request fails", async () => {
     vi.mocked(httpClient.get)
       .mockRejectedValueOnce(new Error("Network error"))
       .mockResolvedValueOnce({
-        data: { ...initialProfile, games: [{ ...initialProfile.games[0], id: "second-page-game" }], pagination: { ...initialProfile.pagination, page: 2 } },
+        data: { ...initialProfile, games: [{ ...initialProfile.games[0], id: "second-page-game", totalScore: 300 }], pagination: { ...initialProfile.pagination, page: 2 } },
         status: 200,
         statusCode: "SUCCESS",
       });
@@ -75,7 +76,7 @@ describe("ProfileHistory", () => {
     await waitFor(() => expect(screen.getByRole("alert").textContent).toContain("โหลดประวัติการเล่นไม่สำเร็จ"));
     fireEvent.click(screen.getByRole("button", { name: "ลองอีกครั้ง" }));
 
-    await waitFor(() => expect(screen.getByText("#second-page-game")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText("300")).toBeTruthy());
     expect(httpClient.get).toHaveBeenCalledTimes(2);
     expect(httpClient.get).toHaveBeenLastCalledWith(
       expect.stringContaining("/profile?page=2"),

@@ -1,12 +1,14 @@
 "use client";
 
 import Modal from "@mui/material/Modal";
+import CircularProgress from "@mui/material/CircularProgress";
 import { useId } from "react";
 import { Button } from "@/shared/components/ui/button";
 
 type ConfirmModalProps = {
   open: boolean;
   busy?: boolean;
+  busyLabel?: string;
   theme?: "light" | "dark";
   soundEnabled?: boolean;
   title: string;
@@ -20,6 +22,7 @@ type ConfirmModalProps = {
 export function ConfirmModal({
   open,
   busy = false,
+  busyLabel = "กำลังดำเนินการ...",
   theme = "light",
   soundEnabled = false,
   title,
@@ -55,7 +58,7 @@ export function ConfirmModal({
             {cancelLabel}
           </Button>
           <Button sound={soundEnabled ? "accept" : undefined} variant="primary" size="small" onClick={onConfirm} disabled={busy}>
-            {confirmLabel}
+            {busy ? <><CircularProgress size={16} color="inherit" aria-hidden="true" /><span role="status">{busyLabel}</span></> : confirmLabel}
           </Button>
         </div>
       </div>
