@@ -1,20 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { signIn, signUp, googleSignIn, signOut } = vi.hoisted(() => ({
+const { signIn, signUp, googleSignIn, signOut, requestPasswordReset, resetPassword } = vi.hoisted(() => ({
   signIn: vi.fn(),
   signUp: vi.fn(),
   googleSignIn: vi.fn(),
   signOut: vi.fn(),
+  requestPasswordReset: vi.fn(),
+  resetPassword: vi.fn()
 }));
 
 vi.mock("@/container", () => ({
-  authService: { signIn, signUp, googleSignIn, signOut },
+  authService: { signIn, signUp, googleSignIn, signOut, requestPasswordReset, resetPassword },
 }));
 
 import { POST as login } from "@/app/api/session/login/route";
 import { POST as register } from "@/app/api/session/register/route";
 import { POST as google } from "@/app/api/session/google/route";
 import { POST as logout } from "@/app/api/session/logout/route";
+import { POST as forgotPassword } from "@/app/api/session/forgot-password/route";
+import { POST as resetPasswordRoute } from "@/app/api/session/reset-password/route";
 
 function post(path: string, body: unknown) {
   return new Request(`http://localhost${path}`, {
@@ -111,5 +115,69 @@ describe("session API routes", () => {
 
     expect(signOut).toHaveBeenCalledWith(request.headers);
     expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
+  });
+
+  it("requests a password reset with a normalized email", async () => {
+    requestPasswordReset.mockResolvedValue(undefined);
+    const response = await forgotPassword(post("/api/session/forgot-password", {
+      email: " STUDENT@EXAMPLE.COM ",
+    }));
+
+    expect(response.status).toBe(200);
+    expect(requestPasswordReset).toHaveBeenCalledWith(
+      expect.any(Headers),
+      { email: "student@example.com" },
+    );
+    expect((await response.json()).data).toBeNull();
+  });
+
+  it("rejects an invalid email before requesting a password reset", async () => {
+    const response = await forgotPassword(post("/api/session/forgot-password", {
+      email: "invalid-email",
+    }));
+
+    expect(response.status).toBe(400);
+    expect(requestPasswordReset).not.toHaveBeenCalled();
+  });
+
+  it("resets a password with the supplied token and password fields", async () => {
+    resetPassword.mockResolvedValue(undefined);
+    const response = await resetPasswordRoute(post("/api/session/reset-password", {
+      token: "valid-reset-token",
+      password: "NewPassword1",
+      confirmPassword: "NewPassword1",
+    }));
+
+    expect(response.status).toBe(200);
+    expect(resetPassword).toHaveBeenCalledWith(
+      expect.any(Headers),
+      "valid-reset-token",
+      {
+        password: "NewPassword1",
+        confirmPassword: "NewPassword1",
+      },
+    );
+    expect((await response.json()).data).toBeNull();
+  });
+
+  it("rejects a reset request when the passwords do not match", async () => {
+    const response = await resetPasswordRoute(post("/api/session/reset-password", {
+      token: "valid-reset-token",
+      password: "NewPassword1",
+      confirmPassword: "DifferentPassword1",
+    }));
+
+    expect(response.status).toBe(400);
+    expect(resetPassword).not.toHaveBeenCalled();
+  });
+
+  it("rejects a reset request without a token", async () => {
+    const response = await resetPasswordRoute(post("/api/session/reset-password", {
+      password: "NewPassword1",
+      confirmPassword: "NewPassword1",
+    }));
+
+    expect(response.status).toBe(400);
+    expect(resetPassword).not.toHaveBeenCalled();
   });
 });

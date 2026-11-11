@@ -21,7 +21,9 @@ test("an authenticated player completes five persisted rounds and reads their su
     expect(new Set(selected.rounds.map((r) => r.locationId)).size).toBe(5);
     for (let question = 1; question <= 5; question++) {
       const url = `/api/games/${gameId}`;
-      const current = await (await page.request.get(`${url}/current-round`)).json();
+      const currentResponse = await page.request.get(`${url}/current-round`);
+      const current = await currentResponse.json();
+      expect(currentResponse.status()).toBe(200);
       expect(current.data).toEqual({ questionNumber: question, imageUrl: selected.rounds[question - 1].locationImage?.imageUrl, deadlineAt: expect.any(String) });
       expect(await (await page.request.get(`${url}/current-round`)).json()).toEqual(current);
       const location = selected.rounds[question - 1].location;

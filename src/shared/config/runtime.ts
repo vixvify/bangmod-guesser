@@ -13,6 +13,12 @@ const ApiEnvironmentSchema = z.object({
     .transform((value) => value.replace(/\/+$/, "")),
 });
 
+const PasswordResetTrustedOriginSchema = z
+  .string()
+  .trim()
+  .url()
+  .transform((value) => new URL(value).origin);
+
 const R2EnvironmentSchema = z.object({
   accountId: z.string().trim().min(1),
   accessKeyId: z.string().trim().min(1),
@@ -26,9 +32,15 @@ const GoogleOAuthEnvironmentSchema = z.object({
   clientSecret: z.string().trim().min(1),
 });
 
+const ResendEnvironmentSchema = z.object({
+  apiKey: z.string().trim().min(1),
+  fromEmail: z.string().trim().email(),
+});
+
 const InitialAdminEmailSchema = z.string().trim().toLowerCase().email();
 
 export type R2Config = z.infer<typeof R2EnvironmentSchema>;
+export type ResendConfig = z.infer<typeof ResendEnvironmentSchema>;
 
 function getR2Config(): R2Config {
   const result = R2EnvironmentSchema.safeParse({
@@ -70,6 +82,18 @@ function getAuthUrl() {
   return process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 }
 
+function getPasswordResetTrustedOrigin() {
+  const result = PasswordResetTrustedOriginSchema.safeParse(
+    process.env.PASSWORD_RESET_TRUSTED_ORIGIN,
+  );
+
+  if (!result.success) {
+    throw new AppError("Password reset trusted origin is not configured or invalid", 500);
+  }
+
+  return result.data;
+}
+
 function getGoogleOAuthConfig() {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
@@ -82,6 +106,19 @@ function getGoogleOAuthConfig() {
 
   if (!result.success) {
     throw new AppError("Google OAuth configuration is incomplete", 500);
+  }
+
+  return result.data;
+}
+
+function getResendConfig(): ResendConfig {
+  const result = ResendEnvironmentSchema.safeParse({
+    apiKey: process.env.RESEND_API_KEY,
+    fromEmail: process.env.RESEND_FROM_EMAIL,
+  });
+
+  if (!result.success) {
+    throw new AppError("Resend configuration is incomplete or invalid", 500);
   }
 
   return result.data;
@@ -123,8 +160,16 @@ export const config = {
     return getAuthUrl();
   },
 
+  get passwordResetTrustedOrigin() {
+    return getPasswordResetTrustedOrigin();
+  },
+
   get googleOAuth() {
     return getGoogleOAuthConfig();
+  },
+
+  get resend() {
+    return getResendConfig();
   },
 
   get initialAdminEmail() {
@@ -149,4 +194,3 @@ export const config = {
     return getR2Config();
   },
 };
-

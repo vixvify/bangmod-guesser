@@ -1,7 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { betterAuth } from "better-auth";
+import { Resend } from "resend";
 import { UserRole } from "@/features/users/user";
 import { AdminPaths } from "@/features/users/admin.routes";
+
+const { mockSend } = vi.hoisted(() => ({
+  mockSend: vi.fn(),
+}));
 
 vi.mock("better-auth", () => ({ betterAuth: vi.fn(() => ({})) }));
 vi.mock("better-auth/adapters/prisma", () => ({ prismaAdapter: vi.fn(() => ({})) }));
@@ -13,11 +18,27 @@ vi.mock("better-auth/api", () => ({
     }
   },
 }));
+vi.mock("resend", () => ({
+  Resend: vi.fn(
+    class {
+      emails = { send: mockSend };
+    },
+  ),
+}));
 vi.mock("@/shared/config/runtime", () => ({
   config: {
     authSecret: "test-secret",
     authUrl: "http://localhost:3000",
-    googleOAuth: { clientId: "google-client-id", clientSecret: "google-client-secret" },
+    passwordResetTrustedOrigin: "http://localhost:3000",
+    environment: "test",
+    googleOAuth: {
+      clientId: "google-client-id",
+      clientSecret: "google-client-secret",
+    },
+    resend: {
+      apiKey: "test-resend-api-key",
+      fromEmail: "onboarding@resend.dev",
+    },
     trustedOrigins: ["http://localhost:3000"],
     isProduction: false,
   },
@@ -26,7 +47,26 @@ vi.mock("@/shared/lib/prisma", () => ({ prisma: {} }));
 
 import "@/features/auth/server/auth";
 
+function getAuthOptions() {
+  const options = vi.mocked(betterAuth).mock.calls[0]?.[0];
+
+  if (!options) {
+    throw new Error("Better Auth configuration is missing");
+  }
+
+  return options;
+}
+
 describe("Better Auth configuration", () => {
+  beforeEach(() => {
+    mockSend.mockReset();
+    vi.mocked(Resend).mockClear();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("uses trusted origins and secure cookie defaults", () => {
     expect(betterAuth).toHaveBeenCalledWith(expect.objectContaining({
       trustedOrigins: ["http://localhost:3000"],
@@ -36,9 +76,10 @@ describe("Better Auth configuration", () => {
       }),
     }));
   });
+
   it("registers admin endpoints with the existing uppercase roles", () => {
-    const options = vi.mocked(betterAuth).mock.calls[0]?.[0];
-    const adminPlugin = options?.plugins?.find((plugin) => plugin.id === "admin");
+    const options = getAuthOptions();
+    const adminPlugin = options.plugins?.find((plugin) => plugin.id === "admin");
 
     expect(adminPlugin?.options).toMatchObject({
       defaultRole: UserRole.USER,
@@ -49,8 +90,8 @@ describe("Better Auth configuration", () => {
   });
 
   it("rejects role arrays and changes beyond username through admin endpoints", async () => {
-    const options = vi.mocked(betterAuth).mock.calls[0]?.[0];
-    const before = options?.hooks?.before as
+    const options = getAuthOptions();
+    const before = options.hooks?.before as
       | ((ctx: { path: string; body: { role?: unknown; data?: unknown } }) => Promise<void>)
       | undefined;
 
@@ -69,7 +110,12 @@ describe("Better Auth configuration", () => {
   it("creates an account without signing the user in automatically", () => {
     expect(betterAuth).toHaveBeenCalledWith(
       expect.objectContaining({
-        emailAndPassword: { enabled: true, autoSignIn: false },
+        emailAndPassword: expect.objectContaining({
+          enabled: true,
+          autoSignIn: false,
+          resetPasswordTokenExpiresIn: 900,
+          sendResetPassword: expect.any(Function),
+        }),
       }),
     );
   });
@@ -82,5 +128,74 @@ describe("Better Auth configuration", () => {
         },
       }),
     );
+  });
+
+  it("sends a password reset email through Resend", async () => {
+    mockSend.mockResolvedValue({ data: { id: "email_123" }, error: null });
+
+    const callback = getAuthOptions().emailAndPassword?.sendResetPassword;
+
+    if (!callback) throw new Error("Password reset email callback is missing");
+
+    await callback({
+      user: { email: "student@example.com" },
+      url: "http://localhost:3000/api/auth/reset-password/token123?callbackURL=http%3A%2F%2Flocalhost%3A3000%2Freset-password",
+    } as never);
+
+    expect(Resend).toHaveBeenCalledWith("test-resend-api-key");
+    expect(mockSend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        from: "onboarding@resend.dev",
+        to: "student@example.com",
+        subject: "เปลี่ยนรหัสผ่าน | Bangmod Guesser",
+        text: expect.stringContaining("http://localhost:3000/api/auth/reset-password/token123?callbackURL=http%3A%2F%2Flocalhost%3A3000%2Freset-password"),
+        html: expect.stringContaining('href="http://localhost:3000/api/auth/reset-password/token123?callbackURL=http%3A%2F%2Flocalhost%3A3000%2Freset-password"'),
+      }),
+    );
+  });
+
+  it("logs an error when Resend returns an error", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    mockSend.mockResolvedValue({
+      data: null,
+      error: { message: "Resend failed" },
+    });
+
+    const callback = getAuthOptions().emailAndPassword?.sendResetPassword;
+
+    if (!callback) throw new Error("Password reset email callback is missing");
+
+    await callback({
+      user: { email: "student@example.com" },
+      url: "http://localhost:3000/api/auth/reset-password/token123?callbackURL=http%3A%2F%2Flocalhost%3A3000%2Freset-password",
+    } as never);
+
+    await vi.waitFor(() => {
+      expect(consoleError).toHaveBeenCalledWith(
+        "Failed to send password reset email:",
+        { message: "Resend failed" },
+      );
+    });
+  });
+
+  it("logs an error when Resend rejects", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    mockSend.mockRejectedValue(new Error("Network error"));
+
+    const callback = getAuthOptions().emailAndPassword?.sendResetPassword;
+
+    if (!callback) throw new Error("Password reset email callback is missing");
+
+    await callback({
+      user: { email: "student@example.com" },
+      url: "http://localhost:3000/api/auth/reset-password/token123?callbackURL=http%3A%2F%2Flocalhost%3A3000%2Freset-password",
+    } as never);
+
+    await vi.waitFor(() => {
+      expect(consoleError).toHaveBeenCalledWith(
+        "Failed to send password reset email:",
+        expect.objectContaining({ message: "Network error" }),
+      );
+    });
   });
 });

@@ -39,6 +39,39 @@ describe("Google OAuth configuration", () => {
   });
 });
 
+describe("Resend configuration", () => {
+  it("reads and trims both credentials", () => {
+    vi.stubEnv("RESEND_API_KEY", " re_test_api_key ");
+    vi.stubEnv("RESEND_FROM_EMAIL", " sender@example.com ");
+
+    expect(config.resend).toEqual({
+      apiKey: "re_test_api_key",
+      fromEmail: "sender@example.com",
+    });
+  });
+
+  it("rejects a missing API key", () => {
+    vi.stubEnv("RESEND_API_KEY", "");
+    vi.stubEnv("RESEND_FROM_EMAIL", "sender@example.com");
+
+    expect(() => config.resend).toThrow("Resend configuration is incomplete or invalid");
+  });
+
+  it("rejects a missing sender email", () => {
+    vi.stubEnv("RESEND_API_KEY", "re_test_api_key");
+    vi.stubEnv("RESEND_FROM_EMAIL", "");
+
+    expect(() => config.resend).toThrow("Resend configuration is incomplete or invalid");
+  });
+
+  it("rejects an invalid sender email", () => {
+    vi.stubEnv("RESEND_API_KEY", "re_test_api_key");
+    vi.stubEnv("RESEND_FROM_EMAIL", "invalid-email");
+
+    expect(() => config.resend).toThrow("Resend configuration is incomplete or invalid");
+  });
+});
+
 describe("initial admin configuration", () => {
   it("normalizes a configured email", () => {
     vi.stubEnv("INITIAL_ADMIN_EMAIL", "  Admin@Example.com  ");

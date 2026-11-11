@@ -1,15 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { signInEmail, signUpEmail, signInSocial, signOut, updateUser } = vi.hoisted(() => ({
+const { signInEmail, signUpEmail, signInSocial, signOut, updateUser, requestPasswordReset, resetPassword } = vi.hoisted(() => ({
   signInEmail: vi.fn(),
   signUpEmail: vi.fn(),
   signInSocial: vi.fn(),
   signOut: vi.fn(),
   updateUser: vi.fn(),
+  requestPasswordReset: vi.fn(),
+  resetPassword: vi.fn()
 }));
 
 vi.mock("@/features/auth/server/auth", () => ({
-  auth: { api: { signInEmail, signUpEmail, signInSocial, signOut, updateUser } },
+  auth: { api: { signInEmail, signUpEmail, signInSocial, signOut, updateUser, requestPasswordReset, resetPassword } },
 }));
 
 import { AuthAdapter } from "@/features/auth/server/auth.adapter";
@@ -72,6 +74,26 @@ describe("AuthAdapter", () => {
     expect(await adapter.updateUsername(headers, { username: "New name" })).toBe(responseHeaders);
     expect(updateUser).toHaveBeenCalledWith({
       body: { name: "New name" }, headers, returnHeaders: true,
+    });
+  });
+  
+  it("requests a password reset with the email and redirect URL", async () => {
+    requestPasswordReset.mockResolvedValue(undefined);
+    const input = { email: "a@example.com" };
+    const redirectTo = "http://localhost:3000/reset-password";
+    await adapter.requestPasswordReset(headers, input, redirectTo);
+    expect(requestPasswordReset).toHaveBeenCalledWith({
+      body: { email: "a@example.com", redirectTo}, headers,
+    });
+  });
+
+  it("resets the password using the token and new password", async () => {
+    resetPassword.mockResolvedValue(undefined);
+    const token = "reset-token";
+    const input = { password: "NewPassword1", confirmPassword: "NewPassword1" };
+    await adapter.resetPassword(headers, token, input);
+    expect(resetPassword).toHaveBeenCalledWith({
+      body: { newPassword: "NewPassword1", token }, headers,
     });
   });
 });

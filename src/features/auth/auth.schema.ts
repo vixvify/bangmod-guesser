@@ -61,9 +61,14 @@ export const ResetPasswordSchema = z
     path: ["confirmPassword"],
   });
 
+export const ResetPasswordRequestSchema = ResetPasswordSchema.extend({
+  token: z.string().trim().min(1, "Invalid or missing reset token"),
+});
+
 export type RegisterInput = z.infer<typeof RegisterSchema>;
 export type LoginInput = z.infer<typeof LoginSchema>;
 export type GoogleSignInInput = z.infer<typeof GoogleSignInSchema>;
 export type RequestPasswordResetInput = z.infer<typeof RequestPasswordResetSchema>;
 export type ResetPasswordInput = z.infer<typeof ResetPasswordSchema>;
 export type CreateUserInput = z.infer<typeof CreateUserSchema>;
+export type ResetPasswordRequestInput = z.infer<typeof ResetPasswordRequestSchema>;
