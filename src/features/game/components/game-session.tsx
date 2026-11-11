@@ -17,12 +17,13 @@ import { useUnsavedChangesGuard } from "@/shared/hooks/use-unsaved-changes-guard
 import { useGameMusic } from "@/features/game/hooks/use-game-music";
 import { httpClient } from "@/shared/lib/http";
 import { AppRoutes } from "@/shared/routes/routes";
+import { getErrorMessage, getHttpErrorStatus } from "@/shared/lib/error-message";
 
 export function GameSession({ gameId }: { gameId: string }) {
   useGameMusic();
   const router = useRouter();
   const [round, setRound] = useState<CurrentGameRound | null>(null);
-  const [loadError, setLoadError] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [marker, setMarker] = useState<{ lat: number; lng: number } | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitFailed, setSubmitFailed] = useState(false);
@@ -38,8 +39,8 @@ export function GameSession({ gameId }: { gameId: string }) {
       try {
         const { data } = await httpClient.get<CurrentGameRound>(GameRoutes.currentRound(gameId));
         if (!cancelled) setRound(data);
-      } catch {
-        if (!cancelled) setLoadError(true);
+      } catch (error) {
+        if (!cancelled) setLoadError(getErrorMessage(error, "ไม่สามารถโหลดรอบเกมได้ กรุณากลับหน้าแรกแล้วลองอีกครั้ง"));
       }
     }
     void loadRound();
@@ -54,13 +55,20 @@ export function GameSession({ gameId }: { gameId: string }) {
     try {
       try {
         await httpClient.post<GameGuessResult>(GameRoutes.guess(gameId, round.questionNumber), input);
-      } catch {
-        await httpClient.get<GameGuessResult>(GameRoutes.roundResult(gameId, round.questionNumber));
+      } catch (error) {
+        const status = getHttpErrorStatus(error);
+        if (status !== undefined && status < 500 && status !== 409) throw error;
+        try {
+          await httpClient.get<GameGuessResult>(GameRoutes.roundResult(gameId, round.questionNumber));
+        } catch (recoveryError) {
+          if (getHttpErrorStatus(recoveryError) === 429) throw recoveryError;
+          throw error;
+        }
       }
       router.push(AppRoutes.gameRoundScore(gameId, round.questionNumber));
-    } catch {
+    } catch (error) {
       setSubmitFailed(true);
-      toast.error("ส่งคำตอบไม่สำเร็จ กรุณาลองอีกครั้ง");
+      toast.error(getErrorMessage(error, "ส่งคำตอบไม่สำเร็จ กรุณาลองอีกครั้ง"));
       submittingRef.current = false;
       setSubmitting(false);
     }
@@ -77,8 +85,8 @@ export function GameSession({ gameId }: { gameId: string }) {
       await httpClient.post(GameRoutes.exit(gameId));
       setExitOpen(false);
       if (!confirmBrowserBack(() => router.push(AppRoutes.home))) router.push(AppRoutes.home);
-    } catch {
-      toast.error("ออกจากเกมไม่สำเร็จ กรุณาลองอีกครั้ง");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "ออกจากเกมไม่สำเร็จ กรุณาลองอีกครั้ง"));
     } finally {
       setExiting(false);
     }
@@ -104,7 +112,7 @@ export function GameSession({ gameId }: { gameId: string }) {
             : { guessedLatitude: marker?.lat ?? null, guessedLongitude: marker?.lng ?? null })}>
             ลองส่งคำตอบอีกครั้ง
           </Button>}
-        </> : loadError ? <p role="alert" className="text-surface-text">ไม่สามารถโหลดรอบเกมได้ กรุณากลับหน้าแรกแล้วลองอีกครั้ง</p>
+        </> : loadError ? <p role="alert" className="text-surface-text">{loadError}</p>
           : <p role="status" className="text-surface-text">กำลังโหลดรอบเกม…</p>}
       </GameLayout>
       <ConfirmModal soundEnabled open={exitOpen} theme="dark" title={GAME_MESSAGES.exitGame.title}

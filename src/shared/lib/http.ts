@@ -25,6 +25,7 @@ export class HttpError extends Error {
     message: string,
     public readonly status?: number,
     public readonly statusCode?: string,
+    public readonly retryAfter?: number,
   ) {
     super(message);
     this.name = "HttpError";
@@ -44,6 +45,10 @@ const handleRequest = async <T>(
   } catch (error) {
     const axiosError = error as AxiosError<ApiResponse<T>>;
     const errorData = axiosError.response?.data;
+    const retryAfterHeader = axiosError.response?.headers?.["retry-after"];
+    const retryAfter = typeof retryAfterHeader === "string" && /^\d+$/.test(retryAfterHeader.trim())
+      ? Number(retryAfterHeader)
+      : undefined;
 
     throw new HttpError(
       errorData?.error ||
@@ -52,6 +57,7 @@ const handleRequest = async <T>(
         "An unexpected error occurred",
       axiosError.response?.status,
       errorData?.statusCode,
+      retryAfter,
     );
   }
 };

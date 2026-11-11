@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/shared/lib/error-message";
 import { LocationForm } from "@/features/locations/components/location-form";
 import { LOCATION_MESSAGES } from "@/features/locations/location.constants";
 import type { Location } from "@/features/locations/location";
@@ -32,8 +33,8 @@ export function CreateLocation({ header }: { header: ReactNode }) {
       });
       toast.success(LOCATION_MESSAGES.createSuccess);
       router.push(AppRoutes.adminLocations);
-    } catch {
-      toast.error(LOCATION_MESSAGES.createFailed);
+    } catch (error) {
+      toast.error(getErrorMessage(error, LOCATION_MESSAGES.createFailed));
     }
   }
 

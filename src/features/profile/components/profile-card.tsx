@@ -15,6 +15,7 @@ import { ProfileRoutes } from "@/features/profile/profile.routes";
 import { getProfileImageUrl } from "@/shared/lib/profile-image";
 import { playSoundEffect } from "@/shared/lib/sound-effect";
 import { AppRoutes } from "@/shared/routes/routes";
+import { getErrorMessage } from "@/shared/lib/error-message";
 
 type ProfileCardProps = {
   profile: User;
@@ -34,8 +35,8 @@ export function ProfileCard({ profile, canManageSystem = false }: ProfileCardPro
       toast.success(PROFILE_MESSAGES.updateSuccess);
       router.refresh();
       return true;
-    } catch {
-      toast.error(PROFILE_MESSAGES.updateFailed);
+    } catch (error) {
+      toast.error(getErrorMessage(error, PROFILE_MESSAGES.updateFailed));
       return false;
     }
   }

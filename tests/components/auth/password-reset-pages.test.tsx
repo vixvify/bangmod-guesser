@@ -7,6 +7,7 @@ import ResetPasswordPage from "@/app/(auth)/reset-password/page";
 import { AUTH_MESSAGES } from "@/features/auth/auth.constants";
 import { SessionRoutes } from "@/features/auth/session.routes";
 import { AppRoutes } from "@/shared/routes/routes";
+import { HttpError } from "@/shared/lib/http";
 
 const { toastSuccess, toastError, httpPost, routerPush } = vi.hoisted(() => ({
   toastSuccess: vi.fn(),
@@ -83,6 +84,16 @@ describe("ForgotPasswordPage", () => {
 
     await waitFor(() => expect(toastError).toHaveBeenCalledWith(AUTH_MESSAGES.submit.passwordResetRequestFailed));
   });
+
+  it("explains the retry delay when the request is rate limited", async () => {
+    httpPost.mockRejectedValueOnce(new HttpError("Too many requests", 429, undefined, 20));
+    render(<ForgotPasswordPage />);
+    fireEvent.change(screen.getByRole("textbox", { name: "อีเมล" }), { target: { value: "student@example.com" } });
+    const submit = screen.getByRole("button", { name: "ขอลิงก์เปลี่ยนรหัสผ่าน" });
+    await waitFor(() => expect((submit as HTMLButtonElement).disabled).toBe(false));
+    fireEvent.click(submit);
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith("ส่งคำขอบ่อยเกินไป กรุณารอ 20 วินาทีแล้วลองอีกครั้ง"));
+  });
 });
 
 describe("ResetPasswordPage", () => {
@@ -149,6 +160,19 @@ describe("ResetPasswordPage", () => {
     fireEvent.click(submit);
 
     await waitFor(() => expect(toastError).toHaveBeenCalledWith(AUTH_MESSAGES.submit.passwordResetFailed));
+    expect(routerPush).not.toHaveBeenCalled();
+  });
+
+  it("explains when password reset is rate limited", async () => {
+    window.history.replaceState({}, "", "/reset-password?token=test-reset-token");
+    httpPost.mockRejectedValueOnce(new HttpError("Too many requests", 429));
+    render(<ResetPasswordPage />);
+    fireEvent.change(screen.getByLabelText("รหัสผ่านใหม่"), { target: { value: "Password1" } });
+    fireEvent.change(screen.getByLabelText("ยืนยันรหัสผ่านใหม่"), { target: { value: "Password1" } });
+    const submit = screen.getByRole("button", { name: "บันทึกรหัสผ่านใหม่" });
+    await waitFor(() => expect((submit as HTMLButtonElement).disabled).toBe(false));
+    fireEvent.click(submit);
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith("ส่งคำขอบ่อยเกินไป กรุณารอสักครู่แล้วลองอีกครั้ง"));
     expect(routerPush).not.toHaveBeenCalled();
   });
 

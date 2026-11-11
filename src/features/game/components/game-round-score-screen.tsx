@@ -10,10 +10,11 @@ import type { GameGuessResult } from "@/features/game/game";
 import { httpClient } from "@/shared/lib/http";
 import { AppRoutes } from "@/shared/routes/routes";
 import { useRouter } from "next/navigation";
+import { getErrorMessage } from "@/shared/lib/error-message";
 
 export function GameRoundScoreScreen({ gameId, questionNumber }: { gameId: string; questionNumber: number }) {
   const [result, setResult] = useState<GameGuessResult | null>(null);
-  const [failed, setFailed] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
   useEffect(() => {
     let cancelled = false;
@@ -21,8 +22,8 @@ export function GameRoundScoreScreen({ gameId, questionNumber }: { gameId: strin
       try {
         const { data } = await httpClient.get<GameGuessResult>(GameRoutes.roundResult(gameId, questionNumber));
         if (!cancelled) setResult(data);
-      } catch {
-        if (!cancelled) setFailed(true);
+      } catch (error) {
+        if (!cancelled) setErrorMessage(getErrorMessage(error, "ไม่สามารถโหลดผลรอบนี้ได้ กรุณาลองอีกครั้ง"));
       }
     }
     void load();
@@ -31,8 +32,8 @@ export function GameRoundScoreScreen({ gameId, questionNumber }: { gameId: strin
 
   if (!result) return <GameLayout onExit={() => router.push(AppRoutes.home)}>
     <h1 className="sr-only">{GAME_RESULT_MESSAGES.roundTitle}</h1>
-    <p role={failed ? "alert" : "status"} className="text-surface-text">
-      {failed ? "ไม่สามารถโหลดผลรอบนี้ได้ กรุณาลองอีกครั้ง" : "กำลังโหลดผลรอบ…"}
+    <p role={errorMessage ? "alert" : "status"} className="text-surface-text">
+      {errorMessage ?? "กำลังโหลดผลรอบ…"}
     </p>
   </GameLayout>;
   return <GameRoundScore gameId={gameId} totalRounds={GAME_ROUND_COUNT}

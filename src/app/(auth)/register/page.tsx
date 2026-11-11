@@ -14,7 +14,8 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { AUTH_MESSAGES } from "@/features/auth/auth.constants";
 import { RegisterSchema, type RegisterInput } from "@/features/auth/auth.schema";
-import httpClient, { HttpError } from "@/shared/lib/http";
+import httpClient from "@/shared/lib/http";
+import { getErrorMessage } from "@/shared/lib/error-message";
 import { getAuthRedirect } from "@/features/auth/auth-redirect";
 import { SessionRoutes } from "@/features/auth/session.routes";
 import { AppRoutes } from "@/shared/routes/routes";
@@ -48,9 +49,9 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
       toast.success(AUTH_MESSAGES.submit.registerSuccess);
       router.replace(loginHref);
     } catch (error) {
-      toast.error(error instanceof HttpError && error.status === undefined
-        ? AUTH_MESSAGES.submit.networkError
-        : AUTH_MESSAGES.submit.registerFailed);
+      toast.error(getErrorMessage(error, AUTH_MESSAGES.submit.registerFailed, {
+        400: AUTH_MESSAGES.submit.registerFailed,
+      }));
     }
   }
 

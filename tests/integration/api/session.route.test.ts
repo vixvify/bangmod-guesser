@@ -1,14 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { signIn, signUp, googleSignIn, signOut, requestPasswordReset, resetPassword } = vi.hoisted(() => ({
+const { signIn, signUp, googleSignIn, signOut, requestPasswordReset, resetPassword, enforce } = vi.hoisted(() => ({
   signIn: vi.fn(),
   signUp: vi.fn(),
   googleSignIn: vi.fn(),
   signOut: vi.fn(),
   requestPasswordReset: vi.fn(),
-  resetPassword: vi.fn()
+  resetPassword: vi.fn(),
+  enforce: vi.fn(),
 }));
 
+vi.mock("@/shared/lib/security/rate-limit", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/shared/lib/security/rate-limit")>();
+  return { ...actual, clientIp: () => "203.0.113.1", enforceRateLimit: enforce };
+});
 vi.mock("@/container", () => ({
   authService: { signIn, signUp, googleSignIn, signOut, requestPasswordReset, resetPassword },
 }));
@@ -19,6 +24,7 @@ import { POST as google } from "@/app/api/session/google/route";
 import { POST as logout } from "@/app/api/session/logout/route";
 import { POST as forgotPassword } from "@/app/api/session/forgot-password/route";
 import { POST as resetPasswordRoute } from "@/app/api/session/reset-password/route";
+import { RateLimitError } from "@/shared/lib/security/rate-limit";
 
 function post(path: string, body: unknown) {
   return new Request(`http://localhost${path}`, {
@@ -31,6 +37,27 @@ function post(path: string, body: unknown) {
 describe("session API routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    enforce.mockReset();
+  });
+
+  it.each([
+    ["forgot-password", forgotPassword, { email: "student@example.com" }],
+    ["reset-password", resetPasswordRoute, { token: "valid-reset-token", password: "NewPassword1", confirmPassword: "NewPassword1" }],
+  ])("applies origin protection and auth rate limits to %s", async (path, route, body) => {
+    const forbidden = await route(new Request(`http://localhost/api/session/${path}`, {
+      method: "POST", headers: { "content-type": "application/json", origin: "https://untrusted.example" },
+      body: JSON.stringify(body),
+    }));
+    expect(forbidden.status).toBe(403);
+    expect(enforce).not.toHaveBeenCalled();
+
+    enforce.mockRejectedValueOnce(new RateLimitError(25));
+    const limited = await route(post(`/api/session/${path}`, body));
+    expect(limited.status).toBe(429);
+    expect(limited.headers.get("retry-after")).toBe("25");
+    expect(enforce).toHaveBeenCalledWith("auth", "ip", "203.0.113.1");
+    expect(requestPasswordReset).not.toHaveBeenCalled();
+    expect(resetPassword).not.toHaveBeenCalled();
   });
 
   it("validates credentials and forwards the Better Auth session cookie", async () => {

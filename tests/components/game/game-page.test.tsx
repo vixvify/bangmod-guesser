@@ -6,6 +6,8 @@ import { GAME_MESSAGES } from "@/features/game/game.constants";
 
 const push = vi.fn();
 const api = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn() }));
+const toastError = vi.hoisted(() => vi.fn());
+vi.mock("sonner", () => ({ toast: { error: toastError, success: vi.fn() } }));
 vi.mock("@/shared/lib/http", () => ({ httpClient: api }));
 vi.mock("@/features/game/game.routes", () => ({ GameRoutes: {
   currentRound: (id: string) => `/games/${id}/current-round`,
@@ -113,6 +115,18 @@ describe("GameSession", () => {
     fireEvent.click(screen.getByRole("button", { name: "ส่งคำตอบ" }));
     await waitFor(() => expect(api.get).toHaveBeenCalledWith(expect.stringContaining("/rounds/1/result")));
     await waitFor(() => expect(push).toHaveBeenCalledWith(AppRoutes.gameRoundScore("test-game", 1)));
+  });
+
+  it("shows rate limiting without trying to recover a result that was not submitted", async () => {
+    const error = Object.assign(new Error("limited"), { name: "HttpError", status: 429, retryAfter: 10 });
+    api.post.mockRejectedValueOnce(error);
+    render(<GameSession gameId="test-game" />);
+    await screen.findByRole("button", { name: "ส่งคำตอบ" });
+    fireEvent.click(screen.getByTestId("mock-map"));
+    fireEvent.click(screen.getByRole("button", { name: "ส่งคำตอบ" }));
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith("ส่งคำขอบ่อยเกินไป กรุณารอ 10 วินาทีแล้วลองอีกครั้ง"));
+    expect(api.get).not.toHaveBeenCalledWith(expect.stringContaining("/result"));
+    expect(push).not.toHaveBeenCalled();
   });
 
   it("allows retrying when neither submission nor result retrieval succeeds", async () => {

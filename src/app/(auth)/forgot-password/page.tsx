@@ -14,7 +14,8 @@ import {
 } from "@/features/auth/auth.schema";
 import { AppRoutes } from "@/shared/routes/routes";
 import { SessionRoutes } from "@/features/auth/session.routes";
-import httpClient, { HttpError } from "@/shared/lib/http";
+import httpClient from "@/shared/lib/http";
+import { getErrorMessage } from "@/shared/lib/error-message";
 
 export default function ForgotPasswordPage() {
   const {
@@ -34,9 +35,7 @@ export default function ForgotPasswordPage() {
       toast.success(AUTH_MESSAGES.submit.passwordResetRequestSuccess);
     } catch (error) {
       toast.error(
-        error instanceof HttpError && error.status === undefined
-          ? AUTH_MESSAGES.submit.networkError
-          : AUTH_MESSAGES.submit.passwordResetRequestFailed,
+        getErrorMessage(error, AUTH_MESSAGES.submit.passwordResetRequestFailed),
       );
     }
   }

@@ -85,6 +85,15 @@ describe("ProfileHistory", () => {
     expect(window.location.search).toBe("?page=2");
   });
 
+  it("explains rate limiting in the history error state", async () => {
+    const error = Object.assign(new Error("limited"), { name: "HttpError", status: 429 });
+    vi.mocked(httpClient.get).mockRejectedValueOnce(error);
+    render(<ProfileHistory initialProfile={initialProfile} initialQuery={{ page: 1 }} />);
+    fireEvent.click(screen.getByRole("button", { name: /หน้า 2/ }));
+    expect((await screen.findByRole("alert")).textContent).toContain("ส่งคำขอบ่อยเกินไป");
+    expect(screen.getByRole("button", { name: "ลองอีกครั้ง" })).toBeTruthy();
+  });
+
   it("clears an applied date filter and returns to the first page", async () => {
     vi.mocked(httpClient.get).mockResolvedValue({
       data: initialProfile,

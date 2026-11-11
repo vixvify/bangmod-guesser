@@ -17,6 +17,7 @@ import { formatScore } from "@/shared/lib/utils";
 import { httpClient } from "@/shared/lib/http";
 import { GameRoutes } from "@/features/game/game.routes";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/shared/lib/error-message";
 import styles from "./game-results.module.css";
 
 type GameRoundScoreProps = {
@@ -163,8 +164,8 @@ export function GameRoundScore({
           try {
             await httpClient.post(GameRoutes.exit(gameId));
             router.push(AppRoutes.home);
-          } catch {
-            toast.error("ออกจากเกมไม่สำเร็จ กรุณาลองอีกครั้ง");
+          } catch (error) {
+            toast.error(getErrorMessage(error, "ออกจากเกมไม่สำเร็จ กรุณาลองอีกครั้ง"));
           }
         }}
         onCancel={() => setShowExit(false)}
