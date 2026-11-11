@@ -1,18 +1,8 @@
-function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, (character) => {
-    const entities: Record<string, string> = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;",
-    };
-    return entities[character];
-  });
-}
+import { escapeHtml, validateResetUrl } from "../validate-url";
 
 export function createPasswordResetEmail(url: string) {
-  const safeUrl = escapeHtml(url);
+  const validatedUrl = validateResetUrl(url).toString();
+  const safeUrl = escapeHtml(validatedUrl);
 
   return {
     subject: "เปลี่ยนรหัสผ่าน | Bangmod Guesser",
@@ -22,7 +12,7 @@ export function createPasswordResetEmail(url: string) {
       "เราได้รับคำขอเปลี่ยนรหัสผ่านสำหรับบัญชี Bangmod Guesser ของคุณ",
       "",
       "หากคุณเป็นผู้ส่งคำขอ กรุณาเปิดลิงก์ด้านล่างเพื่อเปลี่ยนรหัสผ่าน:",
-      url,
+      validatedUrl,
       "",
       "ลิงก์นี้มีอายุ 15 นาที",
       "",

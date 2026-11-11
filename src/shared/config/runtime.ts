@@ -13,6 +13,12 @@ const ApiEnvironmentSchema = z.object({
     .transform((value) => value.replace(/\/+$/, "")),
 });
 
+const PasswordResetTrustedOriginSchema = z
+  .string()
+  .trim()
+  .url()
+  .transform((value) => new URL(value).origin);
+
 const R2EnvironmentSchema = z.object({
   accountId: z.string().trim().min(1),
   accessKeyId: z.string().trim().min(1),
@@ -72,6 +78,18 @@ function getAuthUrl() {
   return process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 }
 
+function getPasswordResetTrustedOrigin() {
+  const result = PasswordResetTrustedOriginSchema.safeParse(
+    process.env.PASSWORD_RESET_TRUSTED_ORIGIN,
+  );
+
+  if (!result.success) {
+    throw new AppError("Password reset trusted origin is not configured or invalid", 500);
+  }
+
+  return result.data;
+}
+
 function getGoogleOAuthConfig() {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
@@ -113,6 +131,10 @@ export const config = {
 
   get authUrl() {
     return getAuthUrl();
+  },
+
+  get passwordResetTrustedOrigin() {
+    return getPasswordResetTrustedOrigin();
   },
 
   get googleOAuth() {

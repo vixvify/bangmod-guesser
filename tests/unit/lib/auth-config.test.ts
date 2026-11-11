@@ -29,6 +29,8 @@ vi.mock("@/shared/config/runtime", () => ({
   config: {
     authSecret: "test-secret",
     authUrl: "http://localhost:3000",
+    passwordResetTrustedOrigin: "http://localhost:3000",
+    environment: "test",
     googleOAuth: {
       clientId: "google-client-id",
       clientSecret: "google-client-secret",
@@ -125,7 +127,7 @@ describe("Better Auth configuration", () => {
 
     await callback({
       user: { email: "student@example.com" },
-      url: "http://localhost:3000/reset-password/token123",
+      url: "http://localhost:3000/api/auth/reset-password/token123?callbackURL=http%3A%2F%2Flocalhost%3A3000%2Freset-password",
     } as never);
 
     expect(Resend).toHaveBeenCalledWith("test-resend-api-key");
@@ -134,12 +136,8 @@ describe("Better Auth configuration", () => {
         from: "onboarding@resend.dev",
         to: "student@example.com",
         subject: "เปลี่ยนรหัสผ่าน | Bangmod Guesser",
-        text: expect.stringContaining(
-          "http://localhost:3000/reset-password/token123",
-        ),
-        html: expect.stringContaining(
-          'href="http://localhost:3000/reset-password/token123"',
-        ),
+        text: expect.stringContaining("http://localhost:3000/api/auth/reset-password/token123?callbackURL=http%3A%2F%2Flocalhost%3A3000%2Freset-password"),
+        html: expect.stringContaining('href="http://localhost:3000/api/auth/reset-password/token123?callbackURL=http%3A%2F%2Flocalhost%3A3000%2Freset-password"'),
       }),
     );
   });
@@ -157,7 +155,7 @@ describe("Better Auth configuration", () => {
 
     await callback({
       user: { email: "student@example.com" },
-      url: "http://localhost:3000/reset-password/token123",
+      url: "http://localhost:3000/api/auth/reset-password/token123?callbackURL=http%3A%2F%2Flocalhost%3A3000%2Freset-password",
     } as never);
 
     await vi.waitFor(() => {
@@ -178,7 +176,7 @@ describe("Better Auth configuration", () => {
 
     await callback({
       user: { email: "student@example.com" },
-      url: "http://localhost:3000/reset-password/token123",
+      url: "http://localhost:3000/api/auth/reset-password/token123?callbackURL=http%3A%2F%2Flocalhost%3A3000%2Freset-password",
     } as never);
 
     await vi.waitFor(() => {
