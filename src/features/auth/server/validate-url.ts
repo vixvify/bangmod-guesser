@@ -31,7 +31,12 @@ export function validateResetUrl(value: string): URL {
 
   const trustedOrigin = config.passwordResetTrustedOrigin;
 
-  if (!isAllowedProtocol(url) || url.origin !== trustedOrigin) {
+  if (
+    !isAllowedProtocol(url) ||
+    url.origin !== trustedOrigin ||
+    url.username ||
+    url.password
+  ) {
     throw new Error("Untrusted password reset URL");
   }
   if (!url.pathname.startsWith(RESET_PASSWORD_API_PATH)) {
@@ -73,6 +78,8 @@ export function validateResetUrl(value: string): URL {
   if (
     !isAllowedProtocol(callback) ||
     callback.origin !== trustedOrigin ||
+    callback.username ||
+    callback.password ||
     callback.pathname !== RESET_PASSWORD_PATH ||
     callback.search ||
     callback.hash

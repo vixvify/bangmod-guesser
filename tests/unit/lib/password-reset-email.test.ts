@@ -107,4 +107,28 @@ describe("Password reset email template", () => {
 
     expect(() => validateResetUrl(invalidUrl)).toThrow("Untrusted password reset callback URL");
   });
+
+  it("rejects a password reset URL containing a username", () => {
+    const invalidUrl = "http://user@localhost:3000/api/auth/reset-password/token123?callbackURL=http%3A%2F%2Flocalhost%3A3000%2Freset-password";
+
+    expect(() => validateResetUrl(invalidUrl)).toThrow("Untrusted password reset URL");
+  });
+
+  it("rejects a password reset URL containing a password", () => {
+    const invalidUrl = "http://user:password@localhost:3000/api/auth/reset-password/token123?callbackURL=http%3A%2F%2Flocalhost%3A3000%2Freset-password";
+
+    expect(() => validateResetUrl(invalidUrl)).toThrow("Untrusted password reset URL");
+  });
+
+  it("rejects a callback URL containing a username", () => {
+    const invalidUrl = "http://localhost:3000/api/auth/reset-password/token123?callbackURL=http%3A%2F%2Fuser%40localhost%3A3000%2Freset-password";
+
+    expect(() => validateResetUrl(invalidUrl)).toThrow("Untrusted password reset callback URL");
+  });
+
+  it("rejects a callback URL containing a password", () => {
+    const invalidUrl = "http://localhost:3000/api/auth/reset-password/token123?callbackURL=http%3A%2F%2Fuser%3Apassword%40localhost%3A3000%2Freset-password";
+
+    expect(() => validateResetUrl(invalidUrl)).toThrow("Untrusted password reset callback URL");
+  });
 });
