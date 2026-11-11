@@ -1,15 +1,12 @@
 import { authService } from "@/container";
-import { errorResponse, successResponse } from "@/shared/lib/api-response";
+import { successResponse } from "@/shared/lib/api-response";
+import { secureRoute } from "@/shared/lib/security/route";
 
-export async function POST(request: Request) {
-  try {
+export const POST = secureRoute({ access: "public", rateLimit: "auth" }, async (request) => {
     const authHeaders = await authService.signOut(request.headers);
     const response = successResponse(null);
     for (const cookie of authHeaders.getSetCookie()) {
       response.headers.append("set-cookie", cookie);
     }
     return response;
-  } catch (error) {
-    return errorResponse(error);
-  }
-}
+});

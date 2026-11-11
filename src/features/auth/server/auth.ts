@@ -20,6 +20,11 @@ export const auth = betterAuth({
   }),
   secret: config.authSecret,
   baseURL: config.authUrl,
+  trustedOrigins: config.trustedOrigins,
+  advanced: {
+    useSecureCookies: config.isProduction,
+    defaultCookieAttributes: { httpOnly: true, sameSite: "lax", secure: config.isProduction },
+  },
   emailAndPassword: {
     enabled: true,
     autoSignIn: false,

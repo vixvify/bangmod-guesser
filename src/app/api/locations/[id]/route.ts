@@ -1,35 +1,26 @@
-import { UserRole } from "@/features/users/user";
 import { UpdateLocationImagesSchema } from "@/features/images/image.schema";
 import { LOCATION_MAX_IMAGES } from "@/features/locations/location.constants";
 import { IMAGE_MAX_SIZE_BYTES, IMAGE_MESSAGES } from "@/features/images/image.constants";
 import { AppError } from "@/shared/errors/app.error";
 import { LocationIdSchema, UpdateLocationSchema } from "@/features/locations/location.schema";
 import { locationService } from "@/container";
-import { errorResponse, successResponse } from "@/shared/lib/api-response";
+import { successResponse } from "@/shared/lib/api-response";
+import { secureRoute } from "@/shared/lib/security/route";
 import { parseJson, readJson } from "@/shared/lib/json";
-import { requireAuth } from "@/features/auth/server/auth-check";
-import { roleCheck } from "@/shared/lib/role-check";
 import { parseSchema } from "@/shared/lib/validation";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
 }
 
-export async function GET(_request: Request, context: RouteContext) {
-  try {
-    roleCheck(await requireAuth(), [UserRole.ADMIN]);
+export const GET = secureRoute<RouteContext>({ access: "admin", rateLimit: "admin" }, async (_request, context) => {
     const id = parseSchema(LocationIdSchema, (await context.params).id);
     const response = successResponse(await locationService.getLocationById(id));
     response.headers.set("Cache-Control", "private, no-store");
     return response;
-  } catch (error) {
-    return errorResponse(error);
-  }
-}
+});
 
-export async function PUT(request: Request, context: RouteContext) {
-  try {
-    roleCheck(await requireAuth(), [UserRole.ADMIN]);
+export const PUT = secureRoute<RouteContext>({ access: "admin", rateLimit: "admin" }, async (request, context) => {
     const id = parseSchema(LocationIdSchema, (await context.params).id);
 
     if (!request.headers.get("content-type")?.includes("multipart/form-data")) {
@@ -72,18 +63,10 @@ export async function PUT(request: Request, context: RouteContext) {
     const images = parseSchema(UpdateLocationImagesSchema, body);
 
     return successResponse(await locationService.updateLocation(id, input, images));
-  } catch (error) {
-    return errorResponse(error);
-  }
-}
+});
 
-export async function DELETE(_request: Request, context: RouteContext) {
-  try {
-    roleCheck(await requireAuth(), [UserRole.ADMIN]);
+export const DELETE = secureRoute<RouteContext>({ access: "admin", rateLimit: "admin" }, async (_request, context) => {
     const id = parseSchema(LocationIdSchema, (await context.params).id);
     await locationService.deleteLocation(id);
     return successResponse(null);
-  } catch (error) {
-    return errorResponse(error);
-  }
-}
+});

@@ -20,8 +20,9 @@ beforeEach(() => {
 });
 
 describe("POST /api/games", () => {
+  const request = () => new Request("http://localhost/api/games", { method: "POST" });
   it("creates the game using only the session owner and returns the standard 201 envelope", async () => {
-    const response = await POST();
+    const response = await POST(request());
     expect(response.status).toBe(201);
     expect(response.headers.get("cache-control")).toBe("private, no-store");
     expect(await response.json()).toEqual({ data: { gameId: "created-game" }, status: 201, statusCode: "CREATED" });
@@ -29,15 +30,15 @@ describe("POST /api/games", () => {
   });
   it("returns 401 before querying locations", async () => {
     requireAuth.mockRejectedValue(new AppError("Unauthorized", 401));
-    expect((await POST()).status).toBe(401);
+    expect((await POST(request())).status).toBe(401);
     expect(repository.findCandidates).not.toHaveBeenCalled();
   });
   it("returns 409 when there is insufficient content", async () => {
     repository.findCandidates.mockResolvedValue([]);
-    expect((await POST()).status).toBe(409);
+    expect((await POST(request())).status).toBe(409);
   });
   it("hides database errors", async () => {
     repository.createGame.mockRejectedValue(new Error("secret database address"));
-    expect(await (await POST()).json()).toEqual({ error: "Internal server error", status: 500, statusCode: "ERROR" });
+    expect(await (await POST(request())).json()).toEqual({ error: "Internal server error", status: 500, statusCode: "ERROR" });
   });
 });

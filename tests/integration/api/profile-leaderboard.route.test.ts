@@ -67,7 +67,7 @@ describe("profile and leaderboard API routes", () => {
   );
 
   it("returns leaderboard entries and the current player's rank", async () => {
-    const response = await leaderboard();
+    const response = await leaderboard(new Request("http://localhost/api/leaderboard"));
 
     expect(response.status).toBe(200);
     expect(getLeaderboard).toHaveBeenCalledWith("player-1");
@@ -78,7 +78,7 @@ describe("profile and leaderboard API routes", () => {
     requireAuth.mockRejectedValue(new AppError("Unauthorized", 401));
 
     expect((await profile(new Request("http://localhost/api/profile"))).status).toBe(401);
-    expect((await leaderboard()).status).toBe(401);
+    expect((await leaderboard(new Request("http://localhost/api/leaderboard"))).status).toBe(401);
     expect(getProfile).not.toHaveBeenCalled();
     expect(getLeaderboard).not.toHaveBeenCalled();
   });
