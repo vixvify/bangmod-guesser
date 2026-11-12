@@ -12,6 +12,7 @@ export class LeaderboardRepositoryImpl implements LeaderboardRepository {
         SELECT
           u.id AS "userId",
           u.name,
+          u.image,
           COUNT(g.id)::int AS "gamesPlayed",
           COALESCE(SUM(g."totalScore"), 0)::int AS "totalScore"
         FROM users u
@@ -20,12 +21,13 @@ export class LeaderboardRepositoryImpl implements LeaderboardRepository {
         WHERE
           g.status = 'COMPLETED'
           AND g."totalScore" IS NOT NULL
-        GROUP BY u.id, u.name
+        GROUP BY u.id, u.name, u.image
       ),
       ranked_leaderboard AS (
         SELECT
           "userId",
           name,
+          image,
           "gamesPlayed",
           "totalScore",
           ROW_NUMBER() OVER (
@@ -40,6 +42,7 @@ export class LeaderboardRepositoryImpl implements LeaderboardRepository {
       SELECT
         "userId",
         name,
+        image,
         "gamesPlayed",
         "totalScore",
         rank
@@ -51,11 +54,13 @@ export class LeaderboardRepositoryImpl implements LeaderboardRepository {
     const toEntry = ({
       rank,
       name,
+      image,
       gamesPlayed,
       totalScore,
     }: LeaderboardQueryRecord) => ({
       rank,
       name,
+      image: image ?? null,
       gamesPlayed,
       totalScore,
     });

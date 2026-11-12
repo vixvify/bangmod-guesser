@@ -49,7 +49,14 @@ jobs:
           NEXT_PUBLIC_API_URL: https://ci.example.invalid
 
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        env:
+          PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: "120000"
+        run: |
+          for attempt in 1 2 3; do
+            npx playwright install --with-deps --only-shell chromium && exit 0
+            if [ "$attempt" -eq 3 ]; then exit 1; fi
+            echo "Chromium installation failed; retrying ($attempt/3)"
+          done
 
       - name: E2E tests
         run: npm run test:e2e

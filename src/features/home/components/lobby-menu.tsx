@@ -45,7 +45,7 @@ export function LobbyMenu() {
   }, [router]);
 
   return (
-    <div className="mx-auto mt-8 w-full max-w-80 motion-safe:animate-home-enter motion-safe:[animation-delay:240ms]">
+    <div className="mx-auto mt-8 w-full max-w-64 sm:max-w-80 motion-safe:animate-home-enter motion-safe:[animation-delay:240ms]">
       <div className="relative -rotate-2 rounded-2xl border border-primary-soft/35 p-1.5">
         <Button
           sound="click"
@@ -53,10 +53,10 @@ export function LobbyMenu() {
           disabled={isStarting || isChecking}
           onClick={handlePlay}
           aria-label="Play Bangmod Guesser"
-          className="min-h-16 w-full"
+          className="min-h-14 w-full sm:min-h-16"
         >
           <PlayArrowRoundedIcon />
-          <span className="font-display text-3xl tracking-widest">PLAY</span>
+          <span className="font-display text-2xl tracking-widest sm:text-3xl">PLAY</span>
         </Button>
       </div>
       {isStarting && <Countdown onComplete={enterGame} />}

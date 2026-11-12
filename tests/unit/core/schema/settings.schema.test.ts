@@ -7,9 +7,8 @@ describe("GameSettingsSchema", () => {
     expect(GameSettingsSchema.parse(DEFAULT_SETTINGS)).toEqual(DEFAULT_SETTINGS);
   });
 
-  it("rejects unsupported image quality and sound levels outside 1–100", () => {
+  it("rejects sound levels outside 1–100", () => {
     expect(GameSettingsSchema.safeParse({
-      imageQuality: "maximum",
       systemSound: 0,
       musicSound: 101,
     }).success).toBe(false);

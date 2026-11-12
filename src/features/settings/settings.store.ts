@@ -18,8 +18,7 @@ export const useSettingsStore = create<SettingsStore>()(
     {
       name: "bangmod-guesser:settings",
       skipHydration: true,
-      partialize: ({ imageQuality, systemSound, musicSound }) => ({
-        imageQuality,
+      partialize: ({ systemSound, musicSound }) => ({
         systemSound,
         musicSound,
       }),

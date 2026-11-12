@@ -31,7 +31,6 @@ describe("game music", () => {
     expect(audio.volume).toBe(0.5);
 
     useSettingsStore.getState().setSettings({
-      imageQuality: "ultra",
       systemSound: 80,
       musicSound: 30,
     });

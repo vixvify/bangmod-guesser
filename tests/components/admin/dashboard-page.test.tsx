@@ -39,9 +39,22 @@ describe("admin dashboard", () => {
     const modal = screen.getByRole("dialog", { name: "รายละเอียดเกม" });
     expect(within(modal).getByRole("table", { name: "คะแนนแต่ละรอบ" }).textContent).toContain("หอสมุด");
     expect(modal.textContent).toContain("3,500");
-    expect(modal.textContent).toContain("ระบบยังไม่มีข้อมูลโบนัสแยกต่างหาก");
+    expect(modal.textContent).toContain("ไม่มีข้อมูลเวลาครบสำหรับคำนวณโบนัส");
     fireEvent.click(within(modal).getByRole("button", { name: "ปิดรายละเอียดเกม" }));
     expect(screen.queryByRole("dialog", { name: "รายละเอียดเกม" })).toBeNull();
+  });
+
+  it("displays the bonus and total in separate cards", async () => {
+    const [game] = dashboardSummary.games.items;
+    getDashboard.mockResolvedValueOnce({
+      ...dashboardSummary,
+      games: { ...dashboardSummary.games, items: [{ ...game, bonusScore: 200 }] },
+    });
+    await renderDashboard();
+    fireEvent.click(screen.getByRole("button", { name: "ดูรายละเอียดเกม game-1" }));
+    const modal = screen.getByRole("dialog", { name: "รายละเอียดเกม" });
+    expect(within(modal).getByText("+200")).toBeTruthy();
+    expect(within(modal).getByText("3,500")).toBeTruthy();
   });
 
   it("validates date range before requesting dashboard data", async () => {

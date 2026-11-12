@@ -9,18 +9,21 @@ function createRepository(): LeaderboardRepository {
         {
           rank: 1,
           name: "Bob",
+          image: null,
           gamesPlayed: 1,
           totalScore: 5000,
         },
         {
           rank: 2,
           name: "Alice",
+          image: null,
           gamesPlayed: 2,
           totalScore: 5000,
         },
         {
           rank: 3,
           name: "Charlie",
+          image: null,
           gamesPlayed: 2,
           totalScore: 5000,
         },
@@ -28,6 +31,7 @@ function createRepository(): LeaderboardRepository {
       myRank: {
         rank: 2,
         name: "Alice",
+        image: null,
         gamesPlayed: 2,
         totalScore: 5000,
       },
@@ -48,18 +52,21 @@ describe("LeaderboardService", () => {
       {
         rank: 1,
         name: "Bob",
+        image: null,
         gamesPlayed: 1,
         totalScore: 5000,
       },
       {
         rank: 2,
         name: "Alice",
+        image: null,
         gamesPlayed: 2,
         totalScore: 5000,
       },
       {
         rank: 3,
         name: "Charlie",
+        image: null,
         gamesPlayed: 2,
         totalScore: 5000,
       },
@@ -68,6 +75,7 @@ describe("LeaderboardService", () => {
     expect(result.myRank).toEqual({
       rank: 2,
       name: "Alice",
+      image: null,
       gamesPlayed: 2,
       totalScore: 5000,
     });
@@ -80,12 +88,14 @@ describe("LeaderboardService", () => {
       entries: Array.from({ length: 10 }, (_, index) => ({
         rank: index + 1,
         name: `Player ${index + 1}`,
+        image: null,
         gamesPlayed: 1,
         totalScore: 5000 - index * 100,
       })),
       myRank: {
         rank: 12,
         name: "Player 12",
+        image: null,
         gamesPlayed: 1,
         totalScore: 3900,
       },
@@ -98,6 +108,7 @@ describe("LeaderboardService", () => {
     expect(result.myRank).toEqual({
       rank: 12,
       name: "Player 12",
+      image: null,
       gamesPlayed: 1,
       totalScore: 3900,
     });

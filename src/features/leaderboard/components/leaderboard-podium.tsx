@@ -1,5 +1,6 @@
 import Avatar from "@mui/material/Avatar";
 import type { LeaderboardEntry } from "@/features/leaderboard/leaderboard";
+import { getProfileImageUrl } from "@/shared/lib/profile-image";
 
 const positionClasses: Record<number, string> = {
   1: "order-1 col-span-2 sm:order-2 sm:col-span-1 sm:-translate-y-5 sm:scale-105 sm:min-h-64",
@@ -41,6 +42,8 @@ export function LeaderboardPodium({ entries }: { entries: LeaderboardEntry[] }) 
             #{entry.rank}
           </span>
           <Avatar
+            src={getProfileImageUrl(entry.image)}
+            alt={entry.name}
             sx={{
               width: entry.rank === 1 ? 80 : 64,
               height: entry.rank === 1 ? 80 : 64,

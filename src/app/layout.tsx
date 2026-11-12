@@ -4,6 +4,7 @@ import { Geist, Geist_Mono, Prompt } from "next/font/google";
 import type { ReactNode } from "react";
 import { Toaster } from "sonner";
 import "./globals.css";
+import { config } from "@/shared/config/runtime";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,8 +23,18 @@ const prompt = Prompt({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(new URL(config.authUrl).origin),
   title: "Bangmod Guesser",
-  description: "เกมทายสถานที่ต่าง ๆ ในมหาวิทยาลัย",
+  description: "เกมทายสถานที่ภายในมหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี วิทยาเขตบางมด",
+  openGraph: {
+    title: "Bangmod Guesser",
+    description: "สำรวจและทายสถานที่ภายในมหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี วิทยาเขตบางมด",
+    type: "website",
+    locale: "th_TH",
+    images: [{ url: "/images/kmutt-bangmod-1.jpg", alt: "มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี วิทยาเขตบางมด" }],
+  },
+  twitter: { card: "summary_large_image" },
+  ...(config.isPreview ? { robots: { index: false, follow: false } } : {}),
 };
 
 export default function RootLayout({

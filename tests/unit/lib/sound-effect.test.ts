@@ -16,7 +16,6 @@ describe("playSoundEffect", () => {
     const { useSettingsStore } = await import("@/features/settings/settings.store");
     const { playSoundEffect } = await import("@/shared/lib/sound-effect");
     useSettingsStore.getState().setSettings({
-      imageQuality: "ultra",
       systemSound: 35,
       musicSound: 50,
     });
@@ -27,7 +26,6 @@ describe("playSoundEffect", () => {
     expect(play).toHaveBeenCalledOnce();
 
     useSettingsStore.getState().setSettings({
-      imageQuality: "ultra",
       systemSound: 80,
       musicSound: 50,
     });

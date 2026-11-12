@@ -11,7 +11,7 @@ describe("settingsStore", () => {
     localStorage.clear();
   });
 
-  it("starts with the default image quality and sound levels", () => {
+  it("starts with the default sound levels", () => {
     expect(useSettingsStore.getState()).toMatchObject(DEFAULT_SETTINGS);
   });
 
@@ -19,7 +19,6 @@ describe("settingsStore", () => {
     const listener = vi.fn();
     const unsubscribe = useSettingsStore.subscribe(listener);
     const nextSettings = {
-      imageQuality: "medium" as const,
       systemSound: 35,
       musicSound: 65,
     };
@@ -34,7 +33,7 @@ describe("settingsStore", () => {
   });
 
   it("restores saved settings from localStorage after a reload", async () => {
-    const saved = { imageQuality: "low" as const, systemSound: 27, musicSound: 64 };
+    const saved = { systemSound: 27, musicSound: 64 };
     useSettingsStore.getState().setSettings(saved);
 
     vi.resetModules();
@@ -42,6 +41,17 @@ describe("settingsStore", () => {
     await reloadedStore.persist.rehydrate();
 
     expect(reloadedStore.getState()).toMatchObject(saved);
+  });
+
+  it("restores sound levels saved by older versions with image quality", async () => {
+    localStorage.setItem("bangmod-guesser:settings", JSON.stringify({
+      state: { imageQuality: "low", systemSound: 27, musicSound: 64 }, version: 0,
+    }));
+    vi.resetModules();
+    const { useSettingsStore: reloadedStore } = await import("@/features/settings/settings.store");
+    await reloadedStore.persist.rehydrate();
+    expect(reloadedStore.getState()).toMatchObject({ systemSound: 27, musicSound: 64 });
+    expect(reloadedStore.getState()).not.toHaveProperty("imageQuality");
   });
 
   it("ignores invalid persisted settings", async () => {

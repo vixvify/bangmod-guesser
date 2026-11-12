@@ -97,18 +97,20 @@ export function DashboardGameDetailsModal({
           </p>
         )}
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl bg-orange-50 px-4 py-3">
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-orange-200 bg-orange-50 px-4 py-4">
+            <div>
             <p className="text-xs text-slate-600">คะแนนโบนัส</p>
-            <p className="text-xl font-bold">
-              {game?.bonusScore == null ? "—" : `+${format(game.bonusScore)}`}
-            </p>
             <p className="text-xs text-slate-500">
               {game?.bonusScore == null ? "ไม่มีข้อมูลเวลาครบสำหรับคำนวณโบนัส" : "คำนวณจากเวลาเล่นรวม"}
             </p>
+            </div>
+            <p className="shrink-0 text-xl font-bold tabular-nums text-orange-700">
+              {game?.bonusScore == null ? "—" : `+${format(game.bonusScore)}`}
+            </p>
           </div>
-          <div className="rounded-xl bg-secondary-dark px-4 py-3 text-white">
-            <p className="text-xs text-slate-300">คะแนนรวม</p>
-            <p className="text-2xl font-bold tabular-nums">
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-orange-300 bg-orange-100 px-4 py-4">
+            <p className="text-sm font-semibold text-slate-700">คะแนนรวม</p>
+            <p className="shrink-0 text-2xl font-bold tabular-nums text-orange-800">
               {game?.totalScore === null || game?.totalScore === undefined
                 ? "—"
                 : format(game.totalScore)}

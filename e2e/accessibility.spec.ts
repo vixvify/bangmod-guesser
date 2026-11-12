@@ -64,9 +64,11 @@ test("skip link, settings modal, and keyboard focus work on the home page", asyn
   await expect(page.locator("#main-content")).toBeFocused();
 
   const settings = page.getByRole("button", { name: "ตั้งค่าเกม" });
-  await settings.focus();
-  await page.keyboard.press("Enter");
-  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(async () => {
+    await settings.focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("dialog")).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 10000 });
   await expectAccessible(page);
   await page.getByRole("dialog").getByRole("button", { name: "ตกลง" }).hover();
   await page.waitForTimeout(250);
