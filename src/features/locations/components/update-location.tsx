@@ -11,6 +11,7 @@ import type { UpdateLocationFormInput } from "@/features/locations/location.sche
 import httpClient, { HttpError } from "@/shared/lib/http";
 import { LocationRoutes } from "@/features/locations/location.routes";
 import { AppRoutes } from "@/shared/routes/routes";
+import { getErrorMessage } from "@/shared/lib/error-message";
 
 export function UpdateLocation({
   location,
@@ -59,7 +60,7 @@ export function UpdateLocation({
         }
       }
 
-      toast.error(LOCATION_MESSAGES.updateFailed);
+      toast.error(getErrorMessage(error, LOCATION_MESSAGES.updateFailed));
     }
   }
 

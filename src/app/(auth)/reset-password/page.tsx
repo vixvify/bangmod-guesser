@@ -13,7 +13,8 @@ import { AUTH_MESSAGES } from "@/features/auth/auth.constants";
 import { ResetPasswordSchema, type ResetPasswordInput } from "@/features/auth/auth.schema";
 import { AppRoutes } from "@/shared/routes/routes";
 import { SessionRoutes } from "@/features/auth/session.routes";
-import httpClient, { HttpError } from "@/shared/lib/http";
+import httpClient from "@/shared/lib/http";
+import { getErrorMessage } from "@/shared/lib/error-message";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -45,9 +46,9 @@ export default function ResetPasswordPage() {
       router.push(AppRoutes.login);
     } catch (error) {
       toast.error(
-        error instanceof HttpError && error.status === undefined
-          ? AUTH_MESSAGES.submit.networkError
-          : AUTH_MESSAGES.submit.passwordResetFailed,
+        getErrorMessage(error, AUTH_MESSAGES.submit.passwordResetFailed, {
+          400: AUTH_MESSAGES.submit.passwordResetFailed,
+        }),
       );
     }
   }

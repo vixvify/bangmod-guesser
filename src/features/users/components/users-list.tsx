@@ -4,6 +4,7 @@ import PeopleOutlineRoundedIcon from "@mui/icons-material/PeopleOutlineRounded";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/shared/lib/error-message";
 import { EditUserModal } from "@/features/users/components/edit-user-modal";
 import {
   UsersFilters,
@@ -81,9 +82,9 @@ export function UsersList({
           "",
           `${AppRoutes.adminUsers}${params.size ? `?${params}` : ""}`,
         );
-      } catch {
+      } catch (error) {
         if (currentRequest !== requestId.current) return;
-        toast.error(USER_MESSAGES.loadFailed);
+        toast.error(getErrorMessage(error, USER_MESSAGES.loadFailed));
         setRole(loadedRole);
         setStatus(loadedStatus);
       }
@@ -116,8 +117,8 @@ export function UsersList({
       setEditingUser(null);
       toast.success(USER_MESSAGES.updateSuccess);
       router.refresh();
-    } catch {
-      toast.error(USER_MESSAGES.updateFailed);
+    } catch (error) {
+      toast.error(getErrorMessage(error, USER_MESSAGES.updateFailed));
     }
   }
 
@@ -133,8 +134,8 @@ export function UsersList({
       } else {
         router.refresh();
       }
-    } catch {
-      toast.error(USER_MESSAGES.deleteFailed);
+    } catch (error) {
+      toast.error(getErrorMessage(error, USER_MESSAGES.deleteFailed));
     } finally {
       setDeleting(false);
     }

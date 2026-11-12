@@ -25,6 +25,7 @@ vi.mock("@/shared/lib/http", () => ({
     status?: number;
     constructor(message: string, status?: number) {
       super(message);
+      this.name = "HttpError";
       this.status = status;
     }
   },
@@ -146,6 +147,15 @@ describe("RegisterPage", () => {
     expect(replace).not.toHaveBeenCalled();
   });
 
+  it("explains when registration is rate limited", async () => {
+    signUpEmail.mockRejectedValue(new HttpError("Too many requests", 429));
+    await renderPage();
+    await fillForm();
+    await submitValidRegistration();
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith("ส่งคำขอบ่อยเกินไป กรุณารอสักครู่แล้วลองอีกครั้ง"));
+    expect(replace).not.toHaveBeenCalled();
+  });
+
   it("shows a network toast when sign-up fails unexpectedly", async () => {
     signUpEmail.mockRejectedValue(new HttpError("Network unavailable"));
     await renderPage();
@@ -153,7 +163,7 @@ describe("RegisterPage", () => {
     await submitValidRegistration();
 
     await waitFor(() => {
-      expect(toastError).toHaveBeenCalledWith("ไม่สามารถเชื่อมต่อได้ กรุณาลองอีกครั้ง");
+      expect(toastError).toHaveBeenCalledWith("ไม่สามารถเชื่อมต่อได้ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองอีกครั้ง");
     });
     expect(replace).not.toHaveBeenCalled();
   });

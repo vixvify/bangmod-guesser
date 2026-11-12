@@ -7,6 +7,9 @@ import { MainLayout } from "@/shared/components/layout/main-layout";
 import { requireAuth } from "@/features/auth/server/auth-check";
 import { hasRole } from "@/shared/lib/role-check";
 import { parseSchema } from "@/shared/lib/validation";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default async function ProfilePage({
   searchParams,

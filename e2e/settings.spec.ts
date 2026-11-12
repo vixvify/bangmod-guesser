@@ -11,14 +11,11 @@ test("keeps confirmed settings after a page reload", async ({ page }) => {
   await page.keyboard.press("ArrowRight");
   await expect(settings.getByText("81%")).toBeVisible();
 
-  await settings.getByRole("combobox", { name: SETTINGS_MESSAGES.imageQuality }).click();
-  await page.getByRole("option", { name: SETTINGS_MESSAGES.qualities.medium }).click();
   await settings.getByRole("button", { name: SETTINGS_MESSAGES.confirm }).click();
 
   await page.reload({ waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: SETTINGS_MESSAGES.title }).click();
 
   await expect(settings.getByText("81%")).toBeVisible();
-  await expect(settings.getByRole("combobox", { name: SETTINGS_MESSAGES.imageQuality }))
-    .toContainText(SETTINGS_MESSAGES.qualities.medium);
+  await expect(settings.getByRole("combobox")).toHaveCount(0);
 });

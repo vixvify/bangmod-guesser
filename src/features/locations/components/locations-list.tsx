@@ -6,6 +6,7 @@ import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/shared/lib/error-message";
 import { LocationsTable } from "@/features/locations/components/locations-table";
 import { Button } from "@/shared/components/ui/button";
 import { ConfirmModal } from "@/shared/components/ui/confirm-modal";
@@ -62,9 +63,9 @@ export function LocationsList({
         setSearch(nextSearch);
         const path = `${AppRoutes.adminLocations}${params.size ? `?${params}` : ""}`;
         window.history.replaceState(window.history.state, "", path);
-      } catch {
+      } catch (error) {
         if (currentRequest !== requestId.current) return;
-        toast.error(LOCATION_MESSAGES.searchFailed);
+        toast.error(getErrorMessage(error, LOCATION_MESSAGES.searchFailed));
         setSearchInput(search);
       }
     }
@@ -91,8 +92,8 @@ export function LocationsList({
       } else {
         router.refresh();
       }
-    } catch {
-      toast.error(LOCATION_MESSAGES.deleteFailed);
+    } catch (error) {
+      toast.error(getErrorMessage(error, LOCATION_MESSAGES.deleteFailed));
     } finally {
       setDeleting(false);
     }

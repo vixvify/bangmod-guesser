@@ -26,7 +26,7 @@ describe("SettingsModal", () => {
     useSettingsStore.persist.clearStorage();
   });
 
-  it("renders the settings modal with title, sliders, select, and action buttons", () => {
+  it("renders the settings modal with sound sliders and action buttons", () => {
     render(<SettingsModal open={true} onClose={vi.fn()} />);
 
     expect(screen.getByRole("dialog")).toBeTruthy();
@@ -34,7 +34,7 @@ describe("SettingsModal", () => {
     expect(screen.getByRole("heading", { name: SETTINGS_MESSAGES.title })).toBeTruthy();
     expect(screen.getByLabelText(SETTINGS_MESSAGES.sfxVolume)).toBeTruthy();
     expect(screen.getByLabelText(SETTINGS_MESSAGES.musicVolume)).toBeTruthy();
-    expect(screen.getByLabelText(SETTINGS_MESSAGES.imageQuality)).toBeTruthy();
+    expect(screen.queryByRole("combobox")).toBeNull();
     expect(screen.getByRole("button", { name: SETTINGS_MESSAGES.cancel })).toBeTruthy();
     expect(screen.getByRole("button", { name: SETTINGS_MESSAGES.confirm })).toBeTruthy();
     expect(screen.getByText("80%")).toBeTruthy();
@@ -88,7 +88,7 @@ describe("SettingsModal", () => {
     expect(handleClose).toHaveBeenCalledTimes(1);
   });
 
-  it("saves the selected quality and sound levels to the store when confirmed", async () => {
+  it("saves sound levels to the store when confirmed", () => {
     const handleClose = vi.fn();
     render(
       <SettingsModal
@@ -101,29 +101,21 @@ describe("SettingsModal", () => {
       key: "ArrowRight",
     });
 
-    const qualitySelect = screen.getByRole("combobox");
-    fireEvent.mouseDown(qualitySelect);
-    const mediumOption = await screen.findByRole("option", {
-      name: SETTINGS_MESSAGES.qualities.medium,
-    });
-    fireEvent.click(mediumOption);
-
     fireEvent.click(screen.getByRole("button", { name: SETTINGS_MESSAGES.confirm }));
 
     expect(useSettingsStore.getState()).toMatchObject({
-      imageQuality: "medium", systemSound: 81, musicSound: 50,
+      systemSound: 81, musicSound: 50,
     });
     expect(handleClose).toHaveBeenCalledTimes(1);
   });
 
   it("shows saved settings when opened in another modal instance", () => {
-    useSettingsStore.getState().setSettings({ imageQuality: "low", systemSound: 42, musicSound: 73 });
+    useSettingsStore.getState().setSettings({ systemSound: 42, musicSound: 73 });
 
     render(<SettingsModal open={true} onClose={vi.fn()} />);
 
     expect(screen.getByText("42%")).toBeTruthy();
     expect(screen.getByText("73%")).toBeTruthy();
-    expect(screen.getByRole("combobox").textContent).toContain(SETTINGS_MESSAGES.qualities.low);
   });
 
   it("calls onClose when the close icon button is clicked", () => {

@@ -6,10 +6,8 @@ import IconButton from "@mui/material/IconButton";
 import Slider from "@mui/material/Slider";
 import { useEffect, useId, useState, type ComponentPropsWithRef } from "react";
 import { Button } from "@/shared/components/ui/button";
-import { Dropdown, type DropdownOption } from "@/shared/components/ui/dropdown";
 import {
   type GameSettings,
-  type ImageQuality,
   SETTINGS_MESSAGES,
 } from "@/features/settings/settings.constants";
 import { useSettingsStore } from "@/features/settings/settings.store";
@@ -51,12 +49,6 @@ const sliderStyles = {
   },
 };
 
-const qualityOptions: DropdownOption<ImageQuality>[] = [
-  { value: "ultra", label: SETTINGS_MESSAGES.qualities.ultra },
-  { value: "medium", label: SETTINGS_MESSAGES.qualities.medium },
-  { value: "low", label: SETTINGS_MESSAGES.qualities.low },
-];
-
 type VolumeControlProps = {
   label: string;
   value: number;
@@ -92,7 +84,7 @@ function VolumeControl({ label, value, onChange }: VolumeControlProps) {
 export function SettingsModal({ open, onClose, soundEnabled = true }: SettingsModalProps) {
   const titleId = useId();
   const savedSettings = useSettingsStore();
-  const settingsKey = `${savedSettings.imageQuality}:${savedSettings.systemSound}:${savedSettings.musicSound}`;
+  const settingsKey = `${savedSettings.systemSound}:${savedSettings.musicSound}`;
 
   useEffect(() => {
     void useSettingsStore.persist.rehydrate();
@@ -199,30 +191,6 @@ function SettingsContent({
           }
         />
 
-        <div className="flex items-center justify-between gap-4">
-          <label
-            htmlFor="image-quality-select"
-            className="text-sm font-semibold text-surface-text sm:text-base"
-          >
-            {SETTINGS_MESSAGES.imageQuality}
-          </label>
-          <div className="w-40 sm:w-48">
-            <Dropdown<ImageQuality>
-              id="image-quality-select"
-              theme="dark"
-              value={settings.imageQuality}
-              options={qualityOptions}
-              onChange={(value) =>
-                setSettings((prev) => ({
-                  ...prev,
-                  imageQuality: value,
-                }))
-              }
-              aria-label={SETTINGS_MESSAGES.imageQuality}
-              className="w-full"
-            />
-          </div>
-        </div>
       </div>
 
       <div className="mt-8 flex justify-end gap-3 pt-2">

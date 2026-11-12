@@ -21,6 +21,7 @@ import { playSoundEffect } from "@/shared/lib/sound-effect";
 import styles from "./navbar.module.css";
 import httpClient from "@/shared/lib/http";
 import { SessionRoutes } from "@/features/auth/session.routes";
+import { getErrorMessage } from "@/shared/lib/error-message";
 
 type NavbarProps = {
   user: User | null;
@@ -49,8 +50,8 @@ export function Navbar({
       setIsLogoutModalOpen(false);
       toast.success(AUTH_MESSAGES.logout.success);
       router.refresh();
-    } catch {
-      toast.error(AUTH_MESSAGES.logout.failed);
+    } catch (error) {
+      toast.error(getErrorMessage(error, AUTH_MESSAGES.logout.failed));
     } finally {
       setIsLoggingOut(false);
     }

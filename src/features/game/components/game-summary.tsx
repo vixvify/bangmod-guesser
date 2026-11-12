@@ -17,6 +17,7 @@ import { GAME_MAX_SCORE } from "@/features/game/game.constants";
 import { GameRoutes } from "@/features/game/game.routes";
 import { httpClient } from "@/shared/lib/http";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/shared/lib/error-message";
 import { formatScore, formatTime, formatTimeForSpeech } from "@/shared/lib/utils";
 import styles from "./game-results.module.css";
 
@@ -35,9 +36,9 @@ export function GameSummary({
     try {
       const { data } = await httpClient.post<{ gameId: string }>(GameRoutes.create);
       router.push(AppRoutes.game(data.gameId));
-    } catch {
+    } catch (error) {
       setIsStarting(false);
-      toast.error("ไม่สามารถเริ่มเกมได้ กรุณาลองอีกครั้ง");
+      toast.error(getErrorMessage(error, "ไม่สามารถเริ่มเกมได้ กรุณาลองอีกครั้ง"));
     }
   }, [router]);
 

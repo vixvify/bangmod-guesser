@@ -24,6 +24,7 @@ describe("LeaderboardRepositoryImpl", () => {
         userId: "user-1",
         rank: 1,
         name: "Alice",
+        image: "https://example.com/alice.jpg",
         gamesPlayed: 2,
         totalScore: 5000,
       },
@@ -50,12 +51,14 @@ describe("LeaderboardRepositoryImpl", () => {
         {
           rank: 1,
           name: "Alice",
+          image: "https://example.com/alice.jpg",
           gamesPlayed: 2,
           totalScore: 5000,
         },
         {
           rank: 2,
           name: "Bob",
+          image: null,
           gamesPlayed: 1,
           totalScore: 4800,
         },
@@ -63,6 +66,7 @@ describe("LeaderboardRepositoryImpl", () => {
       myRank: {
         rank: 12,
         name: "Charlie",
+        image: null,
         gamesPlayed: 3,
         totalScore: 3500,
       },
@@ -74,6 +78,7 @@ describe("LeaderboardRepositoryImpl", () => {
 
     expect(query.join("")).toContain("ROW_NUMBER()");
     expect(query.join("")).toContain("COUNT(g.id)");
+    expect(query.join("")).toContain("u.image");
     expect(query.join("")).toContain('SUM(g."totalScore")');
     expect(query.join("")).toContain("rank <= 10");
     expect(userId).toBe("user-12");
@@ -97,6 +102,7 @@ describe("LeaderboardRepositoryImpl", () => {
         {
           rank: 1,
           name: "Alice",
+          image: null,
           gamesPlayed: 2,
           totalScore: 5000,
         },

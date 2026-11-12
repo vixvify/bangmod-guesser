@@ -79,4 +79,12 @@ describe("httpClient", () => {
       statusCode: undefined,
     });
   });
+
+  it("preserves Retry-After on rate limit responses", async () => {
+    put.mockRejectedValue({
+      message: "Too many requests",
+      response: { status: 429, headers: { "retry-after": "25" }, data: { error: "Too many requests" } },
+    });
+    await expect(httpClient.put("/locations/1", {})).rejects.toMatchObject({ status: 429, retryAfter: 25 });
+  });
 });

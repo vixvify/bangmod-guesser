@@ -13,7 +13,8 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { AUTH_MESSAGES } from "@/features/auth/auth.constants";
 import { LoginSchema, type LoginInput } from "@/features/auth/auth.schema";
-import httpClient, { HttpError } from "@/shared/lib/http";
+import httpClient from "@/shared/lib/http";
+import { getErrorMessage } from "@/shared/lib/error-message";
 import { getAuthRedirect } from "@/features/auth/auth-redirect";
 import { SessionRoutes } from "@/features/auth/session.routes";
 import { AppRoutes } from "@/shared/routes/routes";
@@ -48,9 +49,9 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
       router.replace(redirectTo);
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof HttpError && error.status === undefined
-        ? AUTH_MESSAGES.submit.networkError
-        : AUTH_MESSAGES.submit.loginFailed);
+      toast.error(getErrorMessage(error, AUTH_MESSAGES.submit.loginFailed, {
+        401: AUTH_MESSAGES.submit.loginFailed,
+      }));
     }
   }
 
@@ -80,9 +81,9 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
       });
       window.location.assign(data.url);
     } catch (error) {
-      toast.error(error instanceof HttpError && error.status === undefined
-        ? AUTH_MESSAGES.submit.networkError
-        : AUTH_MESSAGES.submit.googleLoginFailed);
+      toast.error(getErrorMessage(error, AUTH_MESSAGES.submit.googleLoginFailed, {
+        400: AUTH_MESSAGES.submit.googleLoginFailed,
+      }));
     } finally {
       setIsGoogleSubmitting(false);
     }

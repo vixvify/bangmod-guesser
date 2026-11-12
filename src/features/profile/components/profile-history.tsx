@@ -10,6 +10,7 @@ import type { ProfileQueryInput } from "@/features/profile/profile.schema";
 import httpClient from "@/shared/lib/http";
 import { ProfileRoutes } from "@/features/profile/profile.routes";
 import { AppRoutes } from "@/shared/routes/routes";
+import { getErrorMessage } from "@/shared/lib/error-message";
 
 type ProfileHistoryProps = {
   initialProfile: ProfileResult;
@@ -25,7 +26,7 @@ export function ProfileHistory({ initialProfile, initialQuery }: ProfileHistoryP
     endDate: initialQuery.to ?? null,
   });
   const [loading, setLoading] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const request = useRef<AbortController | null>(null);
   const lastRequestedQuery = useRef(initialQuery);
 
@@ -37,7 +38,7 @@ export function ProfileHistory({ initialProfile, initialQuery }: ProfileHistoryP
     request.current = controller;
     lastRequestedQuery.current = nextQuery;
     setLoading(true);
-    setFailed(false);
+    setErrorMessage(null);
 
     const params = new URLSearchParams({ page: String(nextQuery.page) });
     if (nextQuery.from) params.set("from", nextQuery.from);
@@ -52,8 +53,8 @@ export function ProfileHistory({ initialProfile, initialQuery }: ProfileHistoryP
       setProfile(data);
       setQuery(nextQuery);
       window.history.replaceState(window.history.state, "", `${AppRoutes.profile}?${params}`);
-    } catch {
-      if (!controller.signal.aborted) setFailed(true);
+    } catch (error) {
+      if (!controller.signal.aborted) setErrorMessage(getErrorMessage(error, "โหลดประวัติการเล่นไม่สำเร็จ"));
     } finally {
       if (!controller.signal.aborted) setLoading(false);
     }
@@ -105,9 +106,9 @@ export function ProfileHistory({ initialProfile, initialQuery }: ProfileHistoryP
         <p role="status" className="mt-4 py-12 text-center text-surface-muted">
           กำลังโหลดประวัติการเล่น...
         </p>
-      ) : failed ? (
+      ) : errorMessage ? (
         <div role="alert" className="mt-4 rounded-2xl border border-surface-border p-6 text-center text-surface-text">
-          <p>โหลดประวัติการเล่นไม่สำเร็จ</p>
+          <p>{errorMessage}</p>
           <Button
             variant="outline"
             size="small"

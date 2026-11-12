@@ -26,6 +26,7 @@ vi.mock("@/shared/lib/http", () => ({
     status?: number;
     constructor(message: string, status?: number) {
       super(message);
+      this.name = "HttpError";
       this.status = status;
     }
   },
@@ -111,6 +112,13 @@ describe("LoginPage", () => {
         "เข้าสู่ระบบด้วย Google ไม่สำเร็จ กรุณาลองอีกครั้ง",
       );
     });
+  });
+
+  it("explains rate limiting when Google sign-in is requested too often", async () => {
+    signInSocial.mockRejectedValue(new HttpError("Too many requests", 429));
+    await renderPage();
+    fireEvent.click(screen.getByRole("button", { name: "เข้าสู่ระบบด้วย Google" }));
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith("ส่งคำขอบ่อยเกินไป กรุณารอสักครู่แล้วลองอีกครั้ง"));
   });
 
   it("shows a safe error after Google redirects back with an OAuth failure", async () => {
@@ -213,7 +221,7 @@ describe("LoginPage", () => {
     await submitValidLogin();
 
     await waitFor(() => {
-      expect(toastError).toHaveBeenCalledWith("ไม่สามารถเชื่อมต่อได้ กรุณาลองอีกครั้ง");
+      expect(toastError).toHaveBeenCalledWith("ไม่สามารถเชื่อมต่อได้ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองอีกครั้ง");
     });
     expect(replace).not.toHaveBeenCalled();
   });

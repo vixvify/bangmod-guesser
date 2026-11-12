@@ -15,6 +15,7 @@ import type {
 import { useDebounce } from "@/shared/hooks/use-debounce";
 import httpClient from "@/shared/lib/http";
 import { DashboardRoutes } from "@/features/dashboard/dashboard.routes";
+import { getErrorMessage } from "@/shared/lib/error-message";
 
 export function DashboardRecentGames({
   initialGames,
@@ -28,7 +29,7 @@ export function DashboardRecentGames({
   const debouncedSearch = useDebounce(search, 200);
   const [page, setPage] = useState(initialGames.page);
   const [loading, setLoading] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedGame, setSelectedGame] = useState<DashboardGameLog | null>(
     null,
   );
@@ -42,7 +43,7 @@ export function DashboardRecentGames({
     const controller = new AbortController();
     async function loadGames() {
       setLoading(true);
-      setFailed(false);
+      setErrorMessage(null);
       const params = new URLSearchParams({
         startDate: period.startDate,
         endDate: period.endDate,
@@ -56,8 +57,8 @@ export function DashboardRecentGames({
           { signal: controller.signal },
         );
         if (!controller.signal.aborted) setGames(data);
-      } catch {
-        if (!controller.signal.aborted) setFailed(true);
+      } catch (error) {
+        if (!controller.signal.aborted) setErrorMessage(getErrorMessage(error, "โหลดรายการเกมไม่สำเร็จ ลองค้นหาอีกครั้ง"));
       } finally {
         if (!controller.signal.aborted) setLoading(false);
       }
@@ -105,12 +106,12 @@ export function DashboardRecentGames({
         >
           กำลังโหลดเกม...
         </div>
-      ) : failed ? (
+      ) : errorMessage ? (
         <div
           role="alert"
           className="rounded-xl border border-red-200 bg-white p-8 text-center text-red-700"
         >
-          โหลดรายการเกมไม่สำเร็จ ลองค้นหาอีกครั้ง
+          {errorMessage}
         </div>
       ) : games.items.length === 0 ? (
         <EmptyState
@@ -120,7 +121,7 @@ export function DashboardRecentGames({
       ) : (
         <DashboardGamesTable games={games.items} onView={setSelectedGame} />
       )}
-      {!loading && !failed && games.total > 0 && (
+      {!loading && !errorMessage && games.total > 0 && (
         <ListPagination
           totalItems={games.total}
           pageSize={games.pageSize}

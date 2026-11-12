@@ -148,6 +148,9 @@ export const config = {
   get isVercel(): boolean {
     return process.env.VERCEL === "1";
   },
+  get isPreview(): boolean {
+    return process.env.VERCEL_ENV === "preview";
+  },
   get apiUrl() {
     return getApiUrl();
   },

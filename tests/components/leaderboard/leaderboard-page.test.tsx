@@ -32,10 +32,11 @@ describe("LeaderboardPage", () => {
       entries: Array.from({ length: 10 }, (_, index) => ({
         rank: index + 1,
         name: `Player ${index + 1}`,
+        image: null,
         gamesPlayed: 10 - index,
         totalScore: 10000 - index * 100,
       })),
-      myRank: { rank: 12, name: "KMUTT Student", gamesPlayed: 3, totalScore: 2500 },
+      myRank: { rank: 12, name: "KMUTT Student", image: null, gamesPlayed: 3, totalScore: 2500 },
     });
 
     const markup = renderToStaticMarkup(await LeaderboardPage());

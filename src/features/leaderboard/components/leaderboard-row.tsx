@@ -1,6 +1,7 @@
 import Avatar from "@mui/material/Avatar";
 import { Button } from "@/shared/components/ui/button";
 import type { LeaderboardEntry } from "@/features/leaderboard/leaderboard";
+import { getProfileImageUrl } from "@/shared/lib/profile-image";
 
 type LeaderboardRowProps = {
   entry: LeaderboardEntry;
@@ -22,6 +23,8 @@ export function LeaderboardRow({ entry, current = false }: LeaderboardRowProps) 
         {entry.rank}
       </span>
       <Avatar
+        src={getProfileImageUrl(entry.image)}
+        alt={entry.name}
         sx={{
           width: 40,
           height: 40,
