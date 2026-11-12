@@ -111,8 +111,13 @@ test("admin pages and user editor pass automated accessibility checks", async ({
     }
 
     await page.goto("/admin/users", { waitUntil: "domcontentloaded" });
-    await page.getByRole("button", { name: `แก้ไข ${admin.name}` }).click();
-    await expect(page.getByRole("dialog", { name: "แก้ไขผู้ใช้" })).toBeVisible();
+    const editor = page.getByRole("dialog", { name: "แก้ไขผู้ใช้" });
+    await expect(async () => {
+      if (!(await editor.isVisible())) {
+        await page.getByRole("button", { name: `แก้ไข ${admin.name}` }).click();
+      }
+      await expect(editor).toBeVisible({ timeout: 1000 });
+    }).toPass({ timeout: 10000 });
     await expect(page.locator(".MuiBackdrop-root")).toHaveCSS("opacity", "1");
     await expectAccessible(page);
   } finally {

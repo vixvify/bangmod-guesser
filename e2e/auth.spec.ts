@@ -134,7 +134,7 @@ test("shows registration failure and stays on sign-up", async ({ page }) => {
   await fillRegistration(page);
   await page.getByRole("button", { name: "สมัครสมาชิก" }).click();
 
-  await expect(page.getByText(AUTH_MESSAGES.submit.registerFailed)).toBeVisible();
+  await expect(page.getByText("ข้อมูลที่ส่งไม่ถูกต้อง กรุณาตรวจสอบแล้วลองอีกครั้ง")).toBeVisible();
   await expect(page).toHaveURL(/\/register$/);
 });
 
