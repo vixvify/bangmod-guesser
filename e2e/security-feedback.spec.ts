@@ -6,7 +6,7 @@ test("shows the rate limit retry delay when requesting a password reset", async 
     headers: { "retry-after": "15" },
     json: { error: "Too many requests", status: 429, statusCode: "ERROR" },
   }));
-  await page.goto("/forgot-password", { waitUntil: "domcontentloaded" });
+  await page.goto("/forgot-password", { waitUntil: "networkidle" });
   await page.getByRole("textbox", { name: "อีเมล" }).fill("player@example.test");
   await page.getByRole("button", { name: "ขอลิงก์เปลี่ยนรหัสผ่าน" }).click();
   await expect(page.getByText("ส่งคำขอบ่อยเกินไป กรุณารอ 15 วินาทีแล้วลองอีกครั้ง")).toBeVisible();
