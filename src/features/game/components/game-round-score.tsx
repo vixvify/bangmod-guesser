@@ -26,6 +26,9 @@ type GameRoundScoreProps = {
   totalRounds: number;
   accumulatedScore: number;
   imageUrl?: string | null;
+  nextReady: boolean;
+  nextError: string | null;
+  onRetryNext: () => void;
 };
 
 export function GameRoundScore({
@@ -34,6 +37,9 @@ export function GameRoundScore({
   totalRounds,
   accumulatedScore,
   imageUrl,
+  nextReady,
+  nextError,
+  onRetryNext,
 }: GameRoundScoreProps) {
   const router = useRouter();
   const [showInfo, setShowInfo] = useState(false);
@@ -132,19 +138,15 @@ export function GameRoundScore({
           </div>
         </div>
         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <Button
-            href={
-              isLastRound
-                ? AppRoutes.gameSummary(gameId)
-                : AppRoutes.game(gameId)
-            }
-            sound="accept"
-            className="sm:min-w-64"
-          >
-            {isLastRound ? MESSAGES.summary : MESSAGES.nextRound}
-            <ArrowForwardRoundedIcon />
-          </Button>
+          {isLastRound || nextReady ? (
+            <Button href={isLastRound ? AppRoutes.gameSummary(gameId) : AppRoutes.game(gameId)} sound="accept" className="sm:min-w-64">
+              {isLastRound ? MESSAGES.summary : MESSAGES.nextRound}<ArrowForwardRoundedIcon />
+            </Button>
+          ) : (
+            <Button disabled className="sm:min-w-64">{MESSAGES.nextRound}<ArrowForwardRoundedIcon /></Button>
+          )}
         </div>
+        {!isLastRound && !nextReady && (nextError ? <div role="alert" className="mt-3 text-right text-surface-text"><p>{nextError}</p><Button onClick={onRetryNext}>ลองอีกครั้ง</Button></div> : <p role="status" className="mt-3 text-right text-surface-muted">กำลังโหลดรูปของรอบถัดไป…</p>)}
       </article>
       <LocationInfoModal
         location={result.location}

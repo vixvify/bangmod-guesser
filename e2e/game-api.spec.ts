@@ -24,8 +24,15 @@ test("an authenticated player completes five persisted rounds and reads their su
       const currentResponse = await page.request.get(`${url}/current-round`);
       const current = await currentResponse.json();
       expect(currentResponse.status()).toBe(200);
-      expect(current.data).toEqual({ questionNumber: question, imageUrl: selected.rounds[question - 1].locationImage?.imageUrl, deadlineAt: expect.any(String) });
+      expect(current.data).toEqual({ questionNumber: question, imageUrl: selected.rounds[question - 1].locationImage?.imageUrl, deadlineAt: null });
       expect(await (await page.request.get(`${url}/current-round`)).json()).toEqual(current);
+      const roundBeforeStart = await prisma.gameRound.findFirstOrThrow({ where: { gameId, questionNumber: question } });
+      expect(roundBeforeStart.startedAt).toBeNull();
+      const startedResponse = await page.request.post(`${url}/current-round`, { data: { questionNumber: question } });
+      expect(startedResponse.status()).toBe(200);
+      const started = await startedResponse.json();
+      expect(started.data).toEqual({ ...current.data, deadlineAt: expect.any(String) });
+      expect(await (await page.request.get(`${url}/current-round`)).json()).toEqual(started);
       const location = selected.rounds[question - 1].location;
       const data = { guessedLatitude: location.latitude, guessedLongitude: location.longitude };
       const guesses = await Promise.all([page.request.post(`${url}/rounds/${question}/guess`, { data }), page.request.post(`${url}/rounds/${question}/guess`, { data })]);

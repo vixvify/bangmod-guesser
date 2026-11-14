@@ -1,6 +1,5 @@
 "use client";
 
-import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import ReplayRoundedIcon from "@mui/icons-material/ReplayRounded";
@@ -10,14 +9,12 @@ import { GameLayout } from "@/features/game/components/game-layout";
 import { GameScoreReveal } from "./game-score-reveal";
 import { Button } from "@/shared/components/ui/button";
 import { Countdown } from "@/shared/components/ui/countdown";
+import { useStartGame } from "@/features/game/hooks/use-start-game";
+import { GameLoadingOverlay } from "@/features/game/components/game-loading-overlay";
 import { AppRoutes } from "@/shared/routes/routes";
 import { GAME_RESULT_MESSAGES as MESSAGES } from "@/features/game/game-result.constants";
 import type { GameSummaryResult } from "@/features/game/game";
 import { GAME_MAX_SCORE } from "@/features/game/game.constants";
-import { GameRoutes } from "@/features/game/game.routes";
-import { httpClient } from "@/shared/lib/http";
-import { toast } from "sonner";
-import { getErrorMessage } from "@/shared/lib/error-message";
 import { formatScore, formatTime, formatTimeForSpeech } from "@/shared/lib/utils";
 import styles from "./game-results.module.css";
 
@@ -29,18 +26,8 @@ export function GameSummary({
   summary: GameSummaryResult;
 }) {
   const router = useRouter();
-  const [isStarting, setIsStarting] = useState(false);
+  const { loading, countingDown, error, prepare, start } = useStartGame();
   const totalSeconds = summary.totalTimeSeconds;
-
-  const enterGame = useCallback(async () => {
-    try {
-      const { data } = await httpClient.post<{ gameId: string }>(GameRoutes.create);
-      router.push(AppRoutes.game(data.gameId));
-    } catch (error) {
-      setIsStarting(false);
-      toast.error(getErrorMessage(error, "ไม่สามารถเริ่มเกมได้ กรุณาลองอีกครั้ง"));
-    }
-  }, [router]);
 
   return (
     <GameLayout scrollable onExit={() => router.push(AppRoutes.home)}>
@@ -90,17 +77,19 @@ export function GameSummary({
             </Button>
             <Button
               sound="click"
-              disabled={isStarting}
-              onClick={() => setIsStarting(true)}
+              disabled={loading || countingDown}
+              onClick={() => void prepare()}
               className="flex-1"
             >
               <ReplayRoundedIcon />
               {MESSAGES.replay}
             </Button>
           </div>
+          {error && <div role="alert" className="mt-3 text-center text-surface-text"><p>{error}</p><Button onClick={() => void prepare()}>ลองอีกครั้ง</Button></div>}
         </div>
       </article>
-      {isStarting && <Countdown onComplete={enterGame} />}
+      {loading && <GameLoadingOverlay />}
+      {countingDown && <Countdown onComplete={start} />}
     </GameLayout>
   );
 }
