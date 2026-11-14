@@ -4,7 +4,7 @@ import { mockGameApi } from "./helpers/mock-game";
 
 test.beforeEach(async ({ page }, testInfo) => {
   await signInGamePlayer(page, testInfo);
-  await mockGameApi(page);
+  await mockGameApi(page, 3);
 });
 
 for (const viewport of [
