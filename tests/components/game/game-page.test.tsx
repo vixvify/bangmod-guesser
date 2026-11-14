@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render, screen, within, waitFor } from "@testing-li
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GAME_MESSAGES } from "@/features/game/game.constants";
 
+vi.mock("@/features/game/game-image", () => ({ preloadGameImage: vi.fn().mockResolvedValue(undefined) }));
 const push = vi.fn();
 const api = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn() }));
 const toastError = vi.hoisted(() => vi.fn());
@@ -52,10 +53,12 @@ vi.mock("next/dynamic", () => ({
 }));
 
 import { GameSession } from "@/features/game/components/game-session";
+import { preloadGameImage } from "@/features/game/game-image";
 import { AppRoutes } from "@/shared/routes/routes";
 
 describe("GameSession", () => {
   beforeEach(() => {
+    vi.mocked(preloadGameImage).mockResolvedValue(undefined);
     api.get.mockResolvedValue({ data: { questionNumber: 1, imageUrl: "/images/kmutt-bangmod-1.jpg", deadlineAt: new Date(Date.now() + 40000).toISOString() } });
     api.post.mockResolvedValue({ data: {} });
   });
@@ -74,6 +77,19 @@ describe("GameSession", () => {
     expect(screen.getByText("1")).toBeTruthy();
     expect(screen.getByRole("timer")).toBeTruthy();
     expect(screen.getByRole("button", { name: "ส่งคำตอบ" })).toBeTruthy();
+  });
+
+  it("starts the round only after its image is loaded", async () => {
+    let finishLoading!: () => void;
+    vi.mocked(preloadGameImage).mockReturnValueOnce(new Promise<void>((resolve) => { finishLoading = resolve; }));
+    api.get.mockResolvedValueOnce({ data: { questionNumber: 1, imageUrl: "/question.jpg", deadlineAt: null } });
+    api.post.mockResolvedValueOnce({ data: { questionNumber: 1, imageUrl: "/question.jpg", deadlineAt: new Date(Date.now() + 40000).toISOString() } });
+    render(<GameSession gameId="test-game" />);
+    await waitFor(() => expect(preloadGameImage).toHaveBeenCalledWith("/question.jpg"));
+    expect(api.post).not.toHaveBeenCalled();
+    finishLoading();
+    await waitFor(() => expect(api.post).toHaveBeenCalledWith("/games/test-game/current-round", { questionNumber: 1 }));
+    expect(await screen.findByRole("timer")).toBeTruthy();
   });
 
   it("disables the submit button before any map marker is placed", async () => {
