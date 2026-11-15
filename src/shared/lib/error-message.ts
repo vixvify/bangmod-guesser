@@ -1,6 +1,7 @@
 type HttpFailure = {
   name: "HttpError";
   status?: number;
+  statusCode?: string;
   retryAfter?: number;
 };
 
@@ -10,6 +11,10 @@ function isHttpFailure(error: unknown): error is HttpFailure {
 
 export function getHttpErrorStatus(error: unknown): number | undefined {
   return isHttpFailure(error) ? error.status : undefined;
+}
+
+export function getHttpErrorCode(error: unknown): string | undefined {
+  return isHttpFailure(error) ? error.statusCode : undefined;
 }
 
 export function getErrorMessage(

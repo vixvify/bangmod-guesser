@@ -144,8 +144,13 @@ describe("GameRepositoryImpl.saveGuess", () => {
   });
   it("cannot submit after exit wins the game lock", async () => {
     updateMany.mockResolvedValue({count:0});
-    await expect(repository.saveGuess(input)).rejects.toMatchObject({status:409});
+    await expect(repository.saveGuess(input)).rejects.toMatchObject({status:409, code:"GAME_ENDED"});
     expect(roundUpdateMany).not.toHaveBeenCalled();
+  });
+  it("does not classify a completed game as an interrupted game", async () => {
+    updateMany.mockResolvedValue({count:0});
+    findUnique.mockResolvedValue({status:"COMPLETED"});
+    await expect(repository.saveGuess(input)).rejects.toMatchObject({status:409, code:undefined});
   });
   it("only records a timeout once the persisted server deadline has passed", async () => {
     findFirst.mockResolvedValue({ questionNumber: 5 });

@@ -6,7 +6,14 @@ export const GAME_MESSAGES = {
     confirm: "ออกจากเกม",
     cancel: "เล่นต่อ",
   },
+  ended: {
+    title: "เกมนี้สิ้นสุดแล้ว",
+    description: "เกมนี้อาจถูกจบหรือมีการเริ่มเกมใหม่ในแท็บอื่น กรุณากลับหน้าแรกเพื่อเล่นต่อ",
+    back: "กลับหน้าแรก",
+  },
 } as const;
+
+export const GAME_ERROR_CODES = { ended: "GAME_ENDED" } as const;
 
 export const GAME_DEFAULTS = {
   roundDurationSeconds: 40,

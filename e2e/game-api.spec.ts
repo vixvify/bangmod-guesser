@@ -66,11 +66,20 @@ test("two sessions share one game, submit one answer per round, and read the sum
     expect(nextGame.status()).toBe(201);
     const nextGameId: string = (await nextGame.json()).data.gameId;
     extraGameIds.push(nextGameId);
+    await page.route("https://example.test/**", (route) => route.fulfill({ path: "public/images/kmutt-bangmod-1.jpg", contentType: "image/jpeg" }));
+    await page.goto(`/game/${nextGameId}`, { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("timer")).toBeVisible();
     const replacement = await secondPage.request.post("/api/games", { data: { replaceGameId: nextGameId } });
     expect(replacement.status()).toBe(201);
     extraGameIds.push((await replacement.json()).data.gameId);
     expect(await prisma.game.findUniqueOrThrow({ where: { id: nextGameId } })).toMatchObject({ status: "INCOMPLETE" });
     expect(await prisma.game.count({ where: { userId: selected.userId, status: "PLAYING" } })).toBe(1);
+    await page.getByRole("button", { name: "ปักหมุดกลางแผนที่" }).click();
+    await page.getByRole("button", { name: "ส่งคำตอบ" }).click();
+    const ended = page.getByRole("dialog", { name: "เกมนี้สิ้นสุดแล้ว" });
+    await expect(ended).toBeVisible();
+    await ended.getByRole("button", { name: "กลับหน้าแรก" }).click();
+    await expect(page).toHaveURL(/\/$/);
   }
   finally {
     await secondContext.close();

@@ -144,6 +144,26 @@ describe("GameSession", () => {
     expect(push).toHaveBeenCalledWith(AppRoutes.gameRoundScore("test-game", 1));
   });
 
+  it("explains when the game has ended and lets the player return home", async () => {
+    api.post.mockRejectedValueOnce(Object.assign(new Error("ended"), { name: "HttpError", status: 409, statusCode: "GAME_ENDED" }));
+    render(<GameSession gameId="test-game" />);
+    await screen.findByRole("button", { name: "ส่งคำตอบ" });
+    fireEvent.click(screen.getByTestId("mock-map"));
+    fireEvent.click(screen.getByRole("button", { name: "ส่งคำตอบ" }));
+    const dialog = await screen.findByRole("dialog", { name: "เกมนี้สิ้นสุดแล้ว" });
+    expect(within(dialog).getByText(/แท็บอื่น/)).toBeTruthy();
+    expect(api.get).not.toHaveBeenCalledWith(expect.stringContaining("/result"));
+    fireEvent.click(within(dialog).getByRole("button", { name: "กลับหน้าแรก" }));
+    expect(push).toHaveBeenCalledWith(AppRoutes.home);
+  });
+
+  it("shows the ended message when opening an interrupted game", async () => {
+    api.get.mockRejectedValueOnce(Object.assign(new Error("ended"), { name: "HttpError", status: 409, statusCode: "GAME_ENDED" }));
+    render(<GameSession gameId="test-game" />);
+    expect(await screen.findByRole("dialog", { name: "เกมนี้สิ้นสุดแล้ว" })).toBeTruthy();
+    expect(api.post).not.toHaveBeenCalled();
+  });
+
   it("shows rate limiting without trying to recover a result that was not submitted", async () => {
     const error = Object.assign(new Error("limited"), { name: "HttpError", status: 429, retryAfter: 10 });
     api.post.mockRejectedValueOnce(error);

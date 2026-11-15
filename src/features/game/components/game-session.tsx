@@ -7,9 +7,10 @@ import { GameLayout } from "./game-layout";
 import { GameTimer } from "./game-timer";
 import { GameRound } from "./game-round";
 import { GameImageViewer } from "./game-image-viewer";
+import { GameEndedModal } from "./game-ended-modal";
 import { ConfirmModal } from "@/shared/components/ui/confirm-modal";
 import { Button } from "@/shared/components/ui/button";
-import { GAME_DEFAULTS, GAME_MESSAGES } from "@/features/game/game.constants";
+import { GAME_DEFAULTS, GAME_ERROR_CODES, GAME_MESSAGES } from "@/features/game/game.constants";
 import type { CurrentGameRound, GameGuessResult } from "@/features/game/game";
 import type { GuessInput } from "@/features/game/game.schema";
 import { GameRoutes } from "@/features/game/game.routes";
@@ -20,6 +21,7 @@ import { AppRoutes } from "@/shared/routes/routes";
 import {
   getErrorMessage,
   getHttpErrorStatus,
+  getHttpErrorCode,
 } from "@/shared/lib/error-message";
 import { preloadGameImage } from "@/features/game/game-image";
 
@@ -37,6 +39,7 @@ export function GameSession({ gameId }: { gameId: string }) {
   const [timeUp, setTimeUp] = useState(false);
   const [exitOpen, setExitOpen] = useState(false);
   const [exiting, setExiting] = useState(false);
+  const [gameEnded, setGameEnded] = useState(false);
   const submittingRef = useRef(false);
   const { cancelBrowserBack, confirmBrowserBack } = useUnsavedChangesGuard(
     true,
@@ -62,7 +65,9 @@ export function GameSession({ gameId }: { gameId: string }) {
             ).data;
         if (!cancelled) setRound(started);
       } catch (error) {
-        if (!cancelled)
+        if (!cancelled && getHttpErrorCode(error) === GAME_ERROR_CODES.ended) {
+          setGameEnded(true);
+        } else if (!cancelled)
           setLoadError(
             getErrorMessage(
               error,
@@ -79,7 +84,7 @@ export function GameSession({ gameId }: { gameId: string }) {
 
   const submit = useCallback(
     async (input: GuessInput) => {
-      if (!round || submittingRef.current) return;
+      if (!round || submittingRef.current || gameEnded) return;
       submittingRef.current = true;
       setSubmitting(true);
       setSubmitFailed(false);
@@ -90,6 +95,7 @@ export function GameSession({ gameId }: { gameId: string }) {
             input,
           );
         } catch (error) {
+          if (getHttpErrorCode(error) === GAME_ERROR_CODES.ended) throw error;
           const status = getHttpErrorStatus(error);
           if (status !== undefined && status < 500 && status !== 409)
             throw error;
@@ -107,15 +113,17 @@ export function GameSession({ gameId }: { gameId: string }) {
         }
         router.push(AppRoutes.gameRoundScore(gameId, round.questionNumber));
       } catch (error) {
-        setSubmitFailed(true);
-        toast.error(
-          getErrorMessage(error, "ส่งคำตอบไม่สำเร็จ กรุณาลองอีกครั้ง"),
-        );
+        if (getHttpErrorCode(error) === GAME_ERROR_CODES.ended) {
+          setGameEnded(true);
+        } else {
+          setSubmitFailed(true);
+          toast.error(getErrorMessage(error, "ส่งคำตอบไม่สำเร็จ กรุณาลองอีกครั้ง"));
+        }
         submittingRef.current = false;
         setSubmitting(false);
       }
     },
-    [gameId, round, router],
+    [gameEnded, gameId, round, router],
   );
 
   const handleTimeUp = useCallback(() => {
@@ -170,7 +178,7 @@ export function GameSession({ gameId }: { gameId: string }) {
                   guessedLongitude: marker?.lng ?? null,
                 })
               }
-              isSubmitDisabled={!marker || submitting || timeUp}
+              isSubmitDisabled={!marker || submitting || timeUp || gameEnded}
             />
             {submitFailed && (
               <Button
@@ -224,6 +232,7 @@ export function GameSession({ gameId }: { gameId: string }) {
           setExitOpen(false);
         }}
       />
+      <GameEndedModal open={gameEnded} onBack={() => router.push(AppRoutes.home)} />
     </>
   );
 }

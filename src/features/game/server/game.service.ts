@@ -8,7 +8,7 @@ import type {
 } from "../game";
 import type { CreateGameInput, GuessInput } from "../game.schema";
 import type { GameRepository } from "./game.repository.port";
-import { GAME_DEFAULTS, GAME_ROUND_COUNT } from "../game.constants";
+import { GAME_DEFAULTS, GAME_ERROR_CODES, GAME_ROUND_COUNT } from "../game.constants";
 import {
   calculateRoundScore,
   calculateGameSummary,
@@ -175,6 +175,8 @@ export class GameService {
   }
 
   private pendingRound(game: GamePlayRecord) {
+    if (game.status === "INCOMPLETE")
+      throw new AppError("Game has ended", 409, GAME_ERROR_CODES.ended);
     if (game.status !== "PLAYING")
       throw new AppError("Game is no longer playing", 409);
     const round = game.rounds.find((round) => round.status === "PENDING");

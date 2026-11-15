@@ -11,7 +11,7 @@ import {
 } from "../../../../prisma/types/game";
 import type { NewGameRound, SaveGameGuess } from "../game";
 import { AppError } from "@/shared/errors/app.error";
-import { GAME_DEFAULTS } from "../game.constants";
+import { GAME_DEFAULTS, GAME_ERROR_CODES } from "../game.constants";
 
 export class GameRepositoryImpl implements GameRepository {
   async saveGuess(input: SaveGameGuess): Promise<void> {
@@ -73,8 +73,12 @@ export class GameRepositoryImpl implements GameRepository {
       where: { id, userId, status: "PLAYING" },
       data: { status: "PLAYING" },
     });
-    if (result.count !== 1)
+    if (result.count !== 1) {
+      const game = await transaction.game.findUnique({ where: { id, userId }, select: { status: true } });
+      if (game?.status === "INCOMPLETE")
+        throw new AppError("Game has ended", 409, GAME_ERROR_CODES.ended);
       throw new AppError("Game is no longer playing", 409);
+    }
   }
 
   async openRound(
