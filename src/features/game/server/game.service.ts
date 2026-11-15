@@ -186,9 +186,14 @@ export class GameService {
   async currentRound(
     id: string,
     userId: string,
-    now = new Date(),
   ): Promise<CurrentGameRound> {
     const round = this.pendingRound(await this.ownedGame(id, userId));
+    return GameFactory.toCurrentRound(round);
+  }
+
+  async startRound(id: string, userId: string, questionNumber: number, now = new Date()): Promise<CurrentGameRound> {
+    const round = this.pendingRound(await this.ownedGame(id, userId));
+    if (round.questionNumber !== questionNumber) throw new AppError("Current round changed; please retry", 409);
     const opened = await this.gameRepository.openRound(
       id,
       userId,

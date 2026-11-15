@@ -17,62 +17,103 @@ import { useUnsavedChangesGuard } from "@/shared/hooks/use-unsaved-changes-guard
 import { useGameMusic } from "@/features/game/hooks/use-game-music";
 import { httpClient } from "@/shared/lib/http";
 import { AppRoutes } from "@/shared/routes/routes";
-import { getErrorMessage, getHttpErrorStatus } from "@/shared/lib/error-message";
+import {
+  getErrorMessage,
+  getHttpErrorStatus,
+} from "@/shared/lib/error-message";
+import { preloadGameImage } from "@/features/game/game-image";
 
 export function GameSession({ gameId }: { gameId: string }) {
   useGameMusic();
   const router = useRouter();
   const [round, setRound] = useState<CurrentGameRound | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [marker, setMarker] = useState<{ lat: number; lng: number } | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [marker, setMarker] = useState<{ lat: number; lng: number } | null>(
+    null,
+  );
   const [submitting, setSubmitting] = useState(false);
   const [submitFailed, setSubmitFailed] = useState(false);
   const [timeUp, setTimeUp] = useState(false);
   const [exitOpen, setExitOpen] = useState(false);
   const [exiting, setExiting] = useState(false);
   const submittingRef = useRef(false);
-  const { cancelBrowserBack, confirmBrowserBack } = useUnsavedChangesGuard(true, () => setExitOpen(true));
+  const { cancelBrowserBack, confirmBrowserBack } = useUnsavedChangesGuard(
+    true,
+    () => setExitOpen(true),
+  );
 
   useEffect(() => {
     let cancelled = false;
     async function loadRound() {
       try {
-        const { data } = await httpClient.get<CurrentGameRound>(GameRoutes.currentRound(gameId));
-        if (!cancelled) setRound(data);
+        const { data } = await httpClient.get<CurrentGameRound>(
+          GameRoutes.currentRound(gameId),
+        );
+        await preloadGameImage(data.imageUrl);
+        if (cancelled) return;
+        const started = data.deadlineAt
+          ? data
+          : (
+              await httpClient.post<CurrentGameRound>(
+                GameRoutes.currentRound(gameId),
+                { questionNumber: data.questionNumber },
+              )
+            ).data;
+        if (!cancelled) setRound(started);
       } catch (error) {
-        if (!cancelled) setLoadError(getErrorMessage(error, "ไม่สามารถโหลดรอบเกมได้ กรุณากลับหน้าแรกแล้วลองอีกครั้ง"));
+        if (!cancelled)
+          setLoadError(
+            getErrorMessage(
+              error,
+              "ไม่สามารถโหลดรอบเกมได้ กรุณากลับหน้าแรกแล้วลองอีกครั้ง",
+            ),
+          );
       }
     }
     void loadRound();
-    return () => { cancelled = true; };
-  }, [gameId]);
+    return () => {
+      cancelled = true;
+    };
+  }, [gameId, loadAttempt]);
 
-  const submit = useCallback(async (input: GuessInput) => {
-    if (!round || submittingRef.current) return;
-    submittingRef.current = true;
-    setSubmitting(true);
-    setSubmitFailed(false);
-    try {
+  const submit = useCallback(
+    async (input: GuessInput) => {
+      if (!round || submittingRef.current) return;
+      submittingRef.current = true;
+      setSubmitting(true);
+      setSubmitFailed(false);
       try {
-        await httpClient.post<GameGuessResult>(GameRoutes.guess(gameId, round.questionNumber), input);
-      } catch (error) {
-        const status = getHttpErrorStatus(error);
-        if (status !== undefined && status < 500 && status !== 409) throw error;
         try {
-          await httpClient.get<GameGuessResult>(GameRoutes.roundResult(gameId, round.questionNumber));
-        } catch (recoveryError) {
-          if (getHttpErrorStatus(recoveryError) === 429) throw recoveryError;
-          throw error;
+          await httpClient.post<GameGuessResult>(
+            GameRoutes.guess(gameId, round.questionNumber),
+            input,
+          );
+        } catch (error) {
+          const status = getHttpErrorStatus(error);
+          if (status !== undefined && status < 500 && status !== 409)
+            throw error;
+          try {
+            await httpClient.get<GameGuessResult>(
+              GameRoutes.roundResult(gameId, round.questionNumber),
+            );
+          } catch (recoveryError) {
+            if (getHttpErrorStatus(recoveryError) === 429) throw recoveryError;
+            throw error;
+          }
         }
+        router.push(AppRoutes.gameRoundScore(gameId, round.questionNumber));
+      } catch (error) {
+        setSubmitFailed(true);
+        toast.error(
+          getErrorMessage(error, "ส่งคำตอบไม่สำเร็จ กรุณาลองอีกครั้ง"),
+        );
+        submittingRef.current = false;
+        setSubmitting(false);
       }
-      router.push(AppRoutes.gameRoundScore(gameId, round.questionNumber));
-    } catch (error) {
-      setSubmitFailed(true);
-      toast.error(getErrorMessage(error, "ส่งคำตอบไม่สำเร็จ กรุณาลองอีกครั้ง"));
-      submittingRef.current = false;
-      setSubmitting(false);
-    }
-  }, [gameId, round, router]);
+    },
+    [gameId, round, router],
+  );
 
   const handleTimeUp = useCallback(() => {
     setTimeUp(true);
@@ -84,9 +125,12 @@ export function GameSession({ gameId }: { gameId: string }) {
     try {
       await httpClient.post(GameRoutes.exit(gameId));
       setExitOpen(false);
-      if (!confirmBrowserBack(() => router.push(AppRoutes.home))) router.push(AppRoutes.home);
+      if (!confirmBrowserBack(() => router.push(AppRoutes.home)))
+        router.push(AppRoutes.home);
     } catch (error) {
-      toast.error(getErrorMessage(error, "ออกจากเกมไม่สำเร็จ กรุณาลองอีกครั้ง"));
+      toast.error(
+        getErrorMessage(error, "ออกจากเกมไม่สำเร็จ กรุณาลองอีกครั้ง"),
+      );
     } finally {
       setExiting(false);
     }
@@ -96,29 +140,87 @@ export function GameSession({ gameId }: { gameId: string }) {
     <>
       <GameLayout
         onExit={() => setExitOpen(true)}
-        headerCenter={round && <div className="flex flex-wrap items-center justify-center gap-2">
-          <GameRound round={round.questionNumber} />
-          <GameTimer initialSeconds={GAME_DEFAULTS.roundDurationSeconds} deadlineAt={round.deadlineAt} onTimeUp={handleTimeUp} />
-        </div>}
+        headerCenter={
+          round?.deadlineAt && (
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <GameRound round={round.questionNumber} />
+              <GameTimer
+                initialSeconds={GAME_DEFAULTS.roundDurationSeconds}
+                deadlineAt={round.deadlineAt}
+                onTimeUp={handleTimeUp}
+              />
+            </div>
+          )
+        }
       >
         <h1 className="sr-only">ทายสถานที่</h1>
-        {round ? <>
-          <GameImageViewer imageSrc={round.imageUrl} imageAlt="สถานที่ในมหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี"
-            markerPosition={marker} onMapClick={(lat, lng) => setMarker({ lat, lng })}
-            onSubmit={() => void submit({ guessedLatitude: marker?.lat ?? null, guessedLongitude: marker?.lng ?? null })}
-            isSubmitDisabled={!marker || submitting || timeUp} />
-          {submitFailed && <Button onClick={() => void submit(Date.now() >= Date.parse(round.deadlineAt)
-            ? { guessedLatitude: null, guessedLongitude: null }
-            : { guessedLatitude: marker?.lat ?? null, guessedLongitude: marker?.lng ?? null })}>
-            ลองส่งคำตอบอีกครั้ง
-          </Button>}
-        </> : loadError ? <p role="alert" className="text-surface-text">{loadError}</p>
-          : <p role="status" className="text-surface-text">กำลังโหลดรอบเกม…</p>}
+        {round?.deadlineAt ? (
+          <>
+            <GameImageViewer
+              imageSrc={round.imageUrl}
+              imageAlt="สถานที่ในมหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี"
+              markerPosition={marker}
+              onMapClick={(lat, lng) => setMarker({ lat, lng })}
+              onSubmit={() =>
+                void submit({
+                  guessedLatitude: marker?.lat ?? null,
+                  guessedLongitude: marker?.lng ?? null,
+                })
+              }
+              isSubmitDisabled={!marker || submitting || timeUp}
+            />
+            {submitFailed && (
+              <Button
+                onClick={() =>
+                  void submit(
+                    round.deadlineAt &&
+                      Date.now() >= Date.parse(round.deadlineAt)
+                      ? { guessedLatitude: null, guessedLongitude: null }
+                      : {
+                          guessedLatitude: marker?.lat ?? null,
+                          guessedLongitude: marker?.lng ?? null,
+                        },
+                  )
+                }
+              >
+                ลองส่งคำตอบอีกครั้ง
+              </Button>
+            )}
+          </>
+        ) : loadError ? (
+          <div role="alert" className="text-surface-text">
+            <p>{loadError}</p>
+            <Button
+              onClick={() => {
+                setLoadError(null);
+                setLoadAttempt((value) => value + 1);
+              }}
+            >
+              ลองอีกครั้ง
+            </Button>
+          </div>
+        ) : (
+          <p role="status" className="text-surface-text">
+            กำลังโหลดรอบเกม…
+          </p>
+        )}
       </GameLayout>
-      <ConfirmModal soundEnabled open={exitOpen} theme="dark" title={GAME_MESSAGES.exitGame.title}
-        description={GAME_MESSAGES.exitGame.description} confirmLabel={GAME_MESSAGES.exitGame.confirm}
-        cancelLabel={GAME_MESSAGES.exitGame.cancel} onConfirm={() => { if (!exiting) void confirmExit(); }}
-        onCancel={() => { cancelBrowserBack(); setExitOpen(false); }} />
+      <ConfirmModal
+        soundEnabled
+        open={exitOpen}
+        theme="dark"
+        title={GAME_MESSAGES.exitGame.title}
+        description={GAME_MESSAGES.exitGame.description}
+        confirmLabel={GAME_MESSAGES.exitGame.confirm}
+        cancelLabel={GAME_MESSAGES.exitGame.cancel}
+        onConfirm={() => {
+          if (!exiting) void confirmExit();
+        }}
+        onCancel={() => {
+          cancelBrowserBack();
+          setExitOpen(false);
+        }}
+      />
     </>
   );
 }

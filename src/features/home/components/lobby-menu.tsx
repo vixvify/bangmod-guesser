@@ -7,25 +7,16 @@ import { Button } from "@/shared/components/ui/button";
 import { Countdown } from "@/shared/components/ui/countdown";
 import { getSession } from "@/features/auth/auth-client";
 import { AppRoutes } from "@/shared/routes/routes";
-import { GameRoutes } from "@/features/game/game.routes";
-import { httpClient, HttpError } from "@/shared/lib/http";
+import { HttpError } from "@/shared/lib/http";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/shared/lib/error-message";
+import { useStartGame } from "@/features/game/hooks/use-start-game";
+import { GameLoadingOverlay } from "@/features/game/components/game-loading-overlay";
 
 export function LobbyMenu() {
-  const [isStarting, setIsStarting] = useState(false);
+  const { loading, countingDown, error: startError, prepare, start } = useStartGame();
   const [isChecking, setIsChecking] = useState(false);
   const router = useRouter();
-
-  const enterGame = useCallback(async () => {
-    try {
-      const { data } = await httpClient.post<{ gameId: string }>(GameRoutes.create);
-      router.push(AppRoutes.game(data.gameId));
-    } catch (error) {
-      setIsStarting(false);
-      toast.error(getErrorMessage(error, "ไม่สามารถเริ่มเกมได้ กรุณาลองอีกครั้ง"));
-    }
-  }, [router]);
 
   const handlePlay = useCallback(async () => {
     setIsChecking(true);
@@ -36,13 +27,13 @@ export function LobbyMenu() {
         router.push(AppRoutes.login);
         return;
       }
-      setIsStarting(true);
+      await prepare();
     } catch (error) {
       toast.error(getErrorMessage(error, "ไม่สามารถตรวจสอบบัญชีได้ กรุณาลองอีกครั้ง"));
     } finally {
       setIsChecking(false);
     }
-  }, [router]);
+  }, [router, prepare]);
 
   return (
     <div className="mx-auto mt-8 w-full max-w-64 sm:max-w-80 motion-safe:animate-home-enter motion-safe:[animation-delay:240ms]">
@@ -50,7 +41,7 @@ export function LobbyMenu() {
         <Button
           sound="click"
           variant="play"
-          disabled={isStarting || isChecking}
+          disabled={loading || countingDown || isChecking}
           onClick={handlePlay}
           aria-label="Play Bangmod Guesser"
           className="min-h-14 w-full sm:min-h-16"
@@ -59,7 +50,9 @@ export function LobbyMenu() {
           <span className="font-display text-2xl tracking-widest sm:text-3xl">PLAY</span>
         </Button>
       </div>
-      {isStarting && <Countdown onComplete={enterGame} />}
+      {loading && <GameLoadingOverlay />}
+      {startError && <div role="alert" className="mt-3 text-center text-surface-text"><p>{startError}</p><Button onClick={() => void prepare()}>ลองอีกครั้ง</Button></div>}
+      {countingDown && <Countdown onComplete={start} />}
     </div>
   );
 }

@@ -7,7 +7,9 @@ import { GameRoundScore } from "@/features/game/components/game-round-score";
 import { GameSummary } from "@/features/game/components/game-summary";
 import { mockRoundResult, mockGameSummary } from "@/features/game/game.mock";
 
-vi.mock("@/features/game/game.routes", () => ({ GameRoutes: { create: "/games", exit: (id: string) => `/games/${id}/exit` } }));
+vi.mock("@/shared/lib/http", () => ({ httpClient: { post: vi.fn().mockResolvedValue({ data: { gameId: "replay" } }), get: vi.fn().mockResolvedValue({ data: { questionNumber: 1, imageUrl: "/question.jpg", deadlineAt: null } }) } }));
+vi.mock("@/features/game/game-image", () => ({ preloadGameImage: vi.fn().mockResolvedValue(undefined) }));
+vi.mock("@/features/game/game.routes", () => ({ GameRoutes: { create: "/games", currentRound: (id: string) => `/games/${id}/current-round`, exit: (id: string) => `/games/${id}/exit` } }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/features/game/components/game-result-map", () => ({ GameResultMap: () => <div>Map</div> }));
 vi.mock("next/image", () => ({ default: ({ fill, sizes, ...props }: Record<string, unknown>) => {
@@ -22,7 +24,7 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 describe("game results", () => {
   it("opens location information by keyboard, traps focus, and returns focus after Escape", async () => {
     const user = userEvent.setup();
-    render(<GameRoundScore gameId="game-123" result={mockRoundResult} totalRounds={5} accumulatedScore={1111} />);
+    render(<GameRoundScore nextReady={true} nextError={null} onRetryNext={() => {}} gameId="game-123" result={mockRoundResult} totalRounds={5} accumulatedScore={1111} />);
     const trigger = screen.getByRole("button", { name: `รายละเอียดสถานที่ ${mockRoundResult.location.name}` });
     trigger.focus();
     await user.keyboard("{Enter}");
@@ -39,7 +41,7 @@ describe("game results", () => {
   });
 
   it("links the last round to the summary", () => {
-    render(<GameRoundScore gameId="game-123" result={{ ...mockRoundResult, round: 5 }} totalRounds={5} accumulatedScore={4021} />);
+    render(<GameRoundScore nextReady={true} nextError={null} onRetryNext={() => {}} gameId="game-123" result={{ ...mockRoundResult, round: 5 }} totalRounds={5} accumulatedScore={4021} />);
     expect(screen.queryByRole("link", { name: /รอบถัดไป/ })).toBeNull();
     expect(screen.getByRole("link", { name: /สรุปผลเกม/ }).getAttribute("href")).toBe("/game/game-123/summary");
   });
@@ -50,7 +52,7 @@ describe("game results", () => {
     expect(screen.getByRole("meter").getAttribute("aria-valuemax")).toBe(String(mockGameSummary.maxScore));
     expect(screen.getByText("01:27")).toBeTruthy();
     await userEvent.setup().click(screen.getByRole("button", { name: /เล่นอีกครั้ง/ }));
-    expect(screen.getByRole("dialog", { name: "กำลังเข้าสู่เกม" })).toBeTruthy();
+    expect(await screen.findByRole("dialog", { name: "กำลังเข้าสู่เกม" })).toBeTruthy();
     expect(await screen.findByText(/คะแนนจากการทาย 4,021 คะแนน โบนัส 300 คะแนน รวม 4,321/)).toBeTruthy();
   });
 });

@@ -1,18 +1,21 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const api = vi.hoisted(() => ({ get: vi.fn() }));
+const preload = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
+vi.mock("@/features/game/game-image", () => ({ preloadGameImage: preload }));
 vi.mock("@/shared/lib/http", () => ({ httpClient: api }));
 vi.mock("@/features/game/game.routes", () => ({ GameRoutes: {
   roundResult: (id: string, round: number) => `/games/${id}/rounds/${round}/result`,
+  currentRound: (id: string) => `/games/${id}/current-round`,
   summary: (id: string) => `/games/${id}/summary`,
 } }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/features/game/components/game-layout", () => ({ GameLayout: ({ children }: { children: React.ReactNode }) => <main>{children}</main> }));
 vi.mock("@/features/game/components/game-round-score", () => ({
-  GameRoundScore: ({ result, accumulatedScore }: { result: { round: number; guess: unknown; location: { name: string } }; accumulatedScore: number }) =>
-    <p>{result.round}: {result.location.name}: {result.guess === null ? "ไม่มีหมุด" : "มีหมุด"}: {accumulatedScore}</p>,
+  GameRoundScore: ({ result, accumulatedScore, nextReady, nextError }: { result: { round: number; guess: unknown; location: { name: string } }; accumulatedScore: number; nextReady: boolean; nextError: string | null }) =>
+    <><p>{result.round}: {result.location.name}: {result.guess === null ? "ไม่มีหมุด" : "มีหมุด"}: {accumulatedScore}</p><p>{nextError ?? (nextReady ? "รูปพร้อม" : "รอรูป")}</p></>,
 }));
 vi.mock("@/features/game/components/game-summary", () => ({
   GameSummary: ({ summary }: { summary: { totalScore: number; totalTimeSeconds: number } }) => <p>{summary.totalScore} คะแนน ใน {summary.totalTimeSeconds} วินาที</p>,
@@ -49,5 +52,19 @@ describe("game result API screens", () => {
     render(<GameSummaryScreen gameId="g1" />);
     expect(await screen.findByText("4300 คะแนน ใน 87 วินาที")).toBeTruthy();
     expect(api.get).toHaveBeenCalledWith("/games/g1/summary");
+  });
+
+  it("preloads the next round while displaying the score, without starting it", async () => {
+    let finishLoading!: () => void;
+    preload.mockReturnValueOnce(new Promise<void>((resolve) => { finishLoading = resolve; }));
+    api.get.mockImplementation((url: string) => Promise.resolve({ data: url.endsWith("/result")
+      ? { guessedLatitude: null, guessedLongitude: null, distanceMeters: null, score: 0, accumulatedScore: 123, imageUrl: null, location: { name: "หอสมุด", latitude: 13, longitude: 100, description: null } }
+      : { questionNumber: 3, imageUrl: "/next.jpg", deadlineAt: null } }));
+    render(<GameRoundScoreScreen gameId="g1" questionNumber={2} />);
+    expect(await screen.findByText("รอรูป")).toBeTruthy();
+    await waitFor(() => expect(preload).toHaveBeenCalledWith("/next.jpg"));
+    finishLoading();
+    expect(await screen.findByText("รูปพร้อม")).toBeTruthy();
+    expect(api.get).toHaveBeenCalledWith("/games/g1/current-round");
   });
 });

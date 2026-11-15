@@ -42,7 +42,7 @@ for (const path of [
 ]) {
   test(`authenticated page ${path} passes automated accessibility checks`, async ({ page }, testInfo) => {
     await signInGamePlayer(page, testInfo);
-    await mockGameApi(page);
+    await mockGameApi(page, path.includes("/round-score") ? 3 : 1);
     await page.goto(path, { waitUntil: "domcontentloaded" });
     if (path.includes("/round-score")) {
       await expect(page.getByRole("heading", { level: 1, name: "สรุปคะแนนรอบนี้" })).toBeVisible();

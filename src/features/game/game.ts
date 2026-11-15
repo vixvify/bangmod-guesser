@@ -14,7 +14,7 @@ export type SaveGameGuess = {
   totalScore?: number;
 };
 
-export type CurrentGameRound = { questionNumber: number; imageUrl: string; deadlineAt: string };
+export type CurrentGameRound = { questionNumber: number; imageUrl: string; deadlineAt: string | null };
 
 export type GameSummaryResult = { baseScore: number; totalTimeSeconds: number; bonusScore: number; totalScore: number };
 

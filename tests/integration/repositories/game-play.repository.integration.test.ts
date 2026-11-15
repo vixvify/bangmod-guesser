@@ -33,14 +33,14 @@ describe.skipIf(process.env.RUN_GAME_DATABASE_TESTS !== "1")("Game API persisten
     const initial=await repository.findGame(gameId);
     expect(initial?.rounds).toHaveLength(5);
     expect(initial?.rounds.every((r)=>r.imageNumber===5 && r.startedAt===null)).toBe(true);
-    const opened=await Promise.all([service.currentRound(gameId,userId,now),service.currentRound(gameId,userId,new Date(now.getTime()+1000))]);
+    const opened=await Promise.all([service.startRound(gameId,userId,1,now),service.startRound(gameId,userId,1,new Date(now.getTime()+1000))]);
     expect(opened[0]).toEqual(opened[1]);
     const startedAt=(await repository.findGame(gameId))?.rounds[0].startedAt;
-    await service.currentRound(gameId,userId,new Date(now.getTime()+10000));
+    await service.startRound(gameId,userId,1,new Date(now.getTime()+10000));
     expect((await repository.findGame(gameId))?.rounds[0].startedAt).toEqual(startedAt);
   });
   it("allows only one of two simultaneous guesses to persist", async () => {
-    await service.currentRound(gameId,userId,now);
+    await service.startRound(gameId,userId,1,now);
     const results=await Promise.allSettled([service.submitGuess(gameId,userId,1,guess,now),service.submitGuess(gameId,userId,1,guess,now)]);
     expect(results.filter((r)=>r.status==="fulfilled")).toHaveLength(1);
     const rejected=results.find((r)=>r.status==="rejected");
@@ -51,7 +51,7 @@ describe.skipIf(process.env.RUN_GAME_DATABASE_TESTS !== "1")("Game API persisten
   });
   it("atomically finishes the fifth round with the stored final score", async () => {
     for(let question=1;question<=5;question++) {
-      await service.currentRound(gameId,userId,now);
+      await service.startRound(gameId,userId,question,now);
       await service.submitGuess(gameId,userId,question,guess,new Date(now.getTime()+20000));
     }
     const game=await repository.findGame(gameId);
@@ -60,7 +60,7 @@ describe.skipIf(process.env.RUN_GAME_DATABASE_TESTS !== "1")("Game API persisten
   });
   it("rolls back round five if saving the game total fails", async () => {
     await prisma.gameRound.updateMany({where:{gameId,questionNumber:{lt:5}},data:{status:"COMPLETED",score:1000,playTimeSeconds:20,guessedLatitude:13.65,guessedLongitude:100.49}});
-    await service.currentRound(gameId,userId,now);
+    await service.startRound(gameId,userId,5,now);
     await expect(repository.saveGuess({gameId,userId,questionNumber:5,...guess,score:1000,playTimeSeconds:20,finishedAt:now,totalScore:2**40})).rejects.toThrow();
     const game=await repository.findGame(gameId);
     expect(game?.status).toBe("PLAYING");
@@ -68,7 +68,7 @@ describe.skipIf(process.env.RUN_GAME_DATABASE_TESTS !== "1")("Game API persisten
   });
   it("serializes final completion against exit without overwriting either terminal state", async () => {
     await prisma.gameRound.updateMany({where:{gameId,questionNumber:{lt:5}},data:{status:"COMPLETED",score:1000,playTimeSeconds:20,guessedLatitude:13.65,guessedLongitude:100.49}});
-    await service.currentRound(gameId,userId,now);
+    await service.startRound(gameId,userId,5,now);
     await Promise.allSettled([service.submitGuess(gameId,userId,5,guess,now),service.exitGame(gameId,userId,now)]);
     const game=await repository.findGame(gameId);
     if(game?.status==="COMPLETED") expect(game).toMatchObject({totalScore:5000,rounds:expect.arrayContaining([expect.objectContaining({questionNumber:5,status:"COMPLETED"})])});
@@ -80,7 +80,7 @@ describe.skipIf(process.env.RUN_GAME_DATABASE_TESTS !== "1")("Game API persisten
     expect(await prisma.game.count({where:{userId}})).toBe(before);
   });
   it("makes concurrent timeout submissions save zero only once and allows result recovery", async () => {
-    await service.currentRound(gameId, userId, now);
+    await service.startRound(gameId, userId, 1, now);
     const expiredAt = new Date(now.getTime() + 40000);
     const outcomes = await Promise.allSettled([
       service.submitGuess(gameId, userId, 1, guess, expiredAt),

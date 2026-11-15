@@ -12,6 +12,7 @@ export function Countdown({ onComplete }: CountdownProps) {
   const [count, setCount] = useState(3);
 
   useEffect(() => {
+    playSoundEffect("click");
     const timers = [2, 1, 0].map((value, index) =>
       window.setTimeout(
         () => {
