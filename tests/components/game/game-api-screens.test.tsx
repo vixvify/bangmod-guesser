@@ -67,4 +67,12 @@ describe("game result API screens", () => {
     expect(await screen.findByText("รูปพร้อม")).toBeTruthy();
     expect(api.get).toHaveBeenCalledWith("/games/g1/current-round");
   });
+
+  it("explains when the game ends before the next round loads", async () => {
+    api.get.mockImplementation((url: string) => url.endsWith("/current-round")
+      ? Promise.reject(Object.assign(new Error("ended"), { name: "HttpError", status: 409, statusCode: "GAME_ENDED" }))
+      : Promise.resolve({ data: { guessedLatitude: null, guessedLongitude: null, distanceMeters: null, score: 0, accumulatedScore: 123, imageUrl: null, location: { name: "หอสมุด", latitude: 13, longitude: 100, description: null } } }));
+    render(<GameRoundScoreScreen gameId="g1" questionNumber={2} />);
+    expect(await screen.findByRole("dialog", { name: "เกมนี้สิ้นสุดแล้ว" })).toBeTruthy();
+  });
 });

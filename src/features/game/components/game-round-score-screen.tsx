@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { GameRoundScore } from "./game-round-score";
 import { GameLayout } from "./game-layout";
-import { GAME_ROUND_COUNT } from "@/features/game/game.constants";
+import { GAME_ERROR_CODES, GAME_ROUND_COUNT } from "@/features/game/game.constants";
+import { GameEndedModal } from "./game-ended-modal";
 import { GameRoutes } from "@/features/game/game.routes";
 import { GAME_RESULT_MESSAGES } from "@/features/game/game-result.constants";
 import type { CurrentGameRound, GameGuessResult } from "@/features/game/game";
@@ -11,7 +12,7 @@ import { preloadGameImage } from "@/features/game/game-image";
 import { httpClient } from "@/shared/lib/http";
 import { AppRoutes } from "@/shared/routes/routes";
 import { useRouter } from "next/navigation";
-import { getErrorMessage } from "@/shared/lib/error-message";
+import { getErrorMessage, getHttpErrorCode } from "@/shared/lib/error-message";
 
 export function GameRoundScoreScreen({
   gameId,
@@ -24,6 +25,7 @@ export function GameRoundScoreScreen({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [nextReady, setNextReady] = useState(false);
   const [nextError, setNextError] = useState<string | null>(null);
+  const [gameEnded, setGameEnded] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const router = useRouter();
   useEffect(() => {
@@ -60,7 +62,9 @@ export function GameRoundScoreScreen({
         await preloadGameImage(data.imageUrl);
         if (!cancelled) setNextReady(true);
       } catch (error) {
-        if (!cancelled)
+        if (!cancelled && getHttpErrorCode(error) === GAME_ERROR_CODES.ended) {
+          setGameEnded(true);
+        } else if (!cancelled)
           setNextError(
             getErrorMessage(
               error,
@@ -74,6 +78,8 @@ export function GameRoundScoreScreen({
       cancelled = true;
     };
   }, [gameId, questionNumber, attempt]);
+
+  if (gameEnded) return <GameEndedModal open onBack={() => router.push(AppRoutes.home)} />;
 
   if (!result)
     return (

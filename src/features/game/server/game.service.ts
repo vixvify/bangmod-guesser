@@ -6,9 +6,9 @@ import type {
   GameGuessResult,
   GameSummaryResult,
 } from "../game";
-import type { GuessInput } from "../game.schema";
+import type { CreateGameInput, GuessInput } from "../game.schema";
 import type { GameRepository } from "./game.repository.port";
-import { GAME_DEFAULTS, GAME_ROUND_COUNT } from "../game.constants";
+import { GAME_DEFAULTS, GAME_ERROR_CODES, GAME_ROUND_COUNT } from "../game.constants";
 import {
   calculateRoundScore,
   calculateGameSummary,
@@ -175,6 +175,8 @@ export class GameService {
   }
 
   private pendingRound(game: GamePlayRecord) {
+    if (game.status === "INCOMPLETE")
+      throw new AppError("Game has ended", 409, GAME_ERROR_CODES.ended);
     if (game.status !== "PLAYING")
       throw new AppError("Game is no longer playing", 409);
     const round = game.rounds.find((round) => round.status === "PENDING");
@@ -203,7 +205,11 @@ export class GameService {
     return GameFactory.toCurrentRound(this.pendingRound(opened));
   }
 
-  async createGame(userId: string): Promise<{ gameId: string }> {
+  async createGame(userId: string, input: CreateGameInput = {}): Promise<{ gameId: string; existing: boolean }> {
+    if (!input.replaceGameId) {
+      const active = await this.gameRepository.findActiveGame(userId);
+      if (active) return { gameId: active.id, existing: true };
+    }
     const candidates = await this.gameRepository.findCandidates();
     if (candidates.length < GAME_ROUND_COUNT)
       throw new AppError(
@@ -222,8 +228,8 @@ export class GameService {
         imageNumber:
           location.images[randomInt(location.images.length)].imageNumber,
       }));
-    const game = await this.gameRepository.createGame(userId, rounds);
-    return { gameId: game.id };
+    const game = await this.gameRepository.createGame(userId, rounds, input.replaceGameId);
+    return { gameId: game.id, existing: game.existing };
   }
 
   async exitGame(

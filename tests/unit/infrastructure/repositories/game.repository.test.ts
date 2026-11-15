@@ -7,8 +7,9 @@ const { findUnique, updateMany, transaction, findMany, create, queryRaw, findIma
   findMany: vi.fn(), create: vi.fn(), queryRaw: vi.fn(), findImages: vi.fn(),
   findFirst: vi.fn(), roundUpdateMany: vi.fn(), findUniqueOrThrow: vi.fn(), updateGame: vi.fn(),
 }));
+const findActive = vi.hoisted(() => vi.fn());
 vi.mock("@/shared/lib/prisma", () => ({
-  prisma: { location: { findMany }, game: { findUnique }, $transaction: transaction },
+  prisma: { location: { findMany }, game: { findUnique, findFirst: findActive }, $transaction: transaction },
 }));
 
 const repository = new GameRepositoryImpl();
@@ -19,7 +20,7 @@ beforeEach(() => {
   vi.resetAllMocks();
   findUnique.mockResolvedValue(record);
   updateMany.mockResolvedValue({ count: 1 });
-  transaction.mockImplementation(async (operation) => operation({ game: { findUnique, updateMany, create, findUniqueOrThrow, update: updateGame }, gameRound: { findFirst, updateMany: roundUpdateMany }, locationImage: { findMany: findImages }, $queryRaw: queryRaw }));
+  transaction.mockImplementation(async (operation) => operation({ game: { findUnique, findFirst: findActive, updateMany, create, findUniqueOrThrow, update: updateGame }, gameRound: { findFirst, updateMany: roundUpdateMany }, locationImage: { findMany: findImages }, $queryRaw: queryRaw }));
 });
 
 describe("GameRepositoryImpl", () => {
@@ -71,8 +72,8 @@ describe("GameRepositoryImpl creation", () => {
   it("creates all rounds in one nested transaction after validating selected images", async () => {
     findImages.mockResolvedValue(rounds.map(({locationId, imageNumber}) => ({locationId, imageNumber})));
     create.mockResolvedValue({ id: "new-game" });
-    expect(await repository.createGame("player", rounds)).toEqual({ id: "new-game" });
-    expect(queryRaw).toHaveBeenCalledTimes(1);
+    expect(await repository.createGame("player", rounds)).toEqual({ id: "new-game", existing: false });
+    expect(queryRaw).toHaveBeenCalledTimes(2);
     expect(findImages).toHaveBeenCalledTimes(1);
     expect(findImages).toHaveBeenCalledWith({
       where: { OR: rounds.map(({ locationId, imageNumber }) => ({ locationId, imageNumber })), location: { status: "ACTIVE" } },
@@ -83,6 +84,17 @@ describe("GameRepositoryImpl creation", () => {
   it("does not create anything if a chosen image disappeared", async () => {
     findImages.mockResolvedValue([]);
     await expect(repository.createGame("player", rounds)).rejects.toMatchObject({ status: 409 });
+    expect(create).not.toHaveBeenCalled();
+  });
+  it("returns the active game under the user lock without creating another", async () => {
+    findActive.mockResolvedValue({ id: "active" });
+    expect(await repository.createGame("player", rounds)).toEqual({ id: "active", existing: true });
+    expect(create).not.toHaveBeenCalled();
+  });
+  it("does not replace a newer game using an outdated confirmation", async () => {
+    findActive.mockResolvedValue({ id: "newer" });
+    expect(await repository.createGame("player", rounds, "old")).toEqual({ id: "newer", existing: true });
+    expect(updateMany).not.toHaveBeenCalled();
     expect(create).not.toHaveBeenCalled();
   });
 });
@@ -132,8 +144,13 @@ describe("GameRepositoryImpl.saveGuess", () => {
   });
   it("cannot submit after exit wins the game lock", async () => {
     updateMany.mockResolvedValue({count:0});
-    await expect(repository.saveGuess(input)).rejects.toMatchObject({status:409});
+    await expect(repository.saveGuess(input)).rejects.toMatchObject({status:409, code:"GAME_ENDED"});
     expect(roundUpdateMany).not.toHaveBeenCalled();
+  });
+  it("does not classify a completed game as an interrupted game", async () => {
+    updateMany.mockResolvedValue({count:0});
+    findUnique.mockResolvedValue({status:"COMPLETED"});
+    await expect(repository.saveGuess(input)).rejects.toMatchObject({status:409, code:undefined});
   });
   it("only records a timeout once the persisted server deadline has passed", async () => {
     findFirst.mockResolvedValue({ questionNumber: 5 });

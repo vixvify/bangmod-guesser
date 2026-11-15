@@ -57,6 +57,13 @@ describe("POST guess", () => {
     repository.saveGuess.mockRejectedValue(new AppError("Round already answered",409));
     expect(await (await request()).json()).toEqual({error:"Round already answered",status:409,statusCode:"ERROR"});
   });
+  it("returns a distinct code when the game was ended", async () => {
+    repository.findGame.mockResolvedValue({ ...createGameRecord(), status: "INCOMPLETE" });
+    const response = await request();
+    expect(response.status).toBe(409);
+    expect((await response.json()).statusCode).toBe("GAME_ENDED");
+    expect(repository.saveGuess).not.toHaveBeenCalled();
+  });
   it("hides database failure details", async () => {
     repository.saveGuess.mockRejectedValue(new Error("secret connection string"));
     expect(await (await request()).json()).toEqual({error:"Internal server error",status:500,statusCode:"ERROR"});

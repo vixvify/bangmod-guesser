@@ -8,13 +8,20 @@ describe("GameService.createGame", () => {
   it("preselects five distinct locations and an existing image for every round", async () => {
     const repository = createGameRepositoryMock();
     repository.findCandidates.mockResolvedValue(structuredClone(candidates));
-    repository.createGame.mockResolvedValue({ id: "game-1" });
-    expect(await new GameService(repository).createGame("player")).toEqual({ gameId: "game-1" });
+    repository.createGame.mockResolvedValue({ id: "game-1", existing: false });
+    expect(await new GameService(repository).createGame("player")).toEqual({ gameId: "game-1", existing: false });
     const [userId, rounds] = repository.createGame.mock.calls[0];
     expect(userId).toBe("player");
     expect(rounds.map((r) => r.questionNumber)).toEqual([1, 2, 3, 4, 5]);
     expect(new Set(rounds.map((r) => r.locationId)).size).toBe(5);
     for (const round of rounds) expect([2, 5]).toContain(round.imageNumber);
+  });
+
+  it("offers the existing game without selecting new locations", async () => {
+    const repository = createGameRepositoryMock();
+    repository.findActiveGame.mockResolvedValue({ id: "active" });
+    expect(await new GameService(repository).createGame("player")).toEqual({ gameId: "active", existing: true });
+    expect(repository.findCandidates).not.toHaveBeenCalled();
   });
 
   it("does not create a partial game when fewer than five locations qualify", async () => {

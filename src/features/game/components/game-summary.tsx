@@ -11,6 +11,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Countdown } from "@/shared/components/ui/countdown";
 import { useStartGame } from "@/features/game/hooks/use-start-game";
 import { GameLoadingOverlay } from "@/features/game/components/game-loading-overlay";
+import { ActiveGameModal } from "@/features/game/components/active-game-modal";
 import { AppRoutes } from "@/shared/routes/routes";
 import { GAME_RESULT_MESSAGES as MESSAGES } from "@/features/game/game-result.constants";
 import type { GameSummaryResult } from "@/features/game/game";
@@ -26,7 +27,7 @@ export function GameSummary({
   summary: GameSummaryResult;
 }) {
   const router = useRouter();
-  const { loading, countingDown, error, prepare, start } = useStartGame();
+  const { loading, countingDown, error, prepare, start, activeGameId, resume, restart, closeActiveGame } = useStartGame();
   const totalSeconds = summary.totalTimeSeconds;
 
   return (
@@ -90,6 +91,7 @@ export function GameSummary({
       </article>
       {loading && <GameLoadingOverlay />}
       {countingDown && <Countdown onComplete={start} />}
+      <ActiveGameModal open={!!activeGameId} onResume={resume} onRestart={restart} onClose={closeActiveGame} />
     </GameLayout>
   );
 }

@@ -11,7 +11,7 @@ import {
 } from "../../../../prisma/types/game";
 import type { NewGameRound, SaveGameGuess } from "../game";
 import { AppError } from "@/shared/errors/app.error";
-import { GAME_DEFAULTS } from "../game.constants";
+import { GAME_DEFAULTS, GAME_ERROR_CODES } from "../game.constants";
 
 export class GameRepositoryImpl implements GameRepository {
   async saveGuess(input: SaveGameGuess): Promise<void> {
@@ -73,8 +73,12 @@ export class GameRepositoryImpl implements GameRepository {
       where: { id, userId, status: "PLAYING" },
       data: { status: "PLAYING" },
     });
-    if (result.count !== 1)
+    if (result.count !== 1) {
+      const game = await transaction.game.findUnique({ where: { id, userId }, select: { status: true } });
+      if (game?.status === "INCOMPLETE")
+        throw new AppError("Game has ended", 409, GAME_ERROR_CODES.ended);
       throw new AppError("Game is no longer playing", 409);
+    }
   }
 
   async openRound(
@@ -114,11 +118,23 @@ export class GameRepositoryImpl implements GameRepository {
     });
   }
 
+  async findActiveGame(userId: string): Promise<{ id: string } | null> {
+    return prisma.game.findFirst({ where: { userId, status: "PLAYING" }, orderBy: [{ startedAt: "desc" }, { id: "desc" }], select: { id: true } });
+  }
+
   async createGame(
     userId: string,
     rounds: NewGameRound[],
-  ): Promise<{ id: string }> {
+    replaceGameId?: string,
+  ): Promise<{ id: string; existing: boolean }> {
     return prisma.$transaction(async (transaction) => {
+      await transaction.$queryRaw`SELECT "id" FROM "users" WHERE "id" = ${userId} FOR UPDATE`;
+      const active = await transaction.game.findFirst({ where: { userId, status: "PLAYING" }, orderBy: [{ startedAt: "desc" }, { id: "desc" }], select: { id: true } });
+      if (active && active.id !== replaceGameId) return { id: active.id, existing: true };
+      if (!active && replaceGameId) throw new AppError("Active game changed; please retry", 409);
+      if (active) {
+        await transaction.game.updateMany({ where: { userId, status: "PLAYING" }, data: { status: "INCOMPLETE", finishedAt: new Date() } });
+      }
       const locationIds = rounds.map((round) => round.locationId);
       await transaction.$queryRaw`
         SELECT "id" FROM "locations"
@@ -137,7 +153,7 @@ export class GameRepositoryImpl implements GameRepository {
       });
       if (images.length !== rounds.length)
         throw new AppError("Game locations changed; please retry", 409);
-      return transaction.game.create({
+      const created = await transaction.game.create({
         data: {
           userId,
           status: "PLAYING",
@@ -147,6 +163,7 @@ export class GameRepositoryImpl implements GameRepository {
         },
         select: { id: true },
       });
+      return { id: created.id, existing: false };
     });
   }
 

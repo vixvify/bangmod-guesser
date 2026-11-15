@@ -61,7 +61,7 @@ describe("LobbyMenu", () => {
     render(<LobbyMenu />);
     fireEvent.click(screen.getByRole("button", { name: "Play Bangmod Guesser" }));
     await waitFor(() => expect(screen.queryByText("กำลังเตรียมเกมและโหลดรูป…")).toBeNull());
-    expect(screen.getByRole<HTMLButtonElement>("button", { name: "Play Bangmod Guesser" }).disabled).toBe(false);
+    await waitFor(() => expect(screen.getByRole<HTMLButtonElement>("button", { name: "Play Bangmod Guesser" }).disabled).toBe(false));
   });
 
   it("starts one countdown and navigates to the game only after three seconds", async () => {
@@ -123,5 +123,26 @@ describe("LobbyMenu", () => {
     fireEvent.click(await screen.findByRole("button", { name: "ลองอีกครั้ง" }));
     await screen.findByRole("dialog", { name: "กำลังเข้าสู่เกม" });
     expect(post.mock.calls.filter(([url]) => url === "/games")).toHaveLength(1);
+  });
+
+  it("offers to resume an existing game without creating a new one", async () => {
+    post.mockResolvedValueOnce({ data: { gameId: "active-game", existing: true } });
+    render(<LobbyMenu />);
+    fireEvent.click(screen.getByRole("button", { name: "Play Bangmod Guesser" }));
+    await screen.findByRole("dialog", { name: "มีเกมที่กำลังเล่นอยู่" });
+    fireEvent.click(screen.getByRole("button", { name: "เล่นต่อ" }));
+    expect(push).toHaveBeenCalledWith("/game/active-game");
+    expect(post).toHaveBeenCalledTimes(1);
+  });
+
+  it("asks the server to replace only the game that was confirmed", async () => {
+    post.mockResolvedValueOnce({ data: { gameId: "active-game", existing: true } });
+    post.mockResolvedValueOnce({ data: { gameId: "new-game", existing: false } });
+    render(<LobbyMenu />);
+    fireEvent.click(screen.getByRole("button", { name: "Play Bangmod Guesser" }));
+    await screen.findByRole("dialog", { name: "มีเกมที่กำลังเล่นอยู่" });
+    fireEvent.click(screen.getByRole("button", { name: "เริ่มเกมใหม่" }));
+    await screen.findByRole("dialog", { name: "กำลังเข้าสู่เกม" });
+    expect(post).toHaveBeenCalledWith("/games", { replaceGameId: "active-game" });
   });
 });
