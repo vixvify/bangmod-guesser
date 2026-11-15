@@ -16,15 +16,22 @@ export function useStartGame() {
   const [loading, setLoading] = useState(false);
   const [countingDown, setCountingDown] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeGameId, setActiveGameId] = useState<string | null>(null);
 
-  const prepare = useCallback(async () => {
+  const prepare = useCallback(async (replaceGameId?: string) => {
     if (busy.current) return;
     busy.current = true;
     setLoading(true);
     setError(null);
     try {
-      if (!gameId.current) {
-        const { data } = await httpClient.post<{ gameId: string }>(GameRoutes.create);
+      if (!gameId.current || replaceGameId) {
+        const { data } = replaceGameId
+          ? await httpClient.post<{ gameId: string; existing: boolean }>(GameRoutes.create, { replaceGameId })
+          : await httpClient.post<{ gameId: string; existing: boolean }>(GameRoutes.create);
+        if (data.existing) {
+          setActiveGameId(data.gameId);
+          return;
+        }
         gameId.current = data.gameId;
       }
       const { data } = await httpClient.get<CurrentGameRound>(GameRoutes.currentRound(gameId.current));
@@ -48,5 +55,21 @@ export function useStartGame() {
     router.push(AppRoutes.game(gameId.current));
   }, [router]);
 
-  return { loading, countingDown, error, prepare, start };
+  const resume = useCallback(() => {
+    if (!activeGameId || busy.current) return;
+    busy.current = true;
+    setActiveGameId(null);
+    setLoading(true);
+    router.push(AppRoutes.game(activeGameId));
+  }, [activeGameId, router]);
+
+  const restart = useCallback(() => {
+    if (!activeGameId) return;
+    const previousGameId = activeGameId;
+    setActiveGameId(null);
+    gameId.current = null;
+    void prepare(previousGameId);
+  }, [activeGameId, prepare]);
+
+  return { loading, countingDown, error, prepare, start, activeGameId, resume, restart, closeActiveGame: () => setActiveGameId(null) };
 }

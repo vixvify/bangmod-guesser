@@ -12,9 +12,10 @@ import { toast } from "sonner";
 import { getErrorMessage } from "@/shared/lib/error-message";
 import { useStartGame } from "@/features/game/hooks/use-start-game";
 import { GameLoadingOverlay } from "@/features/game/components/game-loading-overlay";
+import { ActiveGameModal } from "@/features/game/components/active-game-modal";
 
 export function LobbyMenu() {
-  const { loading, countingDown, error: startError, prepare, start } = useStartGame();
+  const { loading, countingDown, error: startError, prepare, start, activeGameId, resume, restart, closeActiveGame } = useStartGame();
   const [isChecking, setIsChecking] = useState(false);
   const router = useRouter();
 
@@ -53,6 +54,7 @@ export function LobbyMenu() {
       {(isChecking || loading) && !countingDown && <GameLoadingOverlay />}
       {startError && <div role="alert" className="mt-3 text-center text-surface-text"><p>{startError}</p><Button onClick={() => void prepare()}>ลองอีกครั้ง</Button></div>}
       {countingDown && <Countdown onComplete={start} />}
+      <ActiveGameModal open={!!activeGameId} onResume={resume} onRestart={restart} onClose={closeActiveGame} />
     </div>
   );
 }

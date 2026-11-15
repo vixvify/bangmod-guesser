@@ -16,7 +16,7 @@ beforeEach(() => {
   vi.resetAllMocks();
   requireAuth.mockResolvedValue({ id: "session-player" });
   repository.findCandidates.mockResolvedValue(Array.from({ length: 5 }, (_, i) => ({ id: `l-${i}`, images: [{ imageNumber: 3 }] })));
-  repository.createGame.mockResolvedValue({ id: "created-game" });
+  repository.createGame.mockResolvedValue({ id: "created-game", existing: false });
 });
 
 describe("POST /api/games", () => {
@@ -25,8 +25,18 @@ describe("POST /api/games", () => {
     const response = await POST(request());
     expect(response.status).toBe(201);
     expect(response.headers.get("cache-control")).toBe("private, no-store");
-    expect(await response.json()).toEqual({ data: { gameId: "created-game" }, status: 201, statusCode: "CREATED" });
+    expect(await response.json()).toEqual({ data: { gameId: "created-game", existing: false }, status: 201, statusCode: "CREATED" });
     expect(repository.createGame.mock.calls[0][0]).toBe("session-player");
+  });
+  it("returns an existing game for the authenticated player", async () => {
+    repository.findActiveGame.mockResolvedValue({ id: "active-game" });
+    const response = await POST(request());
+    expect(response.status).toBe(200);
+    expect((await response.json()).data).toEqual({ gameId: "active-game", existing: true });
+  });
+  it("accepts an empty request body sent by HTTP clients", async () => {
+    const response = await POST(new Request("http://localhost/api/games", { method: "POST", body: "" }));
+    expect(response.status).toBe(201);
   });
   it("returns 401 before querying locations", async () => {
     requireAuth.mockRejectedValue(new AppError("Unauthorized", 401));

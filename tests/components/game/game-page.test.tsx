@@ -8,7 +8,8 @@ vi.mock("@/features/game/game-image", () => ({ preloadGameImage: vi.fn().mockRes
 const push = vi.fn();
 const api = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn() }));
 const toastError = vi.hoisted(() => vi.fn());
-vi.mock("sonner", () => ({ toast: { error: toastError, success: vi.fn() } }));
+const toastInfo = vi.hoisted(() => vi.fn());
+vi.mock("sonner", () => ({ toast: { error: toastError, info: toastInfo, success: vi.fn() } }));
 vi.mock("@/shared/lib/http", () => ({ httpClient: api }));
 vi.mock("@/features/game/game.routes", () => ({ GameRoutes: {
   currentRound: (id: string) => `/games/${id}/current-round`,
@@ -131,6 +132,16 @@ describe("GameSession", () => {
     fireEvent.click(screen.getByRole("button", { name: "ส่งคำตอบ" }));
     await waitFor(() => expect(api.get).toHaveBeenCalledWith(expect.stringContaining("/rounds/1/result")));
     await waitFor(() => expect(push).toHaveBeenCalledWith(AppRoutes.gameRoundScore("test-game", 1)));
+  });
+
+  it("shows the saved result when another tab submitted the round first", async () => {
+    api.post.mockRejectedValueOnce(Object.assign(new Error("already submitted"), { name: "HttpError", status: 409 }));
+    render(<GameSession gameId="test-game" />);
+    await screen.findByRole("button", { name: "ส่งคำตอบ" });
+    fireEvent.click(screen.getByTestId("mock-map"));
+    fireEvent.click(screen.getByRole("button", { name: "ส่งคำตอบ" }));
+    await waitFor(() => expect(toastInfo).toHaveBeenCalledWith("รอบนี้ส่งคำตอบไปแล้ว กำลังแสดงผลที่บันทึกไว้"));
+    expect(push).toHaveBeenCalledWith(AppRoutes.gameRoundScore("test-game", 1));
   });
 
   it("shows rate limiting without trying to recover a result that was not submitted", async () => {

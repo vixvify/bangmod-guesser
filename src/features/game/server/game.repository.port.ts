@@ -1,9 +1,10 @@
 import type { GameStateRecord, GameCandidateRecord, GamePlayRecord } from "../../../../prisma/types/game";
-import type { NewGameRound, SaveGameGuess } from "../game";
+import type { GameCreationResult, NewGameRound, SaveGameGuess } from "../game";
 
 export interface GameRepository {
   findCandidates(): Promise<GameCandidateRecord[]>;
-  createGame(userId: string, rounds: NewGameRound[]): Promise<{ id: string }>;
+  findActiveGame(userId: string): Promise<{ id: string } | null>;
+  createGame(userId: string, rounds: NewGameRound[], replaceGameId?: string): Promise<GameCreationResult>;
   findGame(id: string): Promise<GamePlayRecord | null>;
   openRound(id: string, userId: string, questionNumber: number, now: Date): Promise<GamePlayRecord>;
   saveGuess(input: SaveGameGuess): Promise<void>;

@@ -29,6 +29,22 @@ describe.skipIf(process.env.RUN_GAME_DATABASE_TESTS !== "1")("Game API persisten
     await prisma.location.deleteMany({where:{id:{in:locationIds}}});
   });
   afterAll(async () => {await prisma.$disconnect();});
+  it("serializes simultaneous game creation for the same player", async () => {
+    await prisma.game.delete({ where: { id: gameId } });
+    const rounds = locationIds.map((locationId, i) => ({ locationId, questionNumber: i + 1, imageNumber: 5 }));
+    const results = await Promise.all([repository.createGame(userId, rounds), repository.createGame(userId, rounds)]);
+    expect(results.map((result) => result.id)).toEqual([results[0].id, results[0].id]);
+    expect(results.filter((result) => result.existing)).toHaveLength(1);
+    expect(await prisma.game.count({ where: { userId, status: "PLAYING" } })).toBe(1);
+  });
+  it("replaces an active game once even when two tabs confirm concurrently", async () => {
+    const rounds = locationIds.map((locationId, i) => ({ locationId, questionNumber: i + 1, imageNumber: 5 }));
+    const results = await Promise.all([repository.createGame(userId, rounds, gameId), repository.createGame(userId, rounds, gameId)]);
+    expect(results[0].id).toBe(results[1].id);
+    expect(results.filter((result) => result.existing)).toHaveLength(1);
+    expect(await prisma.game.findUnique({ where: { id: gameId } })).toMatchObject({ status: "INCOMPLETE", finishedAt: expect.any(Date) });
+    expect(await prisma.game.count({ where: { userId, status: "PLAYING" } })).toBe(1);
+  });
   it("persists all five preselected images and preserves first-open time across simultaneous reads", async () => {
     const initial=await repository.findGame(gameId);
     expect(initial?.rounds).toHaveLength(5);
@@ -76,8 +92,9 @@ describe.skipIf(process.env.RUN_GAME_DATABASE_TESTS !== "1")("Game API persisten
   });
   it("leaves no partial game when creation fails", async () => {
     const before=await prisma.game.count({where:{userId}});
-    await expect(repository.createGame(userId,locationIds.map((locationId,i)=>({locationId,questionNumber:i+1,imageNumber:i===4?999:2})))).rejects.toMatchObject({status:409});
+    await expect(repository.createGame(userId,locationIds.map((locationId,i)=>({locationId,questionNumber:i+1,imageNumber:i===4?999:2})),gameId)).rejects.toMatchObject({status:409});
     expect(await prisma.game.count({where:{userId}})).toBe(before);
+    expect(await prisma.game.findUnique({ where: { id: gameId } })).toMatchObject({ status: "PLAYING", finishedAt: null });
   });
   it("makes concurrent timeout submissions save zero only once and allows result recovery", async () => {
     await service.startRound(gameId, userId, 1, now);

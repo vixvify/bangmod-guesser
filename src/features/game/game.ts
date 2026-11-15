@@ -1,6 +1,7 @@
 import type { Location } from "../locations/location";
 
 export type NewGameRound = { questionNumber: number; locationId: string; imageNumber: number };
+export type GameCreationResult = { id: string; existing: boolean };
 
 export type SaveGameGuess = {
   gameId: string;

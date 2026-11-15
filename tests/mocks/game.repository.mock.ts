@@ -7,6 +7,7 @@ export function createGameRepositoryMock() {
     findGame: vi.fn<GameRepository["findGame"]>(),
     openRound: vi.fn<GameRepository["openRound"]>(),
     findCandidates: vi.fn<GameRepository["findCandidates"]>(),
+    findActiveGame: vi.fn<GameRepository["findActiveGame"]>(),
     createGame: vi.fn<GameRepository["createGame"]>(),
     findById: vi.fn<GameRepository["findById"]>(),
     exitPlayingGame: vi.fn<GameRepository["exitPlayingGame"]>(),

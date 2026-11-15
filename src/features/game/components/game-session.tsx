@@ -97,6 +97,9 @@ export function GameSession({ gameId }: { gameId: string }) {
             await httpClient.get<GameGuessResult>(
               GameRoutes.roundResult(gameId, round.questionNumber),
             );
+            if (status === 409) {
+              toast.info("รอบนี้ส่งคำตอบไปแล้ว กำลังแสดงผลที่บันทึกไว้");
+            }
           } catch (recoveryError) {
             if (getHttpErrorStatus(recoveryError) === 429) throw recoveryError;
             throw error;
