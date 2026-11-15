@@ -26,6 +26,7 @@ vi.mock("@/features/game/game.routes", () => ({ GameRoutes: { create: "/games", 
 
 beforeEach(() => {
   push.mockReset();
+  getSession.mockReset();
   post.mockReset();
   get.mockReset();
   preload.mockReset();
@@ -42,6 +43,27 @@ afterEach(() => {
 });
 
 describe("LobbyMenu", () => {
+  it("shows the loading overlay while checking the session and keeps it during login navigation", async () => {
+    let resolveSession!: (value: { data: null }) => void;
+    getSession.mockReturnValueOnce(new Promise((resolve) => { resolveSession = resolve; }));
+    render(<LobbyMenu />);
+    fireEvent.click(screen.getByRole("button", { name: "Play Bangmod Guesser" }));
+    expect(screen.getByText("กำลังเตรียมเกมและโหลดรูป…")).toBeTruthy();
+    expect(post).not.toHaveBeenCalled();
+    await act(async () => resolveSession({ data: null }));
+    expect(push).toHaveBeenCalledWith("/login");
+    expect(screen.getByText("กำลังเตรียมเกมและโหลดรูป…")).toBeTruthy();
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it("dismisses the loading overlay if the session check fails", async () => {
+    getSession.mockRejectedValueOnce(new Error("offline"));
+    render(<LobbyMenu />);
+    fireEvent.click(screen.getByRole("button", { name: "Play Bangmod Guesser" }));
+    await waitFor(() => expect(screen.queryByText("กำลังเตรียมเกมและโหลดรูป…")).toBeNull());
+    expect(screen.getByRole<HTMLButtonElement>("button", { name: "Play Bangmod Guesser" }).disabled).toBe(false);
+  });
+
   it("starts one countdown and navigates to the game only after three seconds", async () => {
     vi.useFakeTimers();
     render(<LobbyMenu />);
