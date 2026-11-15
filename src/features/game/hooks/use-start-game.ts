@@ -45,8 +45,6 @@ export function useStartGame() {
   const start = useCallback(() => {
     if (!gameId.current || busy.current) return;
     busy.current = true;
-    setCountingDown(false);
-    setLoading(true);
     router.push(AppRoutes.game(gameId.current));
   }, [router]);
 
