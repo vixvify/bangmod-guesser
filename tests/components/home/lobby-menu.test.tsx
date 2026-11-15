@@ -91,6 +91,8 @@ describe("LobbyMenu", () => {
     });
     expect(post).toHaveBeenCalledWith("/games");
     expect(push).toHaveBeenCalledExactlyOnceWith("/game/game-123");
+    expect(screen.getByText("ไปกันเลย!")).toBeTruthy();
+    expect(screen.queryByText("กำลังเตรียมเกมและโหลดรูป…")).toBeNull();
   });
 
   it("keeps instructions and credits out of the lobby actions", () => {
