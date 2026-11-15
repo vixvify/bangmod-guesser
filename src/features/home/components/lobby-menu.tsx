@@ -28,9 +28,9 @@ export function LobbyMenu() {
         return;
       }
       await prepare();
+      setIsChecking(false);
     } catch (error) {
       toast.error(getErrorMessage(error, "ไม่สามารถตรวจสอบบัญชีได้ กรุณาลองอีกครั้ง"));
-    } finally {
       setIsChecking(false);
     }
   }, [router, prepare]);
@@ -50,7 +50,7 @@ export function LobbyMenu() {
           <span className="font-display text-2xl tracking-widest sm:text-3xl">PLAY</span>
         </Button>
       </div>
-      {loading && <GameLoadingOverlay />}
+      {(isChecking || loading) && !countingDown && <GameLoadingOverlay />}
       {startError && <div role="alert" className="mt-3 text-center text-surface-text"><p>{startError}</p><Button onClick={() => void prepare()}>ลองอีกครั้ง</Button></div>}
       {countingDown && <Countdown onComplete={start} />}
     </div>
