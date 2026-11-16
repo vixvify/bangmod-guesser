@@ -150,6 +150,66 @@ describe("Locations API routes", () => {
       expect(response.status).toBe(400);
       expect(mockLocationService.createLocation).not.toHaveBeenCalled();
     });
+
+    it("creates a location with INACTIVE status", async () => {
+      mockLocationService.createLocation.mockResolvedValue({
+        id: "loc_inactive",
+        name: "Library",
+        description: null,
+        latitude: 13.65,
+        longitude: 100.49,
+        status: "INACTIVE",
+        images: [],
+        createdAt: new Date(),
+        updatedAt: null,
+      });
+
+      const formData = new FormData();
+      formData.append("name", "Library");
+      formData.append("latitude", "13.65");
+      formData.append("longitude", "100.49");
+      formData.append("status", "INACTIVE");
+      formData.append(
+        "images",
+        new File([sampleJpeg], "image.jpg", { type: "image/jpeg" }),
+      );
+
+      const response = await createLocation(
+        new Request("http://localhost/api/locations", {
+          method: "POST",
+          body: formData,
+        }),
+      );
+
+      expect(response.status).toBe(201);
+      expect(mockLocationService.createLocation).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "Library",
+          status: "INACTIVE",
+        }),
+        expect.arrayContaining([
+          expect.objectContaining({ contentType: "image/jpeg" }),
+        ]),
+      );
+    });
+
+    it("rejects an invalid location status", async () => {
+      const formData = new FormData();
+      formData.append("name", "Library");
+      formData.append("latitude", "13.65");
+      formData.append("longitude", "100.49");
+      formData.append("status", "INVALID");
+
+      const response = await createLocation(
+        new Request("http://localhost/api/locations", {
+          method: "POST",
+          body: formData,
+        }),
+      );
+
+      expect(response.status).toBe(400);
+      expect(mockLocationService.createLocation).not.toHaveBeenCalled();
+    });
   });
 
   describe("GET /api/locations/[id]", () => {

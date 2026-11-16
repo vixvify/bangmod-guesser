@@ -46,6 +46,7 @@ export const POST = secureRoute({ access: "admin", rateLimit: "admin" }, async (
       description: form.get("description") ?? undefined,
       latitude: form.get("latitude"),
       longitude: form.get("longitude"),
+      status: form.get("status") ?? undefined,
     });
     const validatedImages = parseSchema(CreateLocationImagesSchema, images);
 

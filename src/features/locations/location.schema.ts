@@ -32,6 +32,7 @@ export const CreateLocationSchema = z.object({
   ).optional(),
   latitude: coordinate("ละติจูด", -90, 90).transform(Number),
   longitude: coordinate("ลองจิจูด", -180, 180).transform(Number),
+  status: z.nativeEnum(LocationStatus).optional(),
 });
 
 export const UpdateLocationFormSchema = CreateLocationSchema.extend({

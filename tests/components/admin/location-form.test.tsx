@@ -295,6 +295,7 @@ describe("location editor", () => {
           description: "",
           latitude: 13.6516,
           longitude: 100.4952,
+          status: LocationStatus.ACTIVE,
         },
         { images: [file] },
       ),
@@ -690,11 +691,13 @@ describe("location editor", () => {
     });
   });
 
-  it("does not show the status dropdown on the create form", () => {
+  it("shows the status dropdown on the create form with ACTIVE as default", () => {
     render(<LocationForm onSave={vi.fn()} />);
 
-    expect(
-      screen.queryByRole("combobox", { name: "สถานะสถานที่" }),
-    ).toBeNull();
+    const statusDropdown = screen.getByRole("combobox", {
+      name: "สถานะสถานที่",
+    });
+
+    expect(statusDropdown.textContent).toContain("เปิดใช้งาน");
   });
 });

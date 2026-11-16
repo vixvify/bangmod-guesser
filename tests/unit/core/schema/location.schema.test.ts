@@ -32,6 +32,31 @@ describe("CreateLocationSchema validation", () => {
     ).toBe(false);
   });
 
+  it("accepts ACTIVE and INACTIVE statuses", () => {
+    expect(
+      CreateLocationSchema.safeParse({
+        ...validLocation,
+        status: LocationStatus.ACTIVE,
+      }).success,
+    ).toBe(true);
+
+    expect(
+      CreateLocationSchema.safeParse({
+        ...validLocation,
+        status: LocationStatus.INACTIVE,
+      }).success,
+    ).toBe(true);
+  });
+
+  it("rejects an invalid status", () => {
+    expect(
+      CreateLocationSchema.safeParse({
+        ...validLocation,
+        status: "INVALID",
+      }).success,
+    ).toBe(false);
+  });
+
   it("rejects non-numeric or out-of-range coordinates", () => {
     expect(
       CreateLocationSchema.safeParse({ ...validLocation, latitude: "abc" })
