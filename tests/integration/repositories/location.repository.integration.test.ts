@@ -1,16 +1,20 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GameStatus, RoundStatus } from "@prisma/client";
+import { prisma } from "@/shared/lib/prisma";
+import { LocationRepositoryImpl } from "@/features/locations/server/location.repository";
+import {
+  LocationImagesChangedError,
+  LocationImagesInUseError,
+  LocationInUseError,
+} from "@/features/locations/server/location.errors";
+import { LocationStatus } from "@/features/locations/location";
 
 vi.mock("@/shared/lib/prisma", async () => {
   const { PrismaClient } = await import("@prisma/client");
   const { E2E_DATABASE_URL } = await import("../../../e2e/config");
   return { prisma: new PrismaClient({ datasourceUrl: E2E_DATABASE_URL }) };
 });
-
-import { prisma } from "@/shared/lib/prisma";
-import { LocationRepositoryImpl } from "@/features/locations/server/location.repository";
-import { LocationImagesChangedError, LocationImagesInUseError, LocationInUseError } from "@/features/locations/server/location.errors";
 
 const repository = new LocationRepositoryImpl();
 
@@ -137,22 +141,148 @@ describe.skipIf(process.env.RUN_LOCATION_DATABASE_TESTS !== "1")(
       });
     }
 
+
     it("prevents deleting a location referenced by a playing game even when its image is unknown", async () => {
       const game = await createGameWithRound(GameStatus.PLAYING, null);
-      await expect(repository.delete(locationId)).rejects.toBeInstanceOf(LocationInUseError);
-      expect(await prisma.location.findUnique({ where: { id: locationId } })).not.toBeNull();
-      expect((await prisma.gameRound.findFirstOrThrow({ where: { gameId: game.id } })).locationId).toBe(locationId);
+
+      await expect(repository.delete(locationId)).rejects.toBeInstanceOf(
+        LocationInUseError,
+      );
+
+      expect(
+        await prisma.location.findUnique({ where: { id: locationId } }),
+      ).not.toBeNull();
+
+      expect(
+        (
+          await prisma.gameRound.findFirstOrThrow({
+            where: { gameId: game.id },
+          })
+        ).locationId,
+      ).toBe(locationId);
     });
 
-    it.each([GameStatus.COMPLETED, GameStatus.INCOMPLETE])("deletes a location and preserves the %s game and its score", async (status) => {
-      const game = await createGameWithRound(status);
-      const deleted = await repository.delete(locationId);
-      expect(deleted.images).toHaveLength(3);
-      expect(await prisma.location.findUnique({ where: { id: locationId } })).toBeNull();
-      const round = await prisma.gameRound.findFirstOrThrow({ where: { gameId: game.id } });
-      expect(round).toMatchObject({ locationId: null, imageNumber: null, score: 900, playTimeSeconds: 20 });
-      expect((await prisma.game.findUniqueOrThrow({ where: { id: game.id } })).totalScore).toBe(900);
+    it.each([GameStatus.COMPLETED, GameStatus.INCOMPLETE])(
+      "deletes a location and preserves the %s game and its score",
+      async (status) => {
+        const game = await createGameWithRound(status);
+        const deleted = await repository.delete(locationId);
+
+        expect(deleted.images).toHaveLength(3);
+
+        expect(
+          await prisma.location.findUnique({ where: { id: locationId } }),
+        ).toBeNull();
+
+        const round = await prisma.gameRound.findFirstOrThrow({
+          where: { gameId: game.id },
+        });
+
+        expect(round).toMatchObject({
+          locationId: null,
+          imageNumber: null,
+          score: 900,
+          playTimeSeconds: 20,
+        });
+
+        expect(
+          (
+            await prisma.game.findUniqueOrThrow({
+              where: { id: game.id },
+            })
+          ).totalScore,
+        ).toBe(900);
+      },
+    );
+
+    it("filters locations by ACTIVE status", async () => {
+      await prisma.location.update({
+        where: { id: locationId },
+        data: { status: LocationStatus.ACTIVE },
+      });
+
+      const inactiveLocation = await prisma.location.create({
+        data: {
+          name: "Inactive location test",
+          latitude: 13.66,
+          longitude: 100.5,
+          status: LocationStatus.INACTIVE,
+        },
+      });
+
+      const result = await repository.findMany({
+        page: 1,
+        pageSize: 10,
+        searchBy: "name",
+        orderBy: "desc",
+        status: LocationStatus.ACTIVE,
+      });
+
+      expect(result.items.map((location) => location.id)).toContain(locationId);
+      expect(result.items.map((location) => location.id)).not.toContain(
+        inactiveLocation.id,
+      );
+      expect(
+        result.items.every(
+          (location) => location.status === LocationStatus.ACTIVE,
+        ),
+      ).toBe(true);
+
+      await prisma.location.delete({ where: { id: inactiveLocation.id } });
     });
+
+    it("filters locations by INACTIVE status", async () => {
+      await prisma.location.update({
+        where: { id: locationId },
+        data: { status: LocationStatus.INACTIVE },
+      });
+
+      const result = await repository.findMany({
+        page: 1,
+        pageSize: 10,
+        searchBy: "name",
+        orderBy: "desc",
+        status: LocationStatus.INACTIVE,
+      });
+
+      expect(result.items.map((location) => location.id)).toContain(locationId);
+      expect(
+        result.items.every(
+          (location) => location.status === LocationStatus.INACTIVE,
+        ),
+      ).toBe(true);
+    });
+
+    it("returns all statuses when no status filter is provided", async () => {
+      await prisma.location.update({
+        where: { id: locationId },
+        data: { status: LocationStatus.ACTIVE },
+      });
+
+      const inactiveLocation = await prisma.location.create({
+        data: {
+          name: "Inactive location test",
+          latitude: 13.66,
+          longitude: 100.5,
+          status: LocationStatus.INACTIVE,
+        },
+      });
+
+      const result = await repository.findMany({
+        page: 1,
+        pageSize: 10,
+        searchBy: "name",
+        orderBy: "desc",
+      });
+
+      expect(result.items.map((location) => location.id)).toContain(locationId);
+      expect(result.items.map((location) => location.id)).toContain(
+        inactiveLocation.id,
+      );
+
+      await prisma.location.delete({ where: { id: inactiveLocation.id } });
+    });
+
 
     it("returns IMAGE_IN_USE when deleting an image used by a PLAYING game", async () => {
       await createGameWithRound(GameStatus.PLAYING);

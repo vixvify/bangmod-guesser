@@ -46,6 +46,7 @@ export const LocationFormSchema = CreateLocationSchema.extend({
 export const SearchLocationQuerySchema = z.object({
   search: z.string().trim().optional(),
   searchBy: z.enum(["name", "description"]).default("name"),
+  status: z.nativeEnum(LocationStatus).optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(10),
   orderBy: z.enum(["asc", "desc"]).default("desc"),

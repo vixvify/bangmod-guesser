@@ -68,7 +68,7 @@ describe("Locations API routes", () => {
       });
 
       const request = new Request(
-        "http://localhost/api/locations?search=CB2&searchBy=description&page=2&pageSize=15&orderBy=asc",
+        "http://localhost/api/locations?search=CB2&searchBy=description&page=2&pageSize=15&orderBy=asc&status=INACTIVE",
       );
       const response = await getLocations(request);
       const json = await response.json();
@@ -82,6 +82,7 @@ describe("Locations API routes", () => {
         page: 2,
         pageSize: 15,
         orderBy: "asc",
+        status: "INACTIVE",
       });
     });
   });

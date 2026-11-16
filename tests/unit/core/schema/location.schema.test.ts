@@ -116,6 +116,22 @@ describe("Location schemas", () => {
       expect(result.pageSize).toBe(20);
       expect(result.orderBy).toBe("asc");
     });
+
+    it("parses ACTIVE and INACTIVE status filters", () => {
+      expect(
+        SearchLocationQuerySchema.parse({ status: LocationStatus.ACTIVE }).status,
+      ).toBe(LocationStatus.ACTIVE);
+
+      expect(
+        SearchLocationQuerySchema.parse({ status: LocationStatus.INACTIVE }).status,
+      ).toBe(LocationStatus.INACTIVE);
+    });
+
+    it("rejects an invalid status filter", () => {
+      expect(
+        SearchLocationQuerySchema.safeParse({ status: "INVALID" }).success,
+      ).toBe(false);
+    });
   });
 
   describe("UpdateLocationSchema", () => {
