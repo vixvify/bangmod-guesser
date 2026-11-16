@@ -148,7 +148,11 @@ export function LocationsList({
         />
       ) : (
         <>
-          <LocationsTable locations={locations.items} onDelete={setDeletingLocation} />
+          <LocationsTable
+            locations={locations.items}
+            startIndex={(locations.page - 1) * locations.pageSize}
+            onDelete={setDeletingLocation}
+          />
           <ListPagination
             totalItems={locations.total}
             pageSize={locations.pageSize}
