@@ -130,6 +130,24 @@ describe("admin location navigation", () => {
     expect((screen.getByRole("textbox", { name: "ค้นหาสถานที่" }) as HTMLInputElement).value).toBe("CB2");
   });
 
+  it("continues row numbering on the second page", async () => {
+    getLocations.mockResolvedValueOnce({
+      items: mockLocations,
+      total: 72,
+      page: 2,
+      pageSize: 10,
+      totalPages: 8,
+    });
+
+    await renderLocations({ page: "2" });
+
+    const table = screen.getByRole("table");
+    const firstDataRow = within(table).getAllByRole("row")[1];
+    const firstCell = within(firstDataRow).getAllByRole("cell")[0];
+
+    expect(firstCell.textContent).toBe("11");
+  });
+
   it("searches after 200 ms without navigating away or needing a search button", async () => {
     await renderLocations();
     vi.useFakeTimers();

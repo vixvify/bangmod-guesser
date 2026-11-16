@@ -16,10 +16,15 @@ import { AppRoutes } from "@/shared/routes/routes";
 
 type LocationsTableProps = {
   locations: Location[];
+  startIndex?: number;
   onDelete: (location: Location) => void;
 };
 
-export function LocationsTable({ locations, onDelete }: LocationsTableProps) {
+export function LocationsTable({
+  locations,
+  startIndex = 0,
+  onDelete
+}: LocationsTableProps) {
   return (
     <TableContainer
       component={Paper}
@@ -50,7 +55,7 @@ export function LocationsTable({ locations, onDelete }: LocationsTableProps) {
           {locations.map((location, index) => (
             <TableRow key={location.id} hover sx={{ "&:hover": { backgroundColor: "#fff7ed" } }}>
               <TableCell sx={{ color: "#64748b" }}>
-                {String(index + 1).padStart(2, "0")}
+                {String(startIndex + index + 1).padStart(2, "0")}
               </TableCell>
               <TableCell sx={{ fontWeight: 600, color: "var(--color-secondary-dark)" }}>
                 {location.name}
