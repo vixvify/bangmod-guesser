@@ -34,6 +34,14 @@ export const CreateLocationSchema = z.object({
   longitude: coordinate("ลองจิจูด", -180, 180).transform(Number),
 });
 
+export const UpdateLocationFormSchema = CreateLocationSchema.extend({
+  status: z.nativeEnum(LocationStatus),
+});
+
+export const LocationFormSchema = CreateLocationSchema.extend({
+  status: z.nativeEnum(LocationStatus).optional(),
+});
+
 export const SearchLocationQuerySchema = z.object({
   search: z.string().trim().optional(),
   searchBy: z.enum(["name", "description"]).default("name"),
@@ -50,5 +58,6 @@ export const LocationIdSchema = z.string().trim().min(1, "Location ID is require
 
 export type SearchLocationQueryInput = z.infer<typeof SearchLocationQuerySchema>;
 export type CreateLocationInput = z.infer<typeof CreateLocationSchema>;
-export type UpdateLocationFormInput = CreateLocationInput;
+export type UpdateLocationFormInput = z.infer<typeof UpdateLocationFormSchema>;
 export type UpdateLocationInput = z.infer<typeof UpdateLocationSchema>;
+export type LocationFormInput = z.infer<typeof LocationFormSchema>;

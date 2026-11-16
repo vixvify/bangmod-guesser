@@ -225,9 +225,11 @@ describe("Locations API routes", () => {
       );
     });
 
-    it("passes validated retained numbers and new images to the service", async () => {
+    it("passes status, validated retained numbers and new images to the service", async () => {
       mockLocationService.updateLocation.mockResolvedValue({ id: "loc_1" });
+
       const form = new FormData();
+      form.append("status", "INACTIVE");
       form.append("keepImageNumbers", "2");
       form.append("keepImageNumbers", "3");
       form.append(
@@ -246,7 +248,9 @@ describe("Locations API routes", () => {
       expect(response.status).toBe(200);
       expect(mockLocationService.updateLocation).toHaveBeenCalledWith(
         "loc_1",
-        expect.any(Object),
+        expect.objectContaining({
+          status: "INACTIVE",
+        }),
         expect.objectContaining({
           keepImageNumbers: [2, 3],
           newImages: [

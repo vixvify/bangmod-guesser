@@ -3,6 +3,7 @@ import {
   CreateLocationSchema,
   LocationIdSchema,
   SearchLocationQuerySchema,
+  UpdateLocationFormSchema,
   UpdateLocationSchema,
 } from "@/features/locations/location.schema";
 import { LocationStatus } from "@/features/locations/location";
@@ -108,6 +109,37 @@ describe("Location schemas", () => {
       });
 
       expect(result.latitude).toBe(13.7);
+    });
+  });
+
+  describe("UpdateLocationFormSchema", () => {
+    it("accepts ACTIVE and INACTIVE statuses", () => {
+      expect(
+        UpdateLocationFormSchema.safeParse({
+          ...validLocation,
+          status: LocationStatus.ACTIVE,
+        }).success,
+      ).toBe(true);
+
+      expect(
+        UpdateLocationFormSchema.safeParse({
+          ...validLocation,
+          status: LocationStatus.INACTIVE,
+        }).success,
+      ).toBe(true);
+    });
+
+    it("rejects missing or invalid status", () => {
+      expect(
+        UpdateLocationFormSchema.safeParse(validLocation).success,
+      ).toBe(false);
+
+      expect(
+        UpdateLocationFormSchema.safeParse({
+          ...validLocation,
+          status: "INVALID",
+        }).success,
+      ).toBe(false);
     });
   });
 });

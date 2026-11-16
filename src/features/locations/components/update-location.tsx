@@ -31,6 +31,7 @@ export function UpdateLocation({
     form.append("description", values.description ?? "");
     form.append("latitude", String(values.latitude));
     form.append("longitude", String(values.longitude));
+    form.append("status", values.status);
 
     if (images.keepImageNumbers.length === 0) {
       form.append("keepImageNumbers", "");
