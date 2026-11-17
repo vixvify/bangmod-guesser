@@ -11,3 +11,17 @@ export class LocationImagesInUseError extends Error {
     this.name = "LocationImagesInUseError";
   }
 }
+
+export class LocationInUseError extends Error {
+  constructor() {
+    super("Location is in use");
+    this.name = "LocationInUseError";
+  }
+}
+
+export class LocationNotFoundError extends Error {
+  constructor() {
+    super("Location not found");
+    this.name = "LocationNotFoundError";
+  }
+}

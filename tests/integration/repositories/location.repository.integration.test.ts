@@ -10,7 +10,7 @@ vi.mock("@/shared/lib/prisma", async () => {
 
 import { prisma } from "@/shared/lib/prisma";
 import { LocationRepositoryImpl } from "@/features/locations/server/location.repository";
-import { LocationImagesChangedError, LocationImagesInUseError } from "@/features/locations/server/location.errors";
+import { LocationImagesChangedError, LocationImagesInUseError, LocationInUseError } from "@/features/locations/server/location.errors";
 
 const repository = new LocationRepositoryImpl();
 
@@ -136,6 +136,23 @@ describe.skipIf(process.env.RUN_LOCATION_DATABASE_TESTS !== "1")(
         originalImages,
       });
     }
+
+    it("prevents deleting a location referenced by a playing game even when its image is unknown", async () => {
+      const game = await createGameWithRound(GameStatus.PLAYING, null);
+      await expect(repository.delete(locationId)).rejects.toBeInstanceOf(LocationInUseError);
+      expect(await prisma.location.findUnique({ where: { id: locationId } })).not.toBeNull();
+      expect((await prisma.gameRound.findFirstOrThrow({ where: { gameId: game.id } })).locationId).toBe(locationId);
+    });
+
+    it.each([GameStatus.COMPLETED, GameStatus.INCOMPLETE])("deletes a location and preserves the %s game and its score", async (status) => {
+      const game = await createGameWithRound(status);
+      const deleted = await repository.delete(locationId);
+      expect(deleted.images).toHaveLength(3);
+      expect(await prisma.location.findUnique({ where: { id: locationId } })).toBeNull();
+      const round = await prisma.gameRound.findFirstOrThrow({ where: { gameId: game.id } });
+      expect(round).toMatchObject({ locationId: null, imageNumber: null, score: 900, playTimeSeconds: 20 });
+      expect((await prisma.game.findUniqueOrThrow({ where: { id: game.id } })).totalScore).toBe(900);
+    });
 
     it("returns IMAGE_IN_USE when deleting an image used by a PLAYING game", async () => {
       await createGameWithRound(GameStatus.PLAYING);

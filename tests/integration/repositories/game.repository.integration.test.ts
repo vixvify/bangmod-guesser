@@ -70,5 +70,52 @@ describe.skipIf(process.env.RUN_GAME_DATABASE_TESTS !== "1")("GameRepositoryImpl
   it("returns null for a missing game", async () => {
     expect(await repository.exitPlayingGame("missing", userId, now)).toBeNull();
   });
+
+  it("expires a game with no opened round and preserves its score and rounds", async () => {
+    await prisma.game.update({ where: { id: gameId }, data: { startedAt: new Date("2026-10-27T07:59:59Z") } });
+    const before = await prisma.game.findUniqueOrThrow({ where: { id: gameId }, include: { rounds: true } });
+    expect(await repository.expireInactiveGames(new Date("2026-10-27T08:00:00Z"), now)).toBe(1);
+    const after = await prisma.game.findUniqueOrThrow({ where: { id: gameId }, include: { rounds: true } });
+    expect(after).toEqual({ ...before, status: "INCOMPLETE", finishedAt: now });
+    expect(await repository.expireInactiveGames(new Date("2026-10-27T08:00:00Z"), now)).toBe(0);
+  });
+
+  it("uses the latest opened round instead of the game's start time", async () => {
+    await prisma.game.update({ where: { id: gameId }, data: { startedAt: new Date("2026-10-26T00:00:00Z") } });
+    await prisma.gameRound.update({ where: { gameId_questionNumber: { gameId, questionNumber: 1 } }, data: { startedAt: new Date("2026-10-27T08:00:00Z") } });
+    expect(await repository.expireInactiveGames(new Date("2026-10-27T08:00:00Z"), now)).toBe(0);
+    expect((await prisma.game.findUniqueOrThrow({ where: { id: gameId } })).status).toBe("PLAYING");
+    expect(await repository.expireInactiveGames(new Date("2026-10-27T08:00:01Z"), now)).toBe(1);
+  });
+
+  it.each(["COMPLETED", "INCOMPLETE"] as const)("does not overwrite an old %s game", async (status) => {
+    const finishedAt = new Date("2026-10-27T07:00:00Z");
+    await prisma.game.update({ where: { id: gameId }, data: { status, startedAt: new Date("2026-10-26T00:00:00Z"), finishedAt } });
+    expect(await repository.expireInactiveGames(new Date("2026-10-27T08:00:00Z"), now)).toBe(0);
+    expect(await prisma.game.findUniqueOrThrow({ where: { id: gameId } })).toMatchObject({ status, finishedAt, totalScore: 900 });
+  });
+
+  it("does not close a game while another transaction opens a new round", async () => {
+    await prisma.game.update({ where: { id: gameId }, data: { startedAt: new Date("2026-10-26T00:00:00Z") } });
+    let release!: () => void;
+    let locked!: () => void;
+    const lockAcquired = new Promise<void>((resolve) => { locked = resolve; });
+    const continueTransaction = new Promise<void>((resolve) => { release = resolve; });
+    const openingRound = prisma.$transaction(async (transaction) => {
+      await transaction.game.update({ where: { id: gameId }, data: { status: "PLAYING" } });
+      await transaction.gameRound.update({ where: { gameId_questionNumber: { gameId, questionNumber: 1 } }, data: { startedAt: now } });
+      locked();
+      await continueTransaction;
+    });
+    try {
+      await lockAcquired;
+      expect(await repository.expireInactiveGames(new Date("2026-10-27T08:00:00Z"), now)).toBe(0);
+    } finally {
+      release();
+      await openingRound;
+    }
+    expect(await repository.expireInactiveGames(new Date("2026-10-27T08:00:00Z"), now)).toBe(0);
+    expect((await prisma.game.findUniqueOrThrow({ where: { id: gameId } })).status).toBe("PLAYING");
+  });
 });
 

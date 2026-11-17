@@ -57,6 +57,7 @@ test("two sessions share one game, submit one answer per round, and read the sum
       expect(reread.data).toEqual({ ...expectedStarted, deadlineAt: started.data.deadlineAt });
       expect(Number.isFinite(Date.parse(reread.data.serverTime))).toBe(true);
       const location = selected.rounds[question - 1].location;
+      if (!location) throw new Error("Game round location is missing");
       const data = { guessedLatitude: location.latitude, guessedLongitude: location.longitude };
       const guesses = await Promise.all([page.request.post(`${url}/rounds/${question}/guess`, { data }), secondPage.request.post(`${url}/rounds/${question}/guess`, { data })]);
       expect(guesses.map((r) => r.status()).sort()).toEqual([200, 409]);

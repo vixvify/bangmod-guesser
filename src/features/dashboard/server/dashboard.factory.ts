@@ -59,7 +59,7 @@ export const DashboardFactory = {
         return {
           questionNumber: round.questionNumber,
           status: round.status,
-          location: { id: round.location.id, name: round.location.name },
+          location: round.location ? { id: round.location.id, name: round.location.name } : null,
           score: completed ? round.score : null,
           distanceMeters:
             distance === null ? null : roundDashboardNumber(distance),

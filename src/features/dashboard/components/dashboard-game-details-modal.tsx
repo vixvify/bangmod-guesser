@@ -69,15 +69,21 @@ export function DashboardGameDetailsModal({
                 <TableRow key={round.questionNumber}>
                   <TableCell>{round.questionNumber}</TableCell>
                   <TableCell>
-                    <span className="block font-medium">
-                      {round.location.name}
-                    </span>
-                    <span
-                      className="block max-w-48 truncate text-[0.7rem] text-surface-muted"
-                      title={round.location.id}
-                    >
-                      {round.location.id}
-                    </span>
+                    {round.location ? (
+                      <>
+                        <span className="block font-medium">{round.location.name}</span>
+                        <span
+                          className="block max-w-48 truncate text-[0.7rem] text-surface-muted"
+                          title={round.location.id}
+                        >
+                          {round.location.id}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="inline-flex rounded-md border border-surface-border bg-surface-control px-2 py-1 text-xs text-surface-muted">
+                        สถานที่ถูกลบแล้ว
+                      </span>
+                    )}
                   </TableCell>
                   <TableCell align="right">
                     {round.score === null ? "—" : format(round.score)}

@@ -6,6 +6,7 @@ import { GAME_DEFAULTS } from "../game.constants";
 
 export const GameFactory = {
   toGuessResult(round: GamePlayRecord["rounds"][number], guess: GuessInput, distance: number | null, score: number, accumulatedScore: number): GameGuessResult {
+    if (!round.location) throw new AppError("Round location has been deleted", 410);
     return {
       ...guess, distanceMeters: distance === null ? null : Math.round(distance * 100) / 100,
       timedOut: guess.guessedLatitude === null, score, accumulatedScore,

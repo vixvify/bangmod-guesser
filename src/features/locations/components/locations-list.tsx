@@ -6,7 +6,7 @@ import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { getErrorMessage } from "@/shared/lib/error-message";
+import { getErrorMessage, getHttpErrorCode } from "@/shared/lib/error-message";
 import { LocationsTable } from "@/features/locations/components/locations-table";
 import { Button } from "@/shared/components/ui/button";
 import { ConfirmModal } from "@/shared/components/ui/confirm-modal";
@@ -94,7 +94,7 @@ export function LocationsList({
         router.refresh();
       }
     } catch (error) {
-      toast.error(getErrorMessage(error, LOCATION_MESSAGES.deleteFailed));
+      toast.error(getHttpErrorCode(error) === "LOCATION_IN_USE" ? LOCATION_MESSAGES.locationInUse : getErrorMessage(error, LOCATION_MESSAGES.deleteFailed));
     } finally {
       setDeleting(false);
     }

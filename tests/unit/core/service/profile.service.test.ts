@@ -70,4 +70,15 @@ describe("ProfileService", () => {
     const profile = await new ProfileService(repository).getProfile("user-1", { page: 1 });
     expect(profile.games[0]).toMatchObject({ status: "INCOMPLETE", totalScore: null, grade: null });
   });
+
+  it("keeps game scores when a round's location has been deleted", async () => {
+    const repository = createRepository();
+    vi.mocked(repository.findProfile).mockResolvedValue({
+      user: { id: "user-1", name: "Alice", email: "alice@example.com", games: [{ id: "game-1", status: "COMPLETED", startedAt: new Date("2026-10-20T10:00:00Z"), totalScore: 900, rounds: [{ questionNumber: 1, guessedLatitude: 13.65, guessedLongitude: 100.49, score: 900, location: null }] }] },
+      totalGames: 1,
+    });
+    const profile = await new ProfileService(repository).getProfile("user-1", { page: 1 });
+    expect(profile.games[0]).toMatchObject({ totalScore: 900, bestRoundScore: 900, bestRoundNumber: 1 });
+    expect(profile.games[0].bestDistanceMeters).toBeUndefined();
+  });
 });

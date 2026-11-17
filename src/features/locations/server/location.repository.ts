@@ -1,5 +1,5 @@
 import { GameStatus, Prisma } from "@prisma/client";
-import { LocationImagesChangedError, LocationImagesInUseError } from "./location.errors";
+import { LocationImagesChangedError, LocationImagesInUseError, LocationInUseError, LocationNotFoundError } from "./location.errors";
 import { prisma } from "@/shared/lib/prisma";
 import type { LocationRepository } from "@/features/locations/server/location.repository.port";
 import type { LocationImageRecordInput, LocationImageUpdateInput } from "@/features/images/image.schema";
@@ -264,9 +264,19 @@ export class LocationRepositoryImpl implements LocationRepository {
     }
   }
 
-  async delete(id: string): Promise<void> {
-    await prisma.location.delete({
-      where: { id },
+  async delete(id: string): Promise<LocationModelWithImages> {
+    return prisma.$transaction(async (transaction) => {
+      await transaction.$queryRaw`SELECT "id" FROM "locations" WHERE "id" = ${id} FOR UPDATE`;
+      const location = await transaction.location.findUnique({ where: { id }, include: { images: true } });
+      if (!location) throw new LocationNotFoundError();
+      const playingRound = await transaction.gameRound.findFirst({
+        where: { locationId: id, game: { status: GameStatus.PLAYING } },
+        select: { gameId: true },
+      });
+      if (playingRound) throw new LocationInUseError();
+      await transaction.gameRound.updateMany({ where: { locationId: id }, data: { imageNumber: null } });
+      await transaction.location.delete({ where: { id } });
+      return location;
     });
   }
 }

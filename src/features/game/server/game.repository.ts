@@ -14,6 +14,41 @@ import { AppError } from "@/shared/errors/app.error";
 import { GAME_DEFAULTS, GAME_ERROR_CODES } from "../game.constants";
 
 export class GameRepositoryImpl implements GameRepository {
+  async expireInactiveGames(cutoff: Date, finishedAt: Date): Promise<number> {
+    const inactive: Prisma.GameWhereInput = {
+      status: GameStatus.PLAYING,
+      rounds: { none: { startedAt: { gte: cutoff } } },
+      OR: [{ startedAt: { lt: cutoff } }, { rounds: { some: { startedAt: { lt: cutoff } } } }],
+    };
+    let lastId: string | undefined;
+    let expired = 0;
+
+    while (true) {
+      const candidates = await prisma.game.findMany({
+        where: { ...inactive, ...(lastId ? { id: { gt: lastId } } : {}) },
+        orderBy: { id: "asc" },
+        select: { id: true },
+        take: 100,
+      });
+      if (candidates.length === 0) return expired;
+
+      for (const candidate of candidates) {
+        expired += await prisma.$transaction(async (transaction) => {
+          const locked = await transaction.$queryRaw<{ id: string }[]>`
+            SELECT "id" FROM "games" WHERE "id" = ${candidate.id} FOR UPDATE SKIP LOCKED
+          `;
+          if (locked.length === 0) return 0;
+          const result = await transaction.game.updateMany({
+            where: { ...inactive, id: candidate.id },
+            data: { status: GameStatus.INCOMPLETE, finishedAt },
+          });
+          return result.count;
+        });
+      }
+      lastId = candidates[candidates.length - 1].id;
+    }
+  }
+
   async saveGuess(input: SaveGameGuess): Promise<void> {
     await prisma.$transaction(async (transaction) => {
       await this.lockPlayingGame(transaction, input.gameId, input.userId);

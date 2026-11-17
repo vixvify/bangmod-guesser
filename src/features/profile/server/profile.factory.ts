@@ -35,7 +35,7 @@ export const ProfileFactory = {
         bestRoundNumber = round.questionNumber;
       }
 
-      if (round.guessedLatitude === null || round.guessedLongitude === null) {
+      if (!round.location || round.guessedLatitude === null || round.guessedLongitude === null) {
         continue;
       }
 

@@ -20,7 +20,7 @@ export type DashboardScoreCount = { totalScore: number | null; _count: { _all: n
 export type DashboardRoundAverage = { _avg: { score: number | null }; _count: { _all: number } };
 export type DashboardRoundCursor = Pick<GameRound, "gameId" | "questionNumber">;
 export type DashboardDistanceRecord = Pick<GameRound, "gameId" | "questionNumber" | "guessedLatitude" | "guessedLongitude"> & {
-  location: Pick<Location, "latitude" | "longitude">;
+  location: Pick<Location, "latitude" | "longitude"> | null;
 };
 export type DashboardIncompleteRecord = { id: string; rounds: { questionNumber: number }[] };
 export type DashboardDailyCount = { date: string; count: number };
