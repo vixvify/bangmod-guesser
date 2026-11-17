@@ -515,6 +515,8 @@ describe("location editor", () => {
       expect(error).toHaveBeenCalledWith(LOCATION_MESSAGES.staleUpdate);
     });
 
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+
     expect(push).not.toHaveBeenCalled();
     expect(
       (screen.getByRole("textbox", {
