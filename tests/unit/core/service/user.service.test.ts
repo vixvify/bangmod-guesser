@@ -21,7 +21,6 @@ const form: UserFormInput = {
 const repository = {
   findMany: vi.fn(),
   findById: vi.fn(),
-  updateStatus: vi.fn(),
 } satisfies UserRepository;
 const admin = {
   updateName: vi.fn(),
@@ -61,19 +60,21 @@ describe("UserService", () => {
     expect(admin.updateName).toHaveBeenCalledWith(headers, { userId: record.id, data: { name: "Changed" } });
     expect(admin.setRole).toHaveBeenCalledWith(headers, { userId: record.id, role: UserRole.ADMIN });
     expect(admin.banUser).not.toHaveBeenCalled();
-    expect(repository.updateStatus).not.toHaveBeenCalled();
     expect(result.name).toBe("Changed");
   });
 
-  it("bans and persists a suspended status", async () => {
+  it("bans a user through Better Auth", async () => {
     await service.updateUser(new Headers(), record.id, {
-      ...form, status: "SUSPENDED", reason: "Violation",
+      ...form,
+      status: "SUSPENDED",
+      reason: "Violation",
     });
 
     expect(admin.banUser).toHaveBeenCalledWith(expect.any(Headers), {
-      userId: record.id, banReason: "Violation", banExpiresIn: undefined,
+      userId: record.id,
+      banReason: "Violation",
+      banExpiresIn: undefined,
     });
-    expect(repository.updateStatus).toHaveBeenCalledWith(record.id, "SUSPENDED");
   });
 
   it("rejects an expired suspension before changing the account", async () => {
@@ -89,11 +90,31 @@ describe("UserService", () => {
   });
 
   it("unbans a suspended account when reactivated", async () => {
-    repository.findById.mockResolvedValueOnce({ ...record, status: "SUSPENDED", banned: true });
+    repository.findById.mockResolvedValueOnce({
+      ...record,
+      banned: true,
+      banExpires: null,
+    });
+
     await service.updateUser(new Headers(), record.id, form);
 
-    expect(admin.unbanUser).toHaveBeenCalled();
-    expect(repository.updateStatus).toHaveBeenCalledWith(record.id, "ACTIVE");
+    expect(admin.unbanUser).toHaveBeenCalledWith(expect.any(Headers), {
+      userId: record.id,
+    });
+  });
+
+  it("unbans an account with an expired suspension when reactivated", async () => {
+    repository.findById.mockResolvedValueOnce({
+      ...record,
+      banned: true,
+      banExpires: new Date("2020-01-01"),
+    });
+
+    await service.updateUser(new Headers(), record.id, form);
+
+    expect(admin.unbanUser).toHaveBeenCalledWith(expect.any(Headers), {
+      userId: record.id,
+    });
   });
 
   it("returns 404 for a missing user and does not call the adapter", async () => {

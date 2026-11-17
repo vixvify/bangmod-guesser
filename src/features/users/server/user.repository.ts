@@ -1,7 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import type { UserRepository } from "@/features/users/server/user.repository.port";
 import type { SearchUserQuery } from "@/features/users/user.schema";
-import type { UserStatus } from "@/features/users/user";
 import type {
   GetUserRecordsResult,
   UserModelWithGameCount,
@@ -12,9 +11,28 @@ const withGameCount = { _count: { select: { games: true } } } as const;
 
 export class UserRepositoryImpl implements UserRepository {
   async findMany(query: SearchUserQuery): Promise<GetUserRecordsResult> {
+    const now = new Date();
+    const statusWhere: Prisma.UserWhereInput =
+      query.status === "ACTIVE"
+        ? {
+            OR: [
+              { banned: false },
+              { banned: true, banExpires: { lte: now } },
+            ],
+          }
+        : query.status === "SUSPENDED"
+          ? {
+              banned: true,
+              OR: [
+                { banExpires: null },
+                { banExpires: { gt: now } },
+              ],
+            }
+          : {};
+
     const where: Prisma.UserWhereInput = {
       ...(query.role ? { role: query.role } : {}),
-      ...(query.status ? { status: query.status } : {}),
+      ...statusWhere,
     };
     const [items, total] = await Promise.all([
       prisma.user.findMany({
@@ -31,9 +49,5 @@ export class UserRepositoryImpl implements UserRepository {
 
   async findById(id: string): Promise<UserModelWithGameCount | null> {
     return prisma.user.findUnique({ where: { id }, include: withGameCount });
-  }
-
-  async updateStatus(id: string, status: UserStatus): Promise<void> {
-    await prisma.user.update({ where: { id }, data: { status } });
   }
 }
