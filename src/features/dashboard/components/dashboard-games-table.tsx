@@ -8,6 +8,7 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
+import { dashboardTableSx } from "@/features/dashboard/components/dashboard-table-style";
 import type { DashboardGameLog } from "@/features/dashboard/dashboard";
 import { formatThaiClockTime, formatThaiNumericDate } from "@/shared/lib/utils";
 
@@ -26,9 +27,9 @@ export function DashboardGamesTable({
   onView: (game: DashboardGameLog) => void;
 }) {
   return (
-    <TableContainer className="rounded-xl border border-slate-200 bg-white">
-      <Table aria-label="บันทึกเกมล่าสุด" size="small">
-        <TableHead className="bg-slate-100">
+    <TableContainer className="rounded-xl border border-surface-border bg-surface-overlay">
+      <Table sx={dashboardTableSx} aria-label="บันทึกเกมล่าสุด" size="small">
+        <TableHead className="bg-surface-control">
           <TableRow>
             <TableCell>GAME ID</TableCell>
             <TableCell>ชื่อผู้ใช้</TableCell>

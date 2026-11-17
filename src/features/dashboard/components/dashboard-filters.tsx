@@ -11,7 +11,7 @@ export function DashboardFilters({ period }: { period: DashboardPeriod }) {
   const router = useRouter();
   return (
     <div className="flex flex-wrap items-end gap-3">
-      <DateRangePicker
+      <DateRangePicker theme="dark"
         label="ช่วงวันที่"
         defaultValue={{ startDate: period.startDate, endDate: period.endDate }}
         onChange={({ startDate, endDate }) => {
@@ -21,7 +21,7 @@ export function DashboardFilters({ period }: { period: DashboardPeriod }) {
           );
         }}
       />
-      <Button variant="surface" size="small" onClick={() => router.refresh()}>
+      <Button variant="outline" size="small" onClick={() => router.refresh()}>
         <RefreshRoundedIcon fontSize="small" /> รีเฟรช
       </Button>
     </div>

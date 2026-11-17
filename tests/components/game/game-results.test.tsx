@@ -46,6 +46,16 @@ describe("game results", () => {
     expect(screen.getByRole("link", { name: /สรุปผลเกม/ }).getAttribute("href")).toBe("/game/game-123/summary");
   });
 
+  it("shows loading in the disabled next round button until the image is ready", () => {
+    const { rerender } = render(<GameRoundScore nextReady={false} nextError={null} onRetryNext={() => {}} gameId="game-123" result={mockRoundResult} totalRounds={5} accumulatedScore={1111} />);
+    const button = screen.getByRole("button", { name: "กำลังโหลดรอบถัดไป…" });
+    expect(button.hasAttribute("disabled")).toBe(true);
+    expect(within(button).getByRole("status")).toBeTruthy();
+
+    rerender(<GameRoundScore nextReady={true} nextError={null} onRetryNext={() => {}} gameId="game-123" result={mockRoundResult} totalRounds={5} accumulatedScore={1111} />);
+    expect(screen.getByRole("link", { name: /รอบถัดไป/ }).getAttribute("href")).toBe("/game/game-123");
+  });
+
   it("shows final totals and starts a countdown before replay", async () => {
     render(<GameSummary gameId="game-123" summary={{ ...mockGameSummary, totalTimeSeconds: 87 }} />);
     expect(screen.getByRole("meter").getAttribute("aria-valuenow")).toBe("4321");

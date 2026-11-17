@@ -33,6 +33,23 @@ describe("useCountdown", () => {
     expect(result.current.secondsLeft).toBe(37);
   });
 
+  it("keeps counting against the elapsed time when the device clock changes", () => {
+    const onTimeUp = vi.fn();
+    const deadline = performance.now() + 40000;
+    const { result } = renderHook(() => useCountdown({ initialSeconds: 40, deadline, onTimeUp }));
+
+    act(() => {
+      vi.setSystemTime(new Date("2040-01-01T00:00:00Z"));
+      vi.advanceTimersByTime(3000);
+    });
+    expect(result.current.secondsLeft).toBe(37);
+    expect(onTimeUp).not.toHaveBeenCalled();
+
+    act(() => vi.advanceTimersByTime(37000));
+    expect(result.current.secondsLeft).toBe(0);
+    expect(onTimeUp).toHaveBeenCalledTimes(1);
+  });
+
   it("sets isUrgent to true when 10 seconds or less remain", () => {
     const { result } = renderHook(() =>
       useCountdown({ initialSeconds: 12 }),

@@ -33,6 +33,13 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("ProfileHistory", () => {
+  it("shows a history skeleton while a filter request is pending", async () => {
+    vi.mocked(httpClient.get).mockReturnValueOnce(new Promise(() => {}));
+    render(<ProfileHistory initialProfile={initialProfile} initialQuery={{ page: 1 }} />);
+    fireEvent.click(screen.getByRole("button", { name: "เลือกช่วงวันที่" }));
+    expect(screen.getByRole("status", { name: "กำลังโหลดประวัติการเล่น" })).toBeTruthy();
+    expect(screen.queryByText("100")).toBeNull();
+  });
   it("renders the server result without another request", () => {
     render(<ProfileHistory initialProfile={initialProfile} initialQuery={{ page: 1 }} />);
 

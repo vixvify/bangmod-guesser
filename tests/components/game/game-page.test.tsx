@@ -60,7 +60,7 @@ import { AppRoutes } from "@/shared/routes/routes";
 describe("GameSession", () => {
   beforeEach(() => {
     vi.mocked(preloadGameImage).mockResolvedValue(undefined);
-    api.get.mockResolvedValue({ data: { questionNumber: 1, imageUrl: "/images/kmutt-bangmod-1.jpg", deadlineAt: new Date(Date.now() + 40000).toISOString() } });
+    api.get.mockResolvedValue({ data: { questionNumber: 1, imageUrl: "/images/kmutt-bangmod-1.jpg", deadlineAt: new Date(Date.now() + 40000).toISOString(), serverTime: new Date().toISOString() } });
     api.post.mockResolvedValue({ data: {} });
   });
   afterEach(() => {
@@ -80,11 +80,23 @@ describe("GameSession", () => {
     expect(screen.getByRole("button", { name: "ส่งคำตอบ" })).toBeTruthy();
   });
 
+  it("uses the server clock when the player's clock differs", async () => {
+    api.get.mockResolvedValueOnce({ data: {
+      questionNumber: 1,
+      imageUrl: "/question.jpg",
+      serverTime: "2020-01-01T00:00:00.000Z",
+      deadlineAt: "2020-01-01T00:00:40.000Z",
+    } });
+    render(<GameSession gameId="test-game" />);
+    expect(await screen.findByText("00:40")).toBeTruthy();
+    expect(api.post).not.toHaveBeenCalled();
+  });
+
   it("starts the round only after its image is loaded", async () => {
     let finishLoading!: () => void;
     vi.mocked(preloadGameImage).mockReturnValueOnce(new Promise<void>((resolve) => { finishLoading = resolve; }));
     api.get.mockResolvedValueOnce({ data: { questionNumber: 1, imageUrl: "/question.jpg", deadlineAt: null } });
-    api.post.mockResolvedValueOnce({ data: { questionNumber: 1, imageUrl: "/question.jpg", deadlineAt: new Date(Date.now() + 40000).toISOString() } });
+    api.post.mockResolvedValueOnce({ data: { questionNumber: 1, imageUrl: "/question.jpg", deadlineAt: new Date(Date.now() + 40000).toISOString(), serverTime: new Date().toISOString() } });
     render(<GameSession gameId="test-game" />);
     await waitFor(() => expect(preloadGameImage).toHaveBeenCalledWith("/question.jpg"));
     expect(api.post).not.toHaveBeenCalled();
@@ -118,7 +130,7 @@ describe("GameSession", () => {
   });
 
   it("records a timeout using null coordinates when the server deadline has passed", async () => {
-    api.get.mockResolvedValueOnce({ data: { questionNumber: 3, imageUrl: "/images/kmutt-bangmod-1.jpg", deadlineAt: new Date(Date.now() - 1000).toISOString() } });
+    api.get.mockResolvedValueOnce({ data: { questionNumber: 3, imageUrl: "/images/kmutt-bangmod-1.jpg", deadlineAt: new Date(Date.now() - 1000).toISOString(), serverTime: new Date().toISOString() } });
     render(<GameSession gameId="test-game" />);
     await waitFor(() => expect(api.post).toHaveBeenCalledWith(expect.stringContaining("/rounds/3/guess"), { guessedLatitude: null, guessedLongitude: null }));
     await waitFor(() => expect(push).toHaveBeenCalledWith(AppRoutes.gameRoundScore("test-game", 3)));
@@ -179,7 +191,7 @@ describe("GameSession", () => {
   it("allows retrying when neither submission nor result retrieval succeeds", async () => {
     api.post.mockRejectedValueOnce(new Error("network"));
     api.get.mockReset()
-      .mockResolvedValueOnce({ data: { questionNumber: 1, imageUrl: "/images/kmutt-bangmod-1.jpg", deadlineAt: new Date(Date.now() + 40000).toISOString() } })
+      .mockResolvedValueOnce({ data: { questionNumber: 1, imageUrl: "/images/kmutt-bangmod-1.jpg", deadlineAt: new Date(Date.now() + 40000).toISOString(), serverTime: new Date().toISOString() } })
       .mockRejectedValueOnce(new Error("not saved"));
     render(<GameSession gameId="test-game" />);
     await screen.findByRole("button", { name: "ส่งคำตอบ" });

@@ -6,12 +6,12 @@ import { useCountdown } from "@/features/game/hooks/use-countdown";
 
 type GameTimerProps = {
   initialSeconds: number;
-  deadlineAt?: string;
+  deadline?: number;
   onTimeUp?: () => void;
 };
 
-export function GameTimer({ initialSeconds, deadlineAt, onTimeUp }: GameTimerProps) {
-  const { secondsLeft, isUrgent } = useCountdown({ initialSeconds, onTimeUp, ...(deadlineAt ? { deadlineAt } : {}) });
+export function GameTimer({ initialSeconds, deadline, onTimeUp }: GameTimerProps) {
+  const { secondsLeft, isUrgent } = useCountdown({ initialSeconds, onTimeUp, deadline });
 
   return (
     <>

@@ -143,10 +143,12 @@ export function GameRoundScore({
               {isLastRound ? MESSAGES.summary : MESSAGES.nextRound}<ArrowForwardRoundedIcon />
             </Button>
           ) : (
-            <Button disabled className="sm:min-w-64">{MESSAGES.nextRound}<ArrowForwardRoundedIcon /></Button>
+            <Button disabled className="sm:min-w-64">
+              {nextError ? MESSAGES.nextRound : <span role="status">กำลังโหลดรอบถัดไป…</span>}
+            </Button>
           )}
         </div>
-        {!isLastRound && !nextReady && (nextError ? <div role="alert" className="mt-3 text-right text-surface-text"><p>{nextError}</p><Button onClick={onRetryNext}>ลองอีกครั้ง</Button></div> : <p role="status" className="mt-3 text-right text-surface-muted">กำลังโหลดรูปของรอบถัดไป…</p>)}
+        {!isLastRound && !nextReady && nextError && <div role="alert" className="mt-3 text-right text-surface-text"><p>{nextError}</p><Button onClick={onRetryNext}>ลองอีกครั้ง</Button></div>}
       </article>
       <LocationInfoModal
         location={result.location}

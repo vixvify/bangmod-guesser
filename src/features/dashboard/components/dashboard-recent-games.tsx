@@ -7,6 +7,7 @@ import { DashboardGamesTable } from "@/features/dashboard/components/dashboard-g
 import { EmptyState } from "@/shared/components/ui/empty-state";
 import { Input } from "@/shared/components/ui/input";
 import { ListPagination } from "@/shared/components/ui/list-pagination";
+import { TableSkeleton } from "@/shared/components/ui/table-skeleton";
 import type {
   DashboardGameLog,
   DashboardGameLogs,
@@ -80,12 +81,12 @@ export function DashboardRecentGames({
           <h2 id="recent-games-title" className="text-xl font-bold">
             บันทึกเกมล่าสุด
           </h2>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-surface-muted">
             รายการเกมของผู้เล่นในช่วงวันที่เลือก
           </p>
         </div>
         <div className="w-full sm:w-72">
-          <Input
+          <Input theme="dark"
             id="dashboard-game-search"
             label="ค้นหาเกมหรือผู้เล่น"
             size="small"
@@ -100,21 +101,16 @@ export function DashboardRecentGames({
         </div>
       </div>
       {loading ? (
-        <div
-          role="status"
-          className="rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-600"
-        >
-          กำลังโหลดเกม...
-        </div>
+        <TableSkeleton label="กำลังโหลดบันทึกเกม" columns={7} />
       ) : errorMessage ? (
         <div
           role="alert"
-          className="rounded-xl border border-red-200 bg-white p-8 text-center text-red-700"
+          className="rounded-xl border border-red-200 bg-surface-overlay p-8 text-center text-red-300"
         >
           {errorMessage}
         </div>
       ) : games.items.length === 0 ? (
-        <EmptyState
+        <EmptyState theme="dark"
           title="ไม่พบเกมในช่วงที่เลือก"
           description="ลองเลือกช่วงวันหรือคำค้นหาอื่น"
         />
@@ -122,7 +118,7 @@ export function DashboardRecentGames({
         <DashboardGamesTable games={games.items} onView={setSelectedGame} />
       )}
       {!loading && !errorMessage && games.total > 0 && (
-        <ListPagination
+        <ListPagination theme="dark"
           totalItems={games.total}
           pageSize={games.pageSize}
           page={games.page}

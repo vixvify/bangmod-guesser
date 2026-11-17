@@ -29,6 +29,7 @@ export function GameSession({ gameId }: { gameId: string }) {
   useGameMusic();
   const router = useRouter();
   const [round, setRound] = useState<CurrentGameRound | null>(null);
+  const [deadline, setDeadline] = useState<number | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [marker, setMarker] = useState<{ lat: number; lng: number } | null>(
@@ -53,17 +54,18 @@ export function GameSession({ gameId }: { gameId: string }) {
         const { data } = await httpClient.get<CurrentGameRound>(
           GameRoutes.currentRound(gameId),
         );
+        const receivedAt = performance.now();
         await preloadGameImage(data.imageUrl);
         if (cancelled) return;
-        const started = data.deadlineAt
-          ? data
-          : (
-              await httpClient.post<CurrentGameRound>(
-                GameRoutes.currentRound(gameId),
-                { questionNumber: data.questionNumber },
-              )
-            ).data;
-        if (!cancelled) setRound(started);
+        const started = data.deadlineAt ? data : (await httpClient.post<CurrentGameRound>(
+          GameRoutes.currentRound(gameId),
+          { questionNumber: data.questionNumber },
+        )).data;
+        const startedReceivedAt = data.deadlineAt ? receivedAt : performance.now();
+        if (!cancelled && started.deadlineAt) {
+          setDeadline(startedReceivedAt + Date.parse(started.deadlineAt) - Date.parse(started.serverTime));
+          setRound(started);
+        }
       } catch (error) {
         if (!cancelled && getHttpErrorCode(error) === GAME_ERROR_CODES.ended) {
           setGameEnded(true);
@@ -152,12 +154,12 @@ export function GameSession({ gameId }: { gameId: string }) {
       <GameLayout
         onExit={() => setExitOpen(true)}
         headerCenter={
-          round?.deadlineAt && (
+          round?.deadlineAt && deadline !== null && (
             <div className="flex flex-wrap items-center justify-center gap-2">
               <GameRound round={round.questionNumber} />
               <GameTimer
                 initialSeconds={GAME_DEFAULTS.roundDurationSeconds}
-                deadlineAt={round.deadlineAt}
+                deadline={deadline}
                 onTimeUp={handleTimeUp}
               />
             </div>
@@ -184,8 +186,7 @@ export function GameSession({ gameId }: { gameId: string }) {
               <Button
                 onClick={() =>
                   void submit(
-                    round.deadlineAt &&
-                      Date.now() >= Date.parse(round.deadlineAt)
+                    deadline !== null && performance.now() >= deadline
                       ? { guessedLatitude: null, guessedLongitude: null }
                       : {
                           guessedLatitude: marker?.lat ?? null,

@@ -87,31 +87,31 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="max-h-[calc(100dvh-2rem)] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-5 text-secondary-dark shadow-2xl outline-none sm:p-8"
+        className="max-h-[calc(100dvh-2rem)] w-full max-w-3xl overflow-y-auto rounded-2xl border border-surface-border bg-secondary-main p-5 text-surface-text shadow-2xl outline-none sm:p-8"
       >
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 id={titleId} className="text-2xl font-bold">
               แก้ไขผู้ใช้
             </h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-surface-muted">
               แก้ไขข้อมูล บทบาท และสถานะบัญชี
             </p>
           </div>
-          <IconButton aria-label="ปิดหน้าต่าง" onClick={requestClose} size="small" disabled={isSubmitting}>
+          <IconButton sx={{ color: "var(--color-surface-text)" }} aria-label="ปิดหน้าต่าง" onClick={requestClose} size="small" disabled={isSubmitting}>
             <CloseRoundedIcon />
           </IconButton>
         </div>
-        <hr className="my-5 border-slate-200" />
+        <hr className="my-5 border-surface-border" />
 
         <form noValidate onSubmit={handleSubmit(() => setSaveConfirmationOpen(true))} className="space-y-6">
           <section
-            className="rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5"
+            className="rounded-xl border border-surface-border bg-secondary-main p-4 sm:p-5"
             aria-labelledby="managed-user-info"
           >
             <h3
               id="managed-user-info"
-              className="text-sm font-semibold text-slate-600"
+              className="text-sm font-semibold text-surface-muted"
             >
               ข้อมูลบัญชี
             </h3>
@@ -131,7 +131,7 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
                 {user.name.charAt(0).toUpperCase()}
               </Avatar>
               <div className="grid min-w-0 flex-1 gap-4 sm:grid-cols-2">
-                <Input
+                <Input theme="dark"
                   id="managed-username"
                   label="ชื่อผู้ใช้"
                   size="small"
@@ -141,7 +141,7 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
                   error={errors.name?.message}
                   inputProps={{ maxLength: 50 }}
                 />
-                <Input
+                <Input theme="dark"
                   id="managed-email"
                   label="อีเมล"
                   value={user.email}
@@ -156,7 +156,7 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
           <section aria-labelledby="managed-user-role">
             <h3
               id="managed-user-role"
-              className="mb-3 text-sm font-semibold text-secondary-dark"
+              className="mb-3 text-sm font-semibold text-surface-text"
             >
               บทบาท
             </h3>
@@ -165,7 +165,7 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
                 <Button
                   key={role}
                   type="button"
-                  variant={selectedRole === role ? "primary" : "surface"}
+                  variant={selectedRole === role ? "primary" : "outline"}
                   size="small"
                   className="flex-1"
                   aria-pressed={selectedRole === role}
@@ -185,7 +185,7 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
           <section aria-labelledby="managed-user-status">
             <h3
               id="managed-user-status"
-              className="mb-3 text-sm font-semibold text-secondary-dark"
+              className="mb-3 text-sm font-semibold text-surface-text"
             >
               สถานะบัญชี
             </h3>
@@ -201,14 +201,14 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
           </section>
 
           {selectedStatus !== "ACTIVE" && (
-            <div className="grid gap-4 border-t border-slate-200 pt-5 sm:grid-cols-2">
+            <div className="grid gap-4 border-t border-surface-border pt-5 sm:grid-cols-2">
               {selectedStatus === "SUSPENDED" && (
                 <Controller
                   name="suspension"
                   control={control}
                   render={({ field }) => (
                     <div>
-                      <DateRangePicker
+                      <DateRangePicker theme="dark"
                         label="ระยะเวลาการระงับ (ไม่บังคับ)"
                         defaultValue={field.value}
                         onChange={field.onChange}
@@ -227,7 +227,7 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
                   selectedStatus === "SUSPENDED" ? "" : "sm:col-span-2"
                 }
               >
-                <Input
+                <Input theme="dark"
                   id="managed-reason"
                   label="เหตุผล (ไม่บังคับ)"
                   placeholder="ระบุเหตุผล เช่น สแปมคะแนน"
@@ -240,10 +240,10 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
             </div>
           )}
 
-          <div className="flex justify-end gap-3 border-t border-slate-200 pt-5">
+          <div className="flex justify-end gap-3 border-t border-surface-border pt-5">
             <Button
               type="button"
-              variant="surface"
+              variant="outline"
               size="small"
               onClick={requestClose}
               disabled={isSubmitting}
@@ -262,7 +262,7 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
         </form>
       </div>
     </Modal>
-    <ConfirmModal
+    <ConfirmModal theme="dark"
       open={saveConfirmationOpen}
       busy={isSubmitting}
       title={USER_MESSAGES.updateConfirm.title}
@@ -272,7 +272,7 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
       onConfirm={() => void handleSubmit(confirmSave)()}
       onCancel={() => setSaveConfirmationOpen(false)}
     />
-    <ConfirmModal
+    <ConfirmModal theme="dark"
       open={discardConfirmationOpen}
       title={USER_MESSAGES.discardConfirm.title}
       description={USER_MESSAGES.discardConfirm.description}
