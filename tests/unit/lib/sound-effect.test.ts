@@ -37,6 +37,19 @@ describe("playSoundEffect", () => {
     expect(play).toHaveBeenCalledTimes(2);
   });
 
+  it("mutes audio and does not play when systemSound is 0", async () => {
+    const { play } = mockAudio();
+    const { useSettingsStore } = await import("@/features/settings/settings.store");
+    const { playSoundEffect } = await import("@/shared/lib/sound-effect");
+    useSettingsStore.getState().setSettings({
+      systemSound: 0,
+      musicSound: 50,
+    });
+
+    playSoundEffect("click");
+    expect(play).not.toHaveBeenCalled();
+  });
+
   it("plays the accept asset and does not break clicks if playback is blocked", async () => {
     const { play } = mockAudio();
     play.mockRejectedValueOnce(new DOMException("Blocked", "NotAllowedError"));

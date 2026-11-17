@@ -43,6 +43,17 @@ describe("settingsStore", () => {
     expect(reloadedStore.getState()).toMatchObject(saved);
   });
 
+  it("restores 0% sound levels from localStorage after a reload", async () => {
+    const muted = { systemSound: 0, musicSound: 0 };
+    useSettingsStore.getState().setSettings(muted);
+
+    vi.resetModules();
+    const { useSettingsStore: reloadedStore } = await import("@/features/settings/settings.store");
+    await reloadedStore.persist.rehydrate();
+
+    expect(reloadedStore.getState()).toMatchObject(muted);
+  });
+
   it("restores sound levels saved by older versions with image quality", async () => {
     localStorage.setItem("bangmod-guesser:settings", JSON.stringify({
       state: { imageQuality: "low", systemSound: 27, musicSound: 64 }, version: 0,
