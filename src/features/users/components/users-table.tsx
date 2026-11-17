@@ -29,12 +29,12 @@ const badgeClass =
   "inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-semibold whitespace-nowrap";
 const roleClasses = {
   [UserRole.ADMIN]: "border-orange-200 bg-orange-50 text-orange-800",
-  [UserRole.USER]: "border-slate-200 bg-slate-100 text-slate-700",
+  [UserRole.USER]: "border-surface-border bg-surface-control text-surface-muted",
 };
 const statusClasses: Record<UserStatus, string> = {
   ACTIVE: "border-emerald-200 bg-emerald-50 text-emerald-800",
   SUSPENDED: "border-rose-200 bg-rose-50 text-rose-800",
-  INACTIVE: "border-slate-300 bg-slate-200 text-slate-700",
+  INACTIVE: "border-surface-border bg-surface-control text-surface-muted",
 };
 
 function getStatusDisplay(user: UserAccount) {
@@ -57,8 +57,8 @@ export function UsersTable({ users, startIndex = 0, onEdit, onDelete }: UsersTab
       component={Paper}
       elevation={0}
       sx={{
-        border: "1px solid #e2e8f0",
-        borderRadius: "1rem",
+        border: "1px solid var(--color-surface-border)",
+        backgroundColor: "var(--color-surface-overlay)", borderRadius: "1rem",
         boxShadow: "0 1px 3px rgb(15 23 42 / 6%)",
       }}
     >
@@ -67,18 +67,18 @@ export function UsersTable({ users, startIndex = 0, onEdit, onDelete }: UsersTab
         sx={{
           minWidth: "44rem",
           "& .MuiTableCell-root": {
-            fontFamily: "var(--font-prompt), sans-serif",
+            fontFamily: "var(--font-prompt), sans-serif", color: "var(--color-surface-text)", borderColor: "var(--color-surface-border)",
             px: 2.5,
           },
         }}
       >
         <TableHead
           sx={{
-            backgroundColor: "#f1f5f9",
+            backgroundColor: "var(--color-surface-control)",
             "& .MuiTableCell-root": {
               fontSize: "0.75rem",
               fontWeight: 700,
-              color: "#475569",
+              color: "var(--color-surface-muted)",
             },
           }}
         >
@@ -98,13 +98,13 @@ export function UsersTable({ users, startIndex = 0, onEdit, onDelete }: UsersTab
               <TableRow
                 key={user.id}
                 hover
-                sx={{ "&:hover": { backgroundColor: "#fff7ed" } }}
+                sx={{ "&:hover": { backgroundColor: "var(--color-surface-control-hover)" } }}
             >
-              <TableCell sx={{ color: "#64748b" }}>
+              <TableCell sx={{ color: "var(--color-surface-muted)" }}>
                 {String(startIndex + index + 1).padStart(2, "0")}
               </TableCell>
               <TableCell
-                sx={{ fontWeight: 600, color: "var(--color-secondary-dark)" }}
+                sx={{ fontWeight: 600, color: "var(--color-surface-text)" }}
               >
                 {user.name}
               </TableCell>
@@ -130,7 +130,7 @@ export function UsersTable({ users, startIndex = 0, onEdit, onDelete }: UsersTab
                     onClick={() => onEdit(user)}
                     size="small"
                     sx={{
-                      color: "var(--color-secondary-dark)",
+                      color: "var(--color-surface-text)",
                       "&:hover": { color: "var(--color-primary-main)" },
                     }}
                   >
@@ -141,7 +141,7 @@ export function UsersTable({ users, startIndex = 0, onEdit, onDelete }: UsersTab
                     onClick={() => onDelete(user)}
                     size="small"
                     sx={{
-                      color: "var(--color-secondary-dark)",
+                      color: "var(--color-surface-text)",
                       "&:hover": { color: "#b91c1c" },
                     }}
                   >
@@ -157,7 +157,7 @@ export function UsersTable({ users, startIndex = 0, onEdit, onDelete }: UsersTab
               <TableCell
                 colSpan={5}
                 align="center"
-                sx={{ py: 6, color: "#64748b" }}
+                sx={{ py: 6, color: "var(--color-surface-muted)" }}
               >
                 ไม่พบผู้ใช้ตามตัวกรองที่เลือก
               </TableCell>

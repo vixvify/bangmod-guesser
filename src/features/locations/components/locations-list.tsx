@@ -13,6 +13,7 @@ import { ConfirmModal } from "@/shared/components/ui/confirm-modal";
 import { EmptyState } from "@/shared/components/ui/empty-state";
 import { Input } from "@/shared/components/ui/input";
 import { ListPagination } from "@/shared/components/ui/list-pagination";
+import { TableSkeleton } from "@/shared/components/ui/table-skeleton";
 import { LOCATION_MESSAGES } from "@/features/locations/location.constants";
 import type { Location, PaginatedLocations } from "@/features/locations/location";
 import { useDebounce } from "@/shared/hooks/use-debounce";
@@ -104,13 +105,13 @@ export function LocationsList({
       <div className="mt-3 mb-7 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">จัดการสถานที่</h1>
-          <p className="mt-1 text-sm text-slate-500 sm:text-base">
+          <p className="mt-1 text-sm text-surface-muted sm:text-base">
             จัดการข้อมูลและรูปภาพของสถานที่ที่ใช้ภายในเกม
           </p>
         </div>
         <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-end xl:w-auto">
           <div className="w-full min-w-0 sm:flex-1 xl:w-96 xl:flex-none">
-            <Input
+            <Input theme="dark"
               id="location-search"
               label="ค้นหาสถานที่"
               placeholder="เช่น CB2, หอสมุด"
@@ -132,16 +133,14 @@ export function LocationsList({
         </div>
       </div>
       {loading ? (
-        <div role="status" className="rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-500">
-          กำลังโหลดสถานที่...
-        </div>
+        <TableSkeleton label="กำลังโหลดสถานที่" columns={4} />
       ) : locations.items.length === 0 ? (
-        <EmptyState
+        <EmptyState theme="dark"
           title={LOCATION_MESSAGES.empty}
           description={search ? LOCATION_MESSAGES.emptySearchDescription : LOCATION_MESSAGES.emptyDescription}
           icon={<PlaceOutlinedIcon fontSize="large" />}
           action={search ? (
-            <Button onClick={() => setSearchInput("")} variant="surface" size="small">
+            <Button onClick={() => setSearchInput("")} variant="outline" size="small">
               {LOCATION_MESSAGES.clearSearch}
             </Button>
           ) : undefined}
@@ -153,7 +152,7 @@ export function LocationsList({
             startIndex={(locations.page - 1) * locations.pageSize}
             onDelete={setDeletingLocation}
           />
-          <ListPagination
+          <ListPagination theme="dark"
             totalItems={locations.total}
             pageSize={locations.pageSize}
             page={locations.page}
@@ -162,7 +161,7 @@ export function LocationsList({
           />
         </>
       )}
-      <ConfirmModal
+      <ConfirmModal theme="dark"
         open={Boolean(deletingLocation)}
         title={LOCATION_MESSAGES.delete.title}
         description={LOCATION_MESSAGES.delete.description(deletingLocation?.name ?? "สถานที่")}

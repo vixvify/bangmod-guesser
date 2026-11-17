@@ -65,10 +65,10 @@ export function DashboardStats({ summary }: { summary: DashboardSummary }) {
       {cards.map((card) => (
         <article
           key={card.title}
-          className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+          className="rounded-2xl border border-surface-border bg-surface-overlay p-5 shadow-sm"
         >
           <div className="flex items-start justify-between gap-2">
-            <h2 className="text-sm font-semibold text-slate-600">
+            <h2 className="text-sm font-semibold text-surface-muted">
               {card.title}
             </h2>
             <span
@@ -78,16 +78,16 @@ export function DashboardStats({ summary }: { summary: DashboardSummary }) {
               {card.icon}
             </span>
           </div>
-          <p className="mt-3 flex items-baseline gap-2 text-3xl font-bold tabular-nums text-secondary-dark">
+          <p className="mt-3 flex items-baseline gap-2 text-3xl font-bold tabular-nums text-surface-text">
             {card.value}
-            <span className="text-sm font-medium text-slate-500">
+            <span className="text-sm font-medium text-surface-muted">
               {card.suffix}
             </span>
           </p>
           <p className="mt-2 text-xs font-semibold text-orange-700">
             {card.detail}
           </p>
-          <p className="mt-1 text-xs text-slate-500">{card.foot}</p>
+          <p className="mt-1 text-xs text-surface-muted">{card.foot}</p>
         </article>
       ))}
     </section>

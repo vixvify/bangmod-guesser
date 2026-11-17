@@ -20,7 +20,7 @@ export default async function LocationsPage({
     <div className="mx-auto w-full max-w-6xl">
       <Link
         href={AppRoutes.admin}
-        className="inline-flex items-center gap-1 text-sm text-slate-500 transition-colors hover:text-primary-main"
+        className="inline-flex items-center gap-1 text-sm text-surface-muted transition-colors hover:text-primary-main"
       >
         <ArrowBackRoundedIcon fontSize="small" />
         กลับไปภาพรวมระบบ

@@ -102,6 +102,11 @@ export function Input({
           backgroundColor: isDark ? "var(--color-surface-control)" : "#fff",
           color: isDark ? "var(--color-surface-text)" : "var(--color-secondary-dark)",
           fontFamily: "var(--font-prompt), sans-serif",
+          ...(isDark && {
+            "& .MuiOutlinedInput-input.Mui-disabled": {
+              WebkitTextFillColor: "var(--color-surface-muted)",
+            },
+          }),
           "& .MuiOutlinedInput-notchedOutline": {
             borderColor: isDark
               ? "var(--color-surface-control-border)"

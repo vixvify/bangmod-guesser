@@ -10,6 +10,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import { useId } from "react";
+import { dashboardTableSx } from "@/features/dashboard/components/dashboard-table-style";
 import type { DashboardGameLog } from "@/features/dashboard/dashboard";
 import { formatTime } from "@/shared/lib/utils";
 
@@ -40,22 +41,22 @@ export function DashboardGameDetailsModal({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-5 text-secondary-dark shadow-2xl outline-none sm:p-7"
+        className="max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto rounded-2xl border border-surface-border bg-secondary-main p-5 text-surface-text shadow-2xl outline-none sm:p-7"
       >
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 id={titleId} className="text-2xl font-bold">
               รายละเอียดเกม
             </h2>
-            <p className="mt-1 break-all text-xs text-slate-500">{game?.id}</p>
+            <p className="mt-1 break-all text-xs text-surface-muted">{game?.id}</p>
           </div>
-          <IconButton aria-label="ปิดรายละเอียดเกม" onClick={onClose}>
+          <IconButton sx={{ color: "var(--color-surface-text)" }} aria-label="ปิดรายละเอียดเกม" onClick={onClose}>
             <CloseRoundedIcon />
           </IconButton>
         </div>
-        <TableContainer className="mt-5 rounded-xl border border-slate-200">
-          <Table size="small" aria-label="คะแนนแต่ละรอบ">
-            <TableHead className="bg-slate-100">
+        <TableContainer className="mt-5 rounded-xl border border-surface-border">
+          <Table sx={dashboardTableSx} size="small" aria-label="คะแนนแต่ละรอบ">
+            <TableHead className="bg-surface-control">
               <TableRow>
                 <TableCell>รอบ</TableCell>
                 <TableCell>สถานที่</TableCell>
@@ -72,7 +73,7 @@ export function DashboardGameDetailsModal({
                       {round.location.name}
                     </span>
                     <span
-                      className="block max-w-48 truncate text-[0.7rem] text-slate-500"
+                      className="block max-w-48 truncate text-[0.7rem] text-surface-muted"
                       title={round.location.id}
                     >
                       {round.location.id}
@@ -92,25 +93,25 @@ export function DashboardGameDetailsModal({
           </Table>
         </TableContainer>
         {game?.rounds.length === 0 && (
-          <p className="py-6 text-center text-sm text-slate-500">
+          <p className="py-6 text-center text-sm text-surface-muted">
             ยังไม่มีข้อมูลรอบเกม
           </p>
         )}
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          <div className="flex items-center justify-between gap-4 rounded-xl border border-orange-200 bg-orange-50 px-4 py-4">
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-surface-border bg-surface-control px-4 py-4">
             <div>
-            <p className="text-xs text-slate-600">คะแนนโบนัส</p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-surface-muted">คะแนนโบนัส</p>
+            <p className="text-xs text-surface-muted">
               {game?.bonusScore == null ? "ไม่มีข้อมูลเวลาครบสำหรับคำนวณโบนัส" : "คำนวณจากเวลาเล่นรวม"}
             </p>
             </div>
-            <p className="shrink-0 text-xl font-bold tabular-nums text-orange-700">
+            <p className="shrink-0 text-xl font-bold tabular-nums text-primary-light">
               {game?.bonusScore == null ? "—" : `+${format(game.bonusScore)}`}
             </p>
           </div>
-          <div className="flex items-center justify-between gap-4 rounded-xl border border-orange-300 bg-orange-100 px-4 py-4">
-            <p className="text-sm font-semibold text-slate-700">คะแนนรวม</p>
-            <p className="shrink-0 text-2xl font-bold tabular-nums text-orange-800">
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-primary-main bg-surface-control px-4 py-4">
+            <p className="text-sm font-semibold text-surface-muted">คะแนนรวม</p>
+            <p className="shrink-0 text-2xl font-bold tabular-nums text-primary-light">
               {game?.totalScore === null || game?.totalScore === undefined
                 ? "—"
                 : format(game.totalScore)}
