@@ -73,7 +73,7 @@ export function DashboardStats({ summary }: { summary: DashboardSummary }) {
             </h2>
             <span
               aria-hidden="true"
-              className="rounded-lg bg-orange-50 p-2 text-primary-main"
+              className="rounded-lg bg-surface-control p-2 text-primary-light"
             >
               {card.icon}
             </span>
@@ -84,7 +84,7 @@ export function DashboardStats({ summary }: { summary: DashboardSummary }) {
               {card.suffix}
             </span>
           </p>
-          <p className="mt-2 text-xs font-semibold text-orange-700">
+          <p className="mt-2 text-xs font-semibold text-primary-light">
             {card.detail}
           </p>
           <p className="mt-1 text-xs text-surface-muted">{card.foot}</p>
