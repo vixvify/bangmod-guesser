@@ -1,4 +1,5 @@
-import { Prisma, PrismaClient, Role, UserStatus } from "@prisma/client";
+import { Prisma, PrismaClient, Role } from "@prisma/client";
+import { getUserStatus } from "../src/shared/lib/user-status";
 
 export async function promoteInitialAdmin(
   database: PrismaClient,
@@ -8,7 +9,7 @@ export async function promoteInitialAdmin(
     async (transaction) => {
       const user = await transaction.user.findUnique({
         where: { email },
-        select: { id: true, role: true, banned: true, status: true },
+        select: { id: true, role: true, banned: true, banExpires: true },
       });
 
       if (!user) {
@@ -19,7 +20,7 @@ export async function promoteInitialAdmin(
         return "already-admin";
       }
 
-      if (user.banned || user.status !== UserStatus.ACTIVE) {
+      if (getUserStatus(user) === "SUSPENDED") {
         throw new Error("A banned or suspended account cannot become the initial admin.");
       }
 
