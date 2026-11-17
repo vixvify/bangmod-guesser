@@ -258,18 +258,17 @@ export class LocationService {
       throw new AppError("Location not found", 404);
     }
 
-    let deleted;
     try {
-      deleted = await this.locationRepository.delete(id);
+      const deleted = await this.locationRepository.delete(id);
+      const keys = deleted.images.flatMap(
+        (image) => extractImageKey(image.imageUrl) ?? [],
+      );
+      await this.deleteImagesFromStorage(keys);
     } catch (error) {
       if (error instanceof LocationInUseError) throw new AppError("Location is used by a game in progress", 409, "LOCATION_IN_USE");
       if (error instanceof LocationNotFoundError) throw new AppError("Location not found", 404);
       throw error;
     }
-    const keys = deleted.images.flatMap(
-      (image) => extractImageKey(image.imageUrl) ?? [],
-    );
-    await this.deleteImagesFromStorage(keys);
   }
 
   private async deleteImagesFromStorage(keys: string[]): Promise<void> {

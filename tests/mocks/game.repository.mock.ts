@@ -11,5 +11,6 @@ export function createGameRepositoryMock() {
     createGame: vi.fn<GameRepository["createGame"]>(),
     findById: vi.fn<GameRepository["findById"]>(),
     exitPlayingGame: vi.fn<GameRepository["exitPlayingGame"]>(),
+    expireInactiveGames: vi.fn<GameRepository["expireInactiveGames"]>(),
   } satisfies GameRepository;
 }
