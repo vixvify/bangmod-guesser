@@ -54,7 +54,7 @@ export function DashboardGamesTable({
                 <TableCell>{game.user.name}</TableCell>
                 <TableCell>
                   <span
-                    className={`inline-block whitespace-nowrap rounded-full px-2 py-1 text-xs font-medium ${game.status === "COMPLETED" ? "bg-emerald-50 text-emerald-800" : game.status === "PLAYING" ? "bg-blue-50 text-blue-800" : "bg-amber-50 text-amber-800"}`}
+                    className={`inline-block whitespace-nowrap rounded-full border px-2 py-1 text-xs font-medium ${game.status === "COMPLETED" ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-200" : game.status === "PLAYING" ? "border-sky-400/30 bg-sky-400/10 text-sky-200" : "border-amber-400/30 bg-amber-400/10 text-amber-200"}`}
                   >
                     {statusLabel[game.status]}
                   </span>

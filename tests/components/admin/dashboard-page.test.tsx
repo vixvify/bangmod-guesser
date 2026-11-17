@@ -57,6 +57,16 @@ describe("admin dashboard", () => {
     expect(within(modal).getByText("3,500")).toBeTruthy();
   });
 
+  it("shows a deleted location label while retaining the round score", async () => {
+    const [game] = dashboardSummary.games.items;
+    getDashboard.mockResolvedValueOnce({ ...dashboardSummary, games: { ...dashboardSummary.games, items: [{ ...game, rounds: [{ ...game.rounds[0], location: null }] }] } });
+    await renderDashboard();
+    fireEvent.click(screen.getByRole("button", { name: "ดูรายละเอียดเกม game-1" }));
+    const modal = screen.getByRole("dialog", { name: "รายละเอียดเกม" });
+    expect(within(modal).getByText("สถานที่ถูกลบแล้ว")).toBeTruthy();
+    expect(within(modal).getByText("800")).toBeTruthy();
+  });
+
   it("validates date range before requesting dashboard data", async () => {
     await expect(AdminPage({ searchParams: Promise.resolve({ startDate: "2026-10-01" }) })).rejects.toMatchObject({ status: 400 });
     expect(getDashboard).not.toHaveBeenCalled();

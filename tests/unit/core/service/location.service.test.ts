@@ -5,7 +5,7 @@ import { createLocationRepositoryMock } from "../../../mocks/location.repository
 import { createImageRepositoryMock } from "../../../mocks/image.repository.mock";
 import { ImageService } from "@/features/images/server/image.service";
 import { AppError } from "@/shared/errors/app.error";
-import { LocationImagesChangedError, LocationImagesInUseError } from "@/features/locations/server/location.errors";
+import { LocationImagesChangedError, LocationImagesInUseError, LocationInUseError } from "@/features/locations/server/location.errors";
 
 const sampleImageBuffer = new Uint8Array([1, 2, 3, 4]);
 
@@ -903,7 +903,7 @@ describe("LocationService", () => {
         ],
       });
       imageRepository.delete.mockResolvedValue();
-      locationRepository.delete.mockResolvedValue();
+      locationRepository.delete.mockResolvedValue((await locationRepository.findById("loc_1"))!);
 
       await locationService.deleteLocation("loc_1");
 
@@ -911,6 +911,14 @@ describe("LocationService", () => {
         "images/3f2504e0-4f89-11d3-9a0c-0305e82c3301.jpg",
       );
       expect(locationRepository.delete).toHaveBeenCalledWith("loc_1");
+    });
+
+    it("rejects deletion while a game uses the location without deleting storage files", async () => {
+      const { locationService, locationRepository, imageRepository } = createTestService();
+      locationRepository.findById.mockResolvedValue({ id: "loc_1", name: "CB2", description: null, latitude: 13.65, longitude: 100.49, status: LocationStatus.ACTIVE, createdAt: new Date(), updatedAt: null, images: [] });
+      locationRepository.delete.mockRejectedValue(new LocationInUseError());
+      await expect(locationService.deleteLocation("loc_1")).rejects.toMatchObject({ status: 409, code: "LOCATION_IN_USE" });
+      expect(imageRepository.delete).not.toHaveBeenCalled();
     });
   });
 });

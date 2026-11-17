@@ -48,6 +48,7 @@ export class GameService {
   ): Promise<GameGuessResult> {
     const game = await this.ownedGame(id, userId);
     const round = this.pendingRound(game);
+    if (!round.location) throw new AppError("Round location has been deleted", 410);
     if (round.questionNumber !== questionNumber)
       throw new AppError("Round already answered or out of order", 409);
     if (!round.startedAt)
@@ -127,6 +128,7 @@ export class GameService {
       (round) => round.questionNumber === questionNumber,
     );
     if (!round) throw new AppError("Round not found", 404);
+    if (!round.location) throw new AppError("Round location has been deleted", 410);
     if (!this.hasCompleteAnswer(round))
       throw new AppError("Round result is not available", 409);
     const guess = {

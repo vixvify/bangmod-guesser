@@ -26,9 +26,9 @@ export function dashboardChangePercent(
 export function dashboardDistance(round: {
   guessedLatitude: number | null;
   guessedLongitude: number | null;
-  location: { latitude: number; longitude: number };
+  location: { latitude: number; longitude: number } | null;
 }): number | null {
-  if (round.guessedLatitude === null || round.guessedLongitude === null)
+  if (!round.location || round.guessedLatitude === null || round.guessedLongitude === null)
     return null;
   return haversineDistanceMeters(round.location, {
     latitude: round.guessedLatitude,

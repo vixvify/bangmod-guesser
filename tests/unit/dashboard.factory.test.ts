@@ -34,4 +34,9 @@ describe("DashboardFactory", () => {
     ) }).bonusScore).toBeNull();
     expect(DashboardFactory.toGame({ ...dashboardGame, status: "INCOMPLETE", rounds }).bonusScore).toBeNull();
   });
+
+  it("preserves the score when the round location was deleted", () => {
+    const result = DashboardFactory.toGame({ ...dashboardGame, rounds: [{ ...dashboardRound, location: null }] });
+    expect(result.rounds[0]).toMatchObject({ location: null, score: 1000, distanceMeters: null });
+  });
 });

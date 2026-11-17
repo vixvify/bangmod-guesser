@@ -28,12 +28,12 @@ const statusLabels: Record<UserStatus, string> = {
 const badgeClass =
   "inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-semibold whitespace-nowrap";
 const roleClasses = {
-  [UserRole.ADMIN]: "border-orange-200 bg-orange-50 text-orange-800",
+  [UserRole.ADMIN]: "border-primary-main/30 bg-primary-main/10 text-primary-light",
   [UserRole.USER]: "border-surface-border bg-surface-control text-surface-muted",
 };
 const statusClasses: Record<UserStatus, string> = {
-  ACTIVE: "border-emerald-200 bg-emerald-50 text-emerald-800",
-  SUSPENDED: "border-rose-200 bg-rose-50 text-rose-800",
+  ACTIVE: "border-emerald-400/30 bg-emerald-400/10 text-emerald-200",
+  SUSPENDED: "border-rose-400/30 bg-rose-400/10 text-rose-200",
   INACTIVE: "border-surface-border bg-surface-control text-surface-muted",
 };
 
@@ -41,7 +41,7 @@ function getStatusDisplay(user: UserAccount) {
   if (user.status === "SUSPENDED" && user.suspension.endDate) {
     return {
       label: "ระงับชั่วคราว",
-      className: "border-amber-200 bg-amber-50 text-amber-800",
+      className: "border-amber-400/30 bg-amber-400/10 text-amber-200",
     };
   }
 

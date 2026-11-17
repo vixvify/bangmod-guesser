@@ -23,7 +23,7 @@ import type { ImageService } from "../../images/server/image.service";
 import { LocationFactory } from "@/features/locations/server/location.factory";
 import { extractImageKey } from "@/features/images/server/image-key";
 import { parseSchema } from "@/shared/lib/validation";
-import { LocationImagesChangedError, LocationImagesInUseError } from "./location.errors";
+import { LocationImagesChangedError, LocationImagesInUseError, LocationInUseError, LocationNotFoundError } from "./location.errors";
 
 export class LocationService {
   constructor(
@@ -258,8 +258,15 @@ export class LocationService {
       throw new AppError("Location not found", 404);
     }
 
-    await this.locationRepository.delete(id);
-    const keys = existing.images.flatMap(
+    let deleted;
+    try {
+      deleted = await this.locationRepository.delete(id);
+    } catch (error) {
+      if (error instanceof LocationInUseError) throw new AppError("Location is used by a game in progress", 409, "LOCATION_IN_USE");
+      if (error instanceof LocationNotFoundError) throw new AppError("Location not found", 404);
+      throw error;
+    }
+    const keys = deleted.images.flatMap(
       (image) => extractImageKey(image.imageUrl) ?? [],
     );
     await this.deleteImagesFromStorage(keys);
