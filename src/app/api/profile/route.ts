@@ -31,10 +31,11 @@ export const GET = secureRoute({ access: "authenticated", rateLimit: "read" }, a
       );
     }
 
-    const result = await profileService.getProfile(
-      currentUser.id,
-      queryResult.data,
-    );
+    const targetUserId = url.searchParams.get("userId") || currentUser.id;
+
+    const result = targetUserId === currentUser.id
+      ? await profileService.getProfile(currentUser.id, queryResult.data)
+      : await profileService.getProfile(targetUserId, queryResult.data, currentUser.id);
 
     return successResponse(result);
 });

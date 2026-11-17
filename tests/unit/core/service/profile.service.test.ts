@@ -9,6 +9,7 @@ function createRepository(): ProfileRepository {
         id: "user-1",
         name: "Alice",
         email: "alice@example.com",
+        image: null,
         games: [{
           id: "game-1",
           status: "COMPLETED",
@@ -62,7 +63,7 @@ describe("ProfileService", () => {
     const repository = createRepository();
     vi.mocked(repository.findProfile).mockResolvedValue({
       user: {
-        id: "user-1", name: "Alice", email: "alice@example.com",
+        id: "user-1", name: "Alice", email: "alice@example.com", image: null,
         games: [{ id: "unfinished", status: "INCOMPLETE", startedAt: new Date("2026-10-20T10:00:00.000Z"), totalScore: null, rounds: [] }],
       },
       totalGames: 1,
@@ -74,11 +75,30 @@ describe("ProfileService", () => {
   it("keeps game scores when a round's location has been deleted", async () => {
     const repository = createRepository();
     vi.mocked(repository.findProfile).mockResolvedValue({
-      user: { id: "user-1", name: "Alice", email: "alice@example.com", games: [{ id: "game-1", status: "COMPLETED", startedAt: new Date("2026-10-20T10:00:00Z"), totalScore: 900, rounds: [{ questionNumber: 1, guessedLatitude: 13.65, guessedLongitude: 100.49, score: 900, location: null }] }] },
+      user: { id: "user-1", name: "Alice", email: "alice@example.com", image: null, games: [{ id: "game-1", status: "COMPLETED", startedAt: new Date("2026-10-20T10:00:00Z"), totalScore: 900, rounds: [{ questionNumber: 1, guessedLatitude: 13.65, guessedLongitude: 100.49, score: 900, location: null }] }] },
       totalGames: 1,
     });
     const profile = await new ProfileService(repository).getProfile("user-1", { page: 1 });
     expect(profile.games[0]).toMatchObject({ totalScore: 900, bestRoundScore: 900, bestRoundNumber: 1 });
     expect(profile.games[0].bestDistanceMeters).toBeUndefined();
+  });
+
+  it("hides email and marks isOwner false when viewing another user's profile", async () => {
+    const repository = createRepository();
+    const service = new ProfileService(repository);
+    const profile = await service.getProfile("user-1", { page: 1 }, "viewer-2");
+
+    expect(profile.email).toBeNull();
+    expect(profile.isOwner).toBe(false);
+    expect(profile.name).toBe("Alice");
+  });
+
+  it("includes email and marks isOwner true when viewing own profile", async () => {
+    const repository = createRepository();
+    const service = new ProfileService(repository);
+    const profile = await service.getProfile("user-1", { page: 1 }, "user-1");
+
+    expect(profile.email).toBe("alice@example.com");
+    expect(profile.isOwner).toBe(true);
   });
 });

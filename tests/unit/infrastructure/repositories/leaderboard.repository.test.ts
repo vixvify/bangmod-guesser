@@ -49,6 +49,7 @@ describe("LeaderboardRepositoryImpl", () => {
     expect(result).toEqual({
       entries: [
         {
+          userId: "user-1",
           rank: 1,
           name: "Alice",
           image: "https://example.com/alice.jpg",
@@ -56,6 +57,7 @@ describe("LeaderboardRepositoryImpl", () => {
           totalScore: 5000,
         },
         {
+          userId: "user-2",
           rank: 2,
           name: "Bob",
           image: null,
@@ -64,6 +66,7 @@ describe("LeaderboardRepositoryImpl", () => {
         },
       ],
       myRank: {
+        userId: "user-12",
         rank: 12,
         name: "Charlie",
         image: null,
@@ -100,6 +103,7 @@ describe("LeaderboardRepositoryImpl", () => {
     expect(result).toEqual({
       entries: [
         {
+          userId: "user-1",
           rank: 1,
           name: "Alice",
           image: null,

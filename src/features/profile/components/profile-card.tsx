@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import { EditNameModal } from "@/features/profile/components/edit-name-modal";
 import { Button } from "@/shared/components/ui/button";
 import { PROFILE_MESSAGES } from "@/features/profile/profile.constants";
-import type { User } from "@/features/users/user";
 import httpClient from "@/shared/lib/http";
 import { ProfileRoutes } from "@/features/profile/profile.routes";
 import { getProfileImageUrl } from "@/shared/lib/profile-image";
@@ -18,14 +17,29 @@ import { AppRoutes } from "@/shared/routes/routes";
 import { getErrorMessage } from "@/shared/lib/error-message";
 
 type ProfileCardProps = {
-  profile: User;
+  profile: {
+    name: string;
+    email?: string | null;
+    image?: string | null;
+  };
   canManageSystem?: boolean;
+  isOwner?: boolean;
 };
 
-export function ProfileCard({ profile, canManageSystem = false }: ProfileCardProps) {
+export function ProfileCard({
+  profile,
+  canManageSystem = false,
+  isOwner = true,
+}: ProfileCardProps) {
   const router = useRouter();
+  const [prevName, setPrevName] = useState(profile.name);
   const [username, setUsername] = useState(profile.name);
   const [isEditOpen, setIsEditOpen] = useState(false);
+
+  if (profile.name !== prevName) {
+    setPrevName(profile.name);
+    setUsername(profile.name);
+  }
 
   async function handleSave(nextUsername: string): Promise<boolean> {
     try {
@@ -70,34 +84,40 @@ export function ProfileCard({ profile, canManageSystem = false }: ProfileCardPro
           <h1 className="truncate text-xl font-bold text-surface-text sm:text-2xl">
             {username}
           </h1>
-          <IconButton
-            size="small"
-            aria-label="แก้ไขชื่อผู้ใช้"
-            title="แก้ไขชื่อผู้ใช้"
-            onClick={() => {
-              playSoundEffect("click");
-              setIsEditOpen(true);
-            }}
-            sx={{ color: "var(--color-primary-light)", "&:hover": { backgroundColor: "color-mix(in srgb, var(--color-primary-main) 12%, transparent)" } }}
-          >
-            <EditOutlinedIcon fontSize="small" />
-          </IconButton>
+          {isOwner && (
+            <IconButton
+              size="small"
+              aria-label="แก้ไขชื่อผู้ใช้"
+              title="แก้ไขชื่อผู้ใช้"
+              onClick={() => {
+                playSoundEffect("click");
+                setIsEditOpen(true);
+              }}
+              sx={{ color: "var(--color-primary-light)", "&:hover": { backgroundColor: "color-mix(in srgb, var(--color-primary-main) 12%, transparent)" } }}
+            >
+              <EditOutlinedIcon fontSize="small" />
+            </IconButton>
+          )}
         </div>
-        <p className="mt-1 truncate text-sm text-surface-muted sm:text-base">
-          {profile.email}
-        </p>
+        {isOwner && profile.email && (
+          <p className="mt-1 truncate text-sm text-surface-muted sm:text-base">
+            {profile.email}
+          </p>
+        )}
       </div>
-      {canManageSystem && (
+      {isOwner && canManageSystem && (
         <Button href={AppRoutes.admin} sound="click" variant="primary" size="small" className="ml-auto shrink-0">
           จัดการระบบ
         </Button>
       )}
-      <EditNameModal
-        open={isEditOpen}
-        username={username}
-        onClose={() => setIsEditOpen(false)}
-        onSave={handleSave}
-      />
+      {isOwner && (
+        <EditNameModal
+          open={isEditOpen}
+          username={username}
+          onClose={() => setIsEditOpen(false)}
+          onSave={handleSave}
+        />
+      )}
     </section>
   );
 }

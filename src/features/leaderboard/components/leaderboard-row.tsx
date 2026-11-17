@@ -2,6 +2,7 @@ import Avatar from "@mui/material/Avatar";
 import { Button } from "@/shared/components/ui/button";
 import type { LeaderboardEntry } from "@/features/leaderboard/leaderboard";
 import { getProfileImageUrl } from "@/shared/lib/profile-image";
+import { AppRoutes } from "@/shared/routes/routes";
 
 type LeaderboardRowProps = {
   entry: LeaderboardEntry;
@@ -48,7 +49,13 @@ export function LeaderboardRow({ entry, current = false }: LeaderboardRowProps) 
         <span className="block text-xs font-normal text-surface-muted sm:inline sm:pl-1">คะแนน</span>
       </p>
       {!current && (
-        <Button variant="outline" size="small" disabled className="hidden sm:inline-flex">
+        <Button
+          href={AppRoutes.userProfile(entry.userId)}
+          variant="outline"
+          size="small"
+          sound="click"
+          className="hidden sm:inline-flex"
+        >
           ดูโปรไฟล์ →
         </Button>
       )}

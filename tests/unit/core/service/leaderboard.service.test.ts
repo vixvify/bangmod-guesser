@@ -7,6 +7,7 @@ function createRepository(): LeaderboardRepository {
     findLeaderboard: vi.fn().mockResolvedValue({
       entries: [
         {
+          userId: "user-1",
           rank: 1,
           name: "Bob",
           image: null,
@@ -14,6 +15,7 @@ function createRepository(): LeaderboardRepository {
           totalScore: 5000,
         },
         {
+          userId: "user-2",
           rank: 2,
           name: "Alice",
           image: null,
@@ -21,6 +23,7 @@ function createRepository(): LeaderboardRepository {
           totalScore: 5000,
         },
         {
+          userId: "user-3",
           rank: 3,
           name: "Charlie",
           image: null,
@@ -29,6 +32,7 @@ function createRepository(): LeaderboardRepository {
         },
       ],
       myRank: {
+        userId: "user-2",
         rank: 2,
         name: "Alice",
         image: null,
@@ -50,6 +54,7 @@ describe("LeaderboardService", () => {
 
     expect(result.entries).toEqual([
       {
+        userId: "user-1",
         rank: 1,
         name: "Bob",
         image: null,
@@ -57,6 +62,7 @@ describe("LeaderboardService", () => {
         totalScore: 5000,
       },
       {
+        userId: "user-2",
         rank: 2,
         name: "Alice",
         image: null,
@@ -64,6 +70,7 @@ describe("LeaderboardService", () => {
         totalScore: 5000,
       },
       {
+        userId: "user-3",
         rank: 3,
         name: "Charlie",
         image: null,
@@ -73,6 +80,7 @@ describe("LeaderboardService", () => {
     ]);
 
     expect(result.myRank).toEqual({
+      userId: "user-2",
       rank: 2,
       name: "Alice",
       image: null,
@@ -86,6 +94,7 @@ describe("LeaderboardService", () => {
 
     vi.mocked(repository.findLeaderboard).mockResolvedValue({
       entries: Array.from({ length: 10 }, (_, index) => ({
+        userId: `user-${index + 1}`,
         rank: index + 1,
         name: `Player ${index + 1}`,
         image: null,
@@ -93,6 +102,7 @@ describe("LeaderboardService", () => {
         totalScore: 5000 - index * 100,
       })),
       myRank: {
+        userId: "user-12",
         rank: 12,
         name: "Player 12",
         image: null,
@@ -106,6 +116,7 @@ describe("LeaderboardService", () => {
 
     expect(result.entries).toHaveLength(10);
     expect(result.myRank).toEqual({
+      userId: "user-12",
       rank: 12,
       name: "Player 12",
       image: null,

@@ -58,6 +58,13 @@ describe("profile and leaderboard API routes", () => {
     expect((await response.json()).data.games).toEqual([]);
   });
 
+  it("passes target userId and current viewerId when reading another player's profile", async () => {
+    const response = await profile(new Request("http://localhost/api/profile?userId=target-player&page=1"));
+
+    expect(response.status).toBe(200);
+    expect(getProfile).toHaveBeenCalledWith("target-player", { page: 1 }, "player-1");
+  });
+
   it.each(["from=2026-02-30", "from=2026-10-31&to=2026-10-01", "page=0"])(
     "rejects invalid profile query %s before querying data",
     async (query) => {

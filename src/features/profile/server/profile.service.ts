@@ -10,7 +10,11 @@ const PROFILE_PAGE_SIZE = 4;
 export class ProfileService {
   constructor(private readonly profileRepository: ProfileRepository) {}
 
-  async getProfile(userId: string, options: ProfileQueryInput): Promise<ProfileResult> {
+  async getProfile(
+    userId: string,
+    options: ProfileQueryInput,
+    viewerId?: string,
+  ): Promise<ProfileResult> {
     const result = await this.profileRepository.findProfile(userId, {
       from: options.from ? toBangkokStartOfDay(options.from) : undefined,
       toExclusive: options.to
@@ -27,6 +31,7 @@ export class ProfileService {
       result.totalGames,
       options.page,
       PROFILE_PAGE_SIZE,
+      viewerId,
     );
   }
 }

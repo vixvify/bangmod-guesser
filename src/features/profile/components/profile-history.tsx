@@ -16,9 +16,10 @@ import { getErrorMessage } from "@/shared/lib/error-message";
 type ProfileHistoryProps = {
   initialProfile: ProfileResult;
   initialQuery: ProfileQueryInput;
+  userId?: string;
 };
 
-export function ProfileHistory({ initialProfile, initialQuery }: ProfileHistoryProps) {
+export function ProfileHistory({ initialProfile, initialQuery, userId }: ProfileHistoryProps) {
   const [profile, setProfile] = useState(initialProfile);
   const [query, setQuery] = useState(initialQuery);
   const [pickerKey, setPickerKey] = useState(0);
@@ -44,6 +45,7 @@ export function ProfileHistory({ initialProfile, initialQuery }: ProfileHistoryP
     const params = new URLSearchParams({ page: String(nextQuery.page) });
     if (nextQuery.from) params.set("from", nextQuery.from);
     if (nextQuery.to) params.set("to", nextQuery.to);
+    if (userId) params.set("userId", userId);
 
     try {
       const { data } = await httpClient.get<ProfileResult>(
@@ -53,7 +55,15 @@ export function ProfileHistory({ initialProfile, initialQuery }: ProfileHistoryP
       if (controller.signal.aborted) return;
       setProfile(data);
       setQuery(nextQuery);
-      window.history.replaceState(window.history.state, "", `${AppRoutes.profile}?${params}`);
+      const basePath = userId ? AppRoutes.userProfile(userId) : AppRoutes.profile;
+      const historyParams = new URLSearchParams(params);
+      historyParams.delete("userId");
+      const queryString = historyParams.toString();
+      window.history.replaceState(
+        window.history.state,
+        "",
+        queryString ? `${basePath}?${queryString}` : basePath,
+      );
     } catch (error) {
       if (!controller.signal.aborted) setErrorMessage(getErrorMessage(error, "โหลดประวัติการเล่นไม่สำเร็จ"));
     } finally {
