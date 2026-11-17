@@ -38,7 +38,6 @@ export function UsersFilters({ role, status, onRoleChange, onStatusChange }: Use
             { value: "ALL", label: "ทั้งหมด" },
             { value: "ACTIVE", label: "ปกติ" },
             { value: "SUSPENDED", label: "ระงับการใช้งาน" },
-            { value: "INACTIVE", label: "ปิดใช้งาน" },
           ]}
           onChange={onStatusChange}
           aria-label="กรองตามสถานะ"

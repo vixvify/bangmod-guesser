@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { UserStatus } from "@/features/users/user";
 import { UserRole } from "@/features/users/user";
 import { UpdateUsernameSchema } from "@/features/users/username.schema";
 import { USER_MESSAGES } from "@/features/users/user.constants";
@@ -8,6 +7,8 @@ export const UserIdSchema = z
   .string()
   .trim()
   .min(1, "User ID is required");
+
+const UserStatusSchema = z.enum(["ACTIVE", "SUSPENDED"]);
 
 export const SearchUserQuerySchema = z.object({
   page: z.coerce
@@ -27,13 +28,7 @@ export const SearchUserQuerySchema = z.object({
     .enum(UserRole)
     .optional(),
 
-  status: z
-    .enum([
-      "ACTIVE",
-      "SUSPENDED",
-      "INACTIVE",
-    ] satisfies UserStatus[])
-    .optional(),
+  status: UserStatusSchema.optional(),
 });
 
 export type SearchUserQuery = z.infer<typeof SearchUserQuerySchema>;
@@ -42,11 +37,7 @@ export const UserFormSchema = z
   .object({
     name: UpdateUsernameSchema,
     role: z.enum(UserRole),
-    status: z.enum([
-      "ACTIVE",
-      "SUSPENDED",
-      "INACTIVE",
-    ] satisfies UserStatus[]),
+    status: UserStatusSchema,
     suspension: z.object({
       startDate: z.iso.date().nullable(),
       endDate: z.iso.date().nullable(),
