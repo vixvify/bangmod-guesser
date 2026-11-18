@@ -9,9 +9,12 @@ import { auth } from "@/features/auth/server/auth";
 import type { UpdateUsernameFormInput } from "@/features/profile/profile.schema";
 import { APIError } from "better-auth/api";
 import { AppError } from "@/shared/errors/app.error";
-import { prisma } from "@/shared/lib/prisma";
+import type { UserRepository } from "@/features/users/server/user.repository.port";
+import { BANNED_USER_CODE } from "@/features/auth/auth.constants";
 
 export class AuthAdapter implements AuthPort {
+  constructor(private readonly users: Pick<UserRepository, "findBanExpiryByEmail">) {}
+
   async signIn(requestHeaders: Headers, input: LoginInput): Promise<Headers> {
     try {
       const { headers } = await auth.api.signInEmail({
@@ -21,33 +24,23 @@ export class AuthAdapter implements AuthPort {
       });
       return headers;
     } catch (error) {
-      if (
-        error instanceof APIError &&
-        error.body?.code === "BANNED_USER"
-      ) {
-        let banExpires: Date | null = null;
-
-        try {
-          const user = await prisma.user.findUnique({
-            where: { email: input.email },
-            select: { banExpires: true },
-          });
-
-          banExpires = user?.banExpires ?? null;
-        } catch {
-        }
-
-        throw new AppError(
-          "Sign in failed",
-          error.statusCode,
-          "BANNED_USER",
-          {
-            banExpires: banExpires?.toISOString() ?? null,
-          },
-        );
+      if (!(error instanceof APIError) || error.body?.code !== BANNED_USER_CODE) {
+        throw error;
       }
 
-      throw error;
+      const banExpires = await this.findBanExpiry(input.email);
+      throw new AppError("Sign in failed", error.statusCode, BANNED_USER_CODE, {
+        banExpires: banExpires?.toISOString() ?? null,
+      });
+    }
+  }
+
+  private async findBanExpiry(email: string): Promise<Date | null> {
+    try {
+      return await this.users.findBanExpiryByEmail(email);
+    } catch (error) {
+      console.error("Failed to read suspension expiry", error instanceof Error ? error.name : "Unknown error");
+      return null;
     }
   }
 

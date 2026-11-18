@@ -34,7 +34,10 @@ export const UserFactory = {
       status,
       gameCount: user._count.games,
       suspension: {
-        startDate: null,
+        startDate:
+          status === "SUSPENDED" && user.banStartedAt
+            ? formatDateOnly(user.banStartedAt, "Asia/Bangkok")
+            : null,
         endDate:
           status === "SUSPENDED" && user.banExpires
             ? formatDateOnly(user.banExpires, "Asia/Bangkok")

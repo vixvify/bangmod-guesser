@@ -21,6 +21,7 @@ const form: UserFormInput = {
 const repository = {
   findMany: vi.fn(),
   findById: vi.fn(),
+  findBanExpiryByEmail: vi.fn(),
 } satisfies UserRepository;
 const admin = {
   updateName: vi.fn(),

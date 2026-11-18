@@ -44,7 +44,9 @@ export function DateRangePicker({
       ? formatThaiDateRange(range.startDate, range.endDate)
       : range.startDate
         ? formatThaiCalendarDate(range.startDate)
-        : "เลือกช่วงวันที่";
+        : range.endDate
+          ? formatThaiCalendarDate(range.endDate)
+          : "เลือกช่วงวันที่";
 
   function selectDate(date: Dayjs | null) {
     if (!date || !date.isValid()) return;
@@ -180,7 +182,7 @@ export function DateRangePicker({
         </div>
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="th">
           <DateCalendar
-            value={range.startDate ? dayjs(range.startDate) : null}
+            value={range.startDate ? dayjs(range.startDate) : range.endDate ? dayjs(range.endDate) : null}
             onChange={selectDate}
             slotProps={{
               day: ({ day }) => {
@@ -198,6 +200,7 @@ export function DateRangePicker({
                 );
                 const isEndpoint = isStart || isEnd;
                 const hasContinuation = Boolean(
+                  range.startDate &&
                   range.endDate &&
                   ((isStart && !isEnd && day.day() !== 6) ||
                     (isEnd && !isStart && day.day() !== 0)),

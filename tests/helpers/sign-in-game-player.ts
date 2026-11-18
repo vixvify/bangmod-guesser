@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { expect, type Page, type TestInfo } from "@playwright/test";
 import { E2E_BASE_URL } from "../../e2e/config";
+import { emailVerificationUrl } from "../../e2e/helpers/email-verification";
 
 const password = "TestPassword1!";
 
@@ -20,6 +21,8 @@ export async function signInGamePlayer(page: Page, testInfo: TestInfo) {
       headers,
     });
     expect(registration.ok()).toBe(true);
+    const verification = await page.request.get(await emailVerificationUrl(email), { maxRedirects: 0 });
+    expect(verification.headers().location).toBe("/login?verification=email");
     login = await page.request.post("/api/auth/sign-in/email", {
       data: credentials,
       headers,

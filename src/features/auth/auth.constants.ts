@@ -1,3 +1,6 @@
+export const BANNED_USER_CODE = "BANNED_USER";
+export const EMAIL_NOT_VERIFIED_CODE = "EMAIL_NOT_VERIFIED";
+
 export const AUTH_MESSAGES = {
   name: {
     required: "กรุณากรอกชื่อ",
@@ -25,20 +28,31 @@ export const AUTH_MESSAGES = {
   },
 
   submit: {
-    passwordResetUnavailable: "ฟีเจอร์เปลี่ยนรหัสผ่านยังไม่เปิดใช้งาน ข้อมูลของคุณยังไม่ถูกส่ง",
+    passwordResetUnavailable:
+      "ฟีเจอร์เปลี่ยนรหัสผ่านยังไม่เปิดใช้งาน ข้อมูลของคุณยังไม่ถูกส่ง",
     googleLoginFailed: "เข้าสู่ระบบด้วย Google ไม่สำเร็จ กรุณาลองอีกครั้ง",
     loginSuccess: "เข้าสู่ระบบสำเร็จ",
     loginFailed: "เข้าสู่ระบบไม่สำเร็จ กรุณาตรวจสอบอีเมลและรหัสผ่าน",
-    loginSuspended: "บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ",
-    loginSuspendedUntil: (date: string) => `บัญชีของคุณถูกระงับการใช้งาน คุณจะสามารถกลับมาใช้งานได้อีกครั้งในวันที่ ${date}`,
-    registerSuccess: "สมัครสมาชิกสำเร็จ กรุณาเข้าสู่ระบบ",
+    loginSuspended: "บัญชีของคุณถูกระงับการใช้งานถาวร",
+    googleLoginSuspended: "บัญชีของคุณถูกระงับการใช้งาน",
+    loginSuspendedUntil: (date: string) =>
+      `บัญชีของคุณถูกระงับการใช้งาน คุณจะสามารถกลับมาใช้งานได้อีกครั้งในวันที่ ${date}`,
+    registerSuccess: "กรุณาตรวจสอบอีเมลเพื่อยืนยันบัญชีก่อนเข้าสู่ระบบ",
+    emailNotVerified: "กรุณายืนยันอีเมลจากลิงก์ล่าสุดในกล่องจดหมายก่อนเข้าสู่ระบบ",
+    emailVerificationSuccess: "ยืนยันอีเมลสำเร็จ เข้าสู่ระบบได้เลย",
+    emailVerificationFailed: "ลิงก์ยืนยันอีเมลไม่ถูกต้องหรือหมดอายุ ลองเข้าสู่ระบบเพื่อขอลิงก์ใหม่",
     registerFailed: "สมัครสมาชิกไม่สำเร็จ กรุณาตรวจสอบข้อมูลแล้วลองอีกครั้ง",
     networkError: "ไม่สามารถเชื่อมต่อได้ กรุณาลองอีกครั้ง",
-    passwordResetRequestSuccess: "หากอีเมลนี้มีบัญชีอยู่ในระบบ เราจะส่งลิงก์สำหรับเปลี่ยนรหัสผ่านไปให้",
-    passwordResetRequestFailed: "ไม่สามารถส่งคำขอเปลี่ยนรหัสผ่านได้ กรุณาลองอีกครั้ง",
-    passwordResetInvalidLink: "ไม่พบลิงก์สำหรับเปลี่ยนรหัสผ่าน กรุณาขอลิงก์ใหม่อีกครั้ง",
-    passwordResetSuccess: "เปลี่ยนรหัสผ่านสำเร็จ กรุณาเข้าสู่ระบบด้วยรหัสผ่านใหม่",
-    passwordResetFailed: "เปลี่ยนรหัสผ่านไม่สำเร็จ ลิงก์อาจหมดอายุหรือไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง",
+    passwordResetRequestSuccess:
+      "หากอีเมลนี้มีบัญชีอยู่ในระบบ เราจะส่งลิงก์สำหรับเปลี่ยนรหัสผ่านไปให้",
+    passwordResetRequestFailed:
+      "ไม่สามารถส่งคำขอเปลี่ยนรหัสผ่านได้ กรุณาลองอีกครั้ง",
+    passwordResetInvalidLink:
+      "ไม่พบลิงก์สำหรับเปลี่ยนรหัสผ่าน กรุณาขอลิงก์ใหม่อีกครั้ง",
+    passwordResetSuccess:
+      "เปลี่ยนรหัสผ่านสำเร็จ กรุณาเข้าสู่ระบบด้วยรหัสผ่านใหม่",
+    passwordResetFailed:
+      "เปลี่ยนรหัสผ่านไม่สำเร็จ ลิงก์อาจหมดอายุหรือไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง",
   },
   logout: {
     title: "ยืนยันการออกจากระบบ",

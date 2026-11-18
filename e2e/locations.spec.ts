@@ -52,7 +52,7 @@ test.describe("manage locations", () => {
       });
       expect(registration.ok()).toBe(true);
     }
-    await prisma.user.update({ where: { email: admin.email }, data: { role: "ADMIN" } });
+    await prisma.user.update({ where: { email: admin.email }, data: { role: "ADMIN", emailVerified: true } });
 
     const login = await page.request.post("/api/auth/sign-in/email", {
       data: { email: admin.email, password: admin.password },

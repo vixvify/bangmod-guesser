@@ -92,7 +92,7 @@ test("admin pages and user editor pass automated accessibility checks", async ({
       headers: { Origin: E2E_BASE_URL },
     });
     expect(registration.ok()).toBe(true);
-    await prisma.user.update({ where: { email: admin.email }, data: { role: "ADMIN" } });
+    await prisma.user.update({ where: { email: admin.email }, data: { role: "ADMIN", emailVerified: true } });
     const login = await page.request.post("/api/auth/sign-in/email", {
       data: { email: admin.email, password: admin.password },
       headers: { Origin: E2E_BASE_URL },

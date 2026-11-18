@@ -9,7 +9,7 @@ const {
   updateUser,
   requestPasswordReset,
   resetPassword,
-  findUnique,
+  findBanExpiryByEmail,
 } = vi.hoisted(() => ({
   signInEmail: vi.fn(),
   signUpEmail: vi.fn(),
@@ -18,20 +18,17 @@ const {
   updateUser: vi.fn(),
   requestPasswordReset: vi.fn(),
   resetPassword: vi.fn(),
-  findUnique: vi.fn(),
+  findBanExpiryByEmail: vi.fn(),
 }));
 
 vi.mock("@/features/auth/server/auth", () => ({
   auth: { api: { signInEmail, signUpEmail, signInSocial, signOut, updateUser, requestPasswordReset, resetPassword } },
 }));
-vi.mock("@/shared/lib/prisma", () => ({
-  prisma: { user: { findUnique } },
-}));
 
 import { AuthAdapter } from "@/features/auth/server/auth.adapter";
 
 describe("AuthAdapter", () => {
-  const adapter = new AuthAdapter();
+  const adapter = new AuthAdapter({ findBanExpiryByEmail });
   const headers = new Headers({ origin: "http://localhost:3000", cookie: "session=old" });
 
   beforeEach(() => vi.clearAllMocks());
@@ -47,7 +44,7 @@ describe("AuthAdapter", () => {
       headers,
       returnHeaders: true,
     });
-    expect(findUnique).not.toHaveBeenCalled();
+    expect(findBanExpiryByEmail).not.toHaveBeenCalled();
   });
 
   it("includes the ban expiry for a temporarily suspended account", async () => {
@@ -58,7 +55,7 @@ describe("AuthAdapter", () => {
         code: "BANNED_USER",
       }),
     );
-    findUnique.mockResolvedValue({ banExpires });
+    findBanExpiryByEmail.mockResolvedValue(banExpires);
 
     await expect(
       adapter.signIn(headers, { email: "a@example.com", password: "Password1" }),
@@ -68,10 +65,7 @@ describe("AuthAdapter", () => {
       data: { banExpires: banExpires.toISOString() },
     });
 
-    expect(findUnique).toHaveBeenCalledWith({
-      where: { email: "a@example.com" },
-      select: { banExpires: true },
-    });
+    expect(findBanExpiryByEmail).toHaveBeenCalledWith("a@example.com");
   });
 
   it("returns null expiry for a permanently suspended account", async () => {
@@ -81,7 +75,7 @@ describe("AuthAdapter", () => {
         code: "BANNED_USER",
       }),
     );
-    findUnique.mockResolvedValue({ banExpires: null });
+    findBanExpiryByEmail.mockResolvedValue(null);
 
     await expect(
       adapter.signIn(headers, { email: "a@example.com", password: "Password1" }),
@@ -99,7 +93,7 @@ describe("AuthAdapter", () => {
         code: "BANNED_USER",
       }),
     );
-    findUnique.mockResolvedValue(null);
+    findBanExpiryByEmail.mockResolvedValue(null);
 
     await expect(
       adapter.signIn(headers, { email: "a@example.com", password: "Password1" }),
@@ -117,7 +111,7 @@ describe("AuthAdapter", () => {
         code: "BANNED_USER",
       }),
     );
-    findUnique.mockRejectedValue(new Error("Database connection failed"));
+    findBanExpiryByEmail.mockRejectedValue(new Error("Database connection failed"));
 
     await expect(
       adapter.signIn(headers, { email: "a@example.com", password: "Password1" }),
@@ -136,7 +130,7 @@ describe("AuthAdapter", () => {
       adapter.signIn(headers, { email: "a@example.com", password: "Password1" }),
     ).rejects.toBe(error);
 
-    expect(findUnique).not.toHaveBeenCalled();
+    expect(findBanExpiryByEmail).not.toHaveBeenCalled();
   });
 
   it("registers without invoking the browser auth client", async () => {

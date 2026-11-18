@@ -25,8 +25,9 @@ export const locationService = new LocationService(
   imageService,
 );
 
-export const userService = new UserService(new UserRepositoryImpl(), new UserAdapter());
-export const authService = new AuthService(new AuthAdapter());
+const userRepository = new UserRepositoryImpl();
+export const userService = new UserService(userRepository, new UserAdapter());
+export const authService = new AuthService(new AuthAdapter(userRepository));
 export const dashboardService = new DashboardService(new DashboardRepositoryImpl());
 export const gameService = new GameService(new GameRepositoryImpl());
 
