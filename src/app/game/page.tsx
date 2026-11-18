@@ -9,7 +9,6 @@ export default async function GameRootPage() {
     try {
       await gameService.exitActiveGame(user.id);
     } catch {
-      // Ignore if no active game or already exited
     }
   }
 

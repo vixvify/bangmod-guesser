@@ -346,25 +346,16 @@ describe("GameSession", () => {
     expect(push).not.toHaveBeenCalled();
   });
 
-  it("sends keepalive exit on pagehide when navigating away or closing window directly", async () => {
-    const fetchSpy = vi
-      .spyOn(globalThis, "fetch")
-      .mockResolvedValue(new Response());
+  it("sends exit on pagehide when navigating away or closing window directly", async () => {
     render(<GameSession gameId="test-game" />);
     await screen.findByRole("timer");
 
     window.dispatchEvent(new Event("pagehide"));
 
-    expect(fetchSpy).toHaveBeenCalledWith("/games/test-game/exit", {
-      method: "POST",
-      keepalive: true,
-    });
+    expect(api.post).toHaveBeenCalledWith("/games/test-game/exit");
   });
 
-  it("does not send keepalive exit on pagehide after a round is submitted", async () => {
-    const fetchSpy = vi
-      .spyOn(globalThis, "fetch")
-      .mockResolvedValue(new Response());
+  it("does not send exit on pagehide after a round is submitted", async () => {
     render(<GameSession gameId="test-game" />);
     await screen.findByRole("timer");
 
@@ -376,18 +367,15 @@ describe("GameSession", () => {
       ),
     );
 
+    api.post.mockClear();
     window.dispatchEvent(new Event("pagehide"));
 
-    expect(fetchSpy).not.toHaveBeenCalledWith(
+    expect(api.post).not.toHaveBeenCalledWith(
       expect.stringContaining("/exit"),
-      expect.anything(),
     );
   });
 
-  it("does not send keepalive exit on pagehide if game has already ended", async () => {
-    const fetchSpy = vi
-      .spyOn(globalThis, "fetch")
-      .mockResolvedValue(new Response());
+  it("does not send exit on pagehide if game has already ended", async () => {
     api.get.mockRejectedValueOnce(
       Object.assign(new Error("ended"), {
         name: "HttpError",
@@ -400,11 +388,11 @@ describe("GameSession", () => {
       await screen.findByRole("dialog", { name: "เกมนี้สิ้นสุดแล้ว" }),
     ).toBeTruthy();
 
+    api.post.mockClear();
     window.dispatchEvent(new Event("pagehide"));
 
-    expect(fetchSpy).not.toHaveBeenCalledWith(
+    expect(api.post).not.toHaveBeenCalledWith(
       expect.stringContaining("/exit"),
-      expect.anything(),
     );
   });
 });

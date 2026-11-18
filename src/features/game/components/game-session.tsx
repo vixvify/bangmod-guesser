@@ -72,12 +72,8 @@ export function GameSession({ gameId }: { gameId: string }) {
           !isCompletingRoundRef.current
         ) {
           try {
-            fetch(GameRoutes.exit(gameId), {
-              method: "POST",
-              keepalive: true,
-            });
+            void httpClient.post(GameRoutes.exit(gameId));
           } catch {
-            // Ignore unload errors
           }
         }
       },
