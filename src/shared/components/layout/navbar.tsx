@@ -21,6 +21,7 @@ import { playSoundEffect } from "@/shared/lib/sound-effect";
 import styles from "./navbar.module.css";
 import httpClient from "@/shared/lib/http";
 import { SessionRoutes } from "@/features/auth/session.routes";
+import { GameRoutes } from "@/features/game/game.routes";
 import { getErrorMessage } from "@/shared/lib/error-message";
 
 type NavbarProps = {
@@ -39,15 +40,63 @@ export function Navbar({
   const navigationGuard = useNavigationGuard();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isActiveGameModalOpen, setIsActiveGameModalOpen] = useState(false);
+  const [activeGameId, setActiveGameId] = useState<string | null>(null);
+  const [isCheckingActiveGame, setIsCheckingActiveGame] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  async function handleLogout() {
+  async function promptLogout() {
+    if (isCheckingActiveGame || isLoggingOut) return;
+    setIsCheckingActiveGame(true);
+
+    try {
+      if (typeof httpClient.get === "function") {
+        const { data } = await httpClient.get<{ activeGameId: string | null }>(
+          GameRoutes.active,
+        );
+        if (data?.activeGameId) {
+          setActiveGameId(data.activeGameId);
+          setIsActiveGameModalOpen(true);
+          return;
+        }
+      }
+    } catch {
+      // If check fails, fallback to standard logout modal
+    } finally {
+      setIsCheckingActiveGame(false);
+    }
+
+    setIsLogoutModalOpen(true);
+  }
+
+  async function handleLogout(gameIdToTerminate?: string | null) {
     setIsLoggingOut(true);
 
     try {
+      if (gameIdToTerminate) {
+        try {
+          await httpClient.post(GameRoutes.exit(gameIdToTerminate));
+        } catch {
+          // If exit fails, continue with logout
+        }
+      }
+
       await httpClient.post<null>(SessionRoutes.logout);
 
+      try {
+        if (typeof window !== "undefined") {
+          const channel = new BroadcastChannel("auth_channel");
+          channel.postMessage({ type: "LOGOUT" });
+          channel.close();
+          window.localStorage.setItem("auth:logout", Date.now().toString());
+        }
+      } catch {
+        // Ignore broadcast errors
+      }
+
+      setIsActiveGameModalOpen(false);
       setIsLogoutModalOpen(false);
+      setActiveGameId(null);
       toast.success(AUTH_MESSAGES.logout.success);
       router.refresh();
     } catch (error) {
@@ -155,12 +204,12 @@ export function Navbar({
                 size="small"
                 onClick={() => {
                   if (
-                    !navigationGuard?.request(() => setIsLogoutModalOpen(true))
+                    !navigationGuard?.request(() => void promptLogout())
                   ) {
-                    setIsLogoutModalOpen(true);
+                    void promptLogout();
                   }
                 }}
-                disabled={isLoggingOut}
+                disabled={isLoggingOut || isCheckingActiveGame}
                 aria-label={isLoggingOut ? "กำลังออกจากระบบ" : "ออกจากระบบ"}
                 aria-haspopup="dialog"
               >
@@ -186,6 +235,21 @@ export function Navbar({
       </ContentContainer>
       <ConfirmModal
         soundEnabled={soundEnabled}
+        open={isActiveGameModalOpen}
+        theme="dark"
+        busy={isLoggingOut}
+        title={AUTH_MESSAGES.logout.activeGameTitle}
+        description={AUTH_MESSAGES.logout.activeGameDescription}
+        confirmLabel={AUTH_MESSAGES.logout.confirm}
+        cancelLabel={AUTH_MESSAGES.logout.cancel}
+        onConfirm={() => void handleLogout(activeGameId)}
+        onCancel={() => {
+          setIsActiveGameModalOpen(false);
+          setActiveGameId(null);
+        }}
+      />
+      <ConfirmModal
+        soundEnabled={soundEnabled}
         open={isLogoutModalOpen}
         theme="dark"
         busy={isLoggingOut}
@@ -193,7 +257,7 @@ export function Navbar({
         description={AUTH_MESSAGES.logout.description}
         confirmLabel={AUTH_MESSAGES.logout.confirm}
         cancelLabel={AUTH_MESSAGES.logout.cancel}
-        onConfirm={handleLogout}
+        onConfirm={() => void handleLogout()}
         onCancel={() => setIsLogoutModalOpen(false)}
       />
       <SettingsModal

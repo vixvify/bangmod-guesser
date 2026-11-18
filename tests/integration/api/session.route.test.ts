@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { signIn, signUp, googleSignIn, signOut, requestPasswordReset, resetPassword, enforce } = vi.hoisted(() => ({
+const { signIn, signUp, googleSignIn, signOut, requestPasswordReset, resetPassword, enforce, exitActiveGame, authCheck } = vi.hoisted(() => ({
   signIn: vi.fn(),
   signUp: vi.fn(),
   googleSignIn: vi.fn(),
@@ -8,14 +8,18 @@ const { signIn, signUp, googleSignIn, signOut, requestPasswordReset, resetPasswo
   requestPasswordReset: vi.fn(),
   resetPassword: vi.fn(),
   enforce: vi.fn(),
+  exitActiveGame: vi.fn(),
+  authCheck: vi.fn().mockResolvedValue(null),
 }));
 
+vi.mock("@/features/auth/server/auth-check", () => ({ authCheck }));
 vi.mock("@/shared/lib/security/rate-limit", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/shared/lib/security/rate-limit")>();
   return { ...actual, clientIp: () => "203.0.113.1", enforceRateLimit: enforce };
 });
 vi.mock("@/container", () => ({
   authService: { signIn, signUp, googleSignIn, signOut, requestPasswordReset, resetPassword },
+  gameService: { exitActiveGame },
 }));
 
 import { POST as login } from "@/app/api/session/login/route";
@@ -142,6 +146,19 @@ describe("session API routes", () => {
 
     expect(signOut).toHaveBeenCalledWith(request.headers);
     expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
+  });
+
+  it("terminates any active game when a signed-in user logs out", async () => {
+    authCheck.mockResolvedValueOnce({ id: "user-123" });
+    signOut.mockResolvedValue(new Headers({ "set-cookie": "session=; Max-Age=0; Path=/" }));
+    const request = new Request("http://localhost/api/session/logout", {
+      method: "POST", headers: { cookie: "session=abc" },
+    });
+    const response = await logout(request);
+
+    expect(exitActiveGame).toHaveBeenCalledWith("user-123");
+    expect(signOut).toHaveBeenCalledWith(request.headers);
+    expect(response.status).toBe(200);
   });
 
   it("requests a password reset with a normalized email", async () => {
