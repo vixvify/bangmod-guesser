@@ -8,6 +8,7 @@ import { GameTimer } from "./game-timer";
 import { GameRound } from "./game-round";
 import { GameImageViewer } from "./game-image-viewer";
 import { GameEndedModal } from "./game-ended-modal";
+import { SessionExpiredModal } from "./session-expired-modal";
 import { ConfirmModal } from "@/shared/components/ui/confirm-modal";
 import { Button } from "@/shared/components/ui/button";
 import { GAME_DEFAULTS, GAME_ERROR_CODES, GAME_MESSAGES } from "@/features/game/game.constants";
@@ -17,6 +18,7 @@ import { GameRoutes } from "@/features/game/game.routes";
 import { useNavigationGuard } from "@/shared/hooks/use-navigation-guard";
 import { useUnsavedChangesGuard } from "@/shared/hooks/use-unsaved-changes-guard";
 import { useGameMusic } from "@/features/game/hooks/use-game-music";
+import { getSession } from "@/features/auth/auth-client";
 import { httpClient } from "@/shared/lib/http";
 import { AppRoutes } from "@/shared/routes/routes";
 import {
@@ -43,12 +45,14 @@ export function GameSession({ gameId }: { gameId: string }) {
   const [exitOpen, setExitOpen] = useState(false);
   const [exiting, setExiting] = useState(false);
   const [gameEnded, setGameEnded] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<
     (() => void) | null
   >(null);
   const submittingRef = useRef(false);
   const exitedRef = useRef(false);
   const gameEndedRef = useRef(false);
+  const sessionExpiredRef = useRef(false);
   const isCompletingRoundRef = useRef(false);
 
   useEffect(() => {
@@ -56,19 +60,87 @@ export function GameSession({ gameId }: { gameId: string }) {
   }, [gameEnded]);
 
   useEffect(() => {
-    if (gameEnded) return;
+    sessionExpiredRef.current = sessionExpired;
+  }, [sessionExpired]);
+
+  const handleSessionExpired = useCallback(() => {
+    if (sessionExpiredRef.current || gameEndedRef.current) return;
+    sessionExpiredRef.current = true;
+    setSessionExpired(true);
+    setExitOpen(false);
+    try {
+      void httpClient.post(GameRoutes.terminate(gameId));
+    } catch {
+    }
+  }, [gameId]);
+
+  useEffect(() => {
+    if (gameEnded || sessionExpired) return;
     return navigationGuard?.register((continueNavigation) => {
       setPendingNavigation(() => continueNavigation);
       setExitOpen(true);
     });
-  }, [gameEnded, navigationGuard]);
+  }, [gameEnded, sessionExpired, navigationGuard]);
+
+  useEffect(() => {
+    let channel: BroadcastChannel | null = null;
+    try {
+      channel = new BroadcastChannel("auth_channel");
+      channel.onmessage = (event) => {
+        if (event.data?.type === "LOGOUT") {
+          handleSessionExpired();
+        }
+      };
+    } catch {
+    }
+
+    function handleStorage(event: StorageEvent) {
+      if (event.key === "auth:logout") {
+        handleSessionExpired();
+      }
+    }
+
+    window.addEventListener("storage", handleStorage);
+    return () => {
+      channel?.close();
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, [handleSessionExpired]);
+
+  useEffect(() => {
+    async function checkSession() {
+      if (sessionExpiredRef.current || gameEndedRef.current) return;
+      if (
+        typeof document !== "undefined" &&
+        document.visibilityState === "hidden"
+      )
+        return;
+      try {
+        const { data: session } = await getSession();
+        if (!session) {
+          handleSessionExpired();
+        }
+      } catch {
+      }
+    }
+
+    window.addEventListener("focus", () => void checkSession());
+    document.addEventListener("visibilitychange", () => void checkSession());
+    return () => {
+      window.removeEventListener("focus", () => void checkSession());
+      document.removeEventListener("visibilitychange", () =>
+        void checkSession(),
+      );
+    };
+  }, [handleSessionExpired]);
 
   const { cancelBrowserBack, confirmBrowserBack, markLeaving } =
-    useUnsavedChangesGuard(!gameEnded, () => setExitOpen(true), {
+    useUnsavedChangesGuard(!gameEnded && !sessionExpired, () => setExitOpen(true), {
       onPageHide: () => {
         if (
           !exitedRef.current &&
           !gameEndedRef.current &&
+          !sessionExpiredRef.current &&
           !isCompletingRoundRef.current
         ) {
           try {
@@ -99,7 +171,9 @@ export function GameSession({ gameId }: { gameId: string }) {
           setRound(started);
         }
       } catch (error) {
-        if (!cancelled && getHttpErrorCode(error) === GAME_ERROR_CODES.ended) {
+        if (!cancelled && getHttpErrorStatus(error) === 401) {
+          handleSessionExpired();
+        } else if (!cancelled && getHttpErrorCode(error) === GAME_ERROR_CODES.ended) {
           setGameEnded(true);
         } else if (!cancelled)
           setLoadError(
@@ -114,11 +188,11 @@ export function GameSession({ gameId }: { gameId: string }) {
     return () => {
       cancelled = true;
     };
-  }, [gameId, loadAttempt]);
+  }, [gameId, handleSessionExpired, loadAttempt]);
 
   const submit = useCallback(
     async (input: GuessInput) => {
-      if (!round || submittingRef.current || gameEnded) return;
+      if (!round || submittingRef.current || gameEnded || sessionExpired) return;
       submittingRef.current = true;
       setSubmitting(true);
       setSubmitFailed(false);
@@ -129,6 +203,7 @@ export function GameSession({ gameId }: { gameId: string }) {
             input,
           );
         } catch (error) {
+          if (getHttpErrorStatus(error) === 401) throw error;
           if (getHttpErrorCode(error) === GAME_ERROR_CODES.ended) throw error;
           const status = getHttpErrorStatus(error);
           if (status !== undefined && status < 500 && status !== 409)
@@ -149,7 +224,9 @@ export function GameSession({ gameId }: { gameId: string }) {
         markLeaving();
         router.push(AppRoutes.gameRoundScore(gameId, round.questionNumber));
       } catch (error) {
-        if (getHttpErrorCode(error) === GAME_ERROR_CODES.ended) {
+        if (getHttpErrorStatus(error) === 401) {
+          handleSessionExpired();
+        } else if (getHttpErrorCode(error) === GAME_ERROR_CODES.ended) {
           setGameEnded(true);
         } else {
           setSubmitFailed(true);
@@ -159,7 +236,7 @@ export function GameSession({ gameId }: { gameId: string }) {
         setSubmitting(false);
       }
     },
-    [gameEnded, gameId, markLeaving, round, router],
+    [gameEnded, gameId, handleSessionExpired, markLeaving, round, router, sessionExpired],
   );
 
   const handleTimeUp = useCallback(() => {
@@ -275,6 +352,10 @@ export function GameSession({ gameId }: { gameId: string }) {
         }}
       />
       <GameEndedModal open={gameEnded} onBack={() => router.push(AppRoutes.home)} />
+      <SessionExpiredModal
+        open={sessionExpired}
+        onBack={() => router.push(AppRoutes.home)}
+      />
     </>
   );
 }

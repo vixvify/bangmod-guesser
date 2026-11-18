@@ -146,7 +146,7 @@ A `Set-Cookie` header is included with the session cookie.
 
 ### POST `/api/session/logout`
 
-Invalidate the current session and clear the session cookie.
+Invalidate the current session and clear the session cookie. If the authenticated user has an active game in `PLAYING` status, it is automatically terminated and marked `INCOMPLETE` before the session is destroyed.
 
 **Auth:** Public | **Rate limit:** `auth`
 
@@ -296,6 +296,35 @@ Otherwise, the server randomly selects 5 distinct ACTIVE locations that each hav
 |---|---|
 | `401` | Not authenticated |
 | `409` | Fewer than 5 active locations with images available |
+
+---
+
+### GET `/api/games/active`
+
+Check whether the authenticated user currently has a game in progress (`PLAYING`).
+
+**Auth:** Authenticated | **Rate limit:** `read`
+
+**Request body:** None
+
+**Response:** `200 OK`
+```json
+{
+  "data": {
+    "activeGameId": "string"
+  },
+  "status": 200,
+  "statusCode": "SUCCESS"
+}
+```
+
+If no active game exists, `activeGameId` is `null`.
+
+**Errors:**
+
+| Status | Reason |
+|---|---|
+| `401` | Not authenticated |
 
 ---
 
@@ -530,6 +559,40 @@ If the game is already COMPLETED or INCOMPLETE, its current state is returned wi
 |---|---|
 | `401` | Not authenticated |
 | `403` | Not the game owner |
+| `404` | Game not found |
+
+---
+
+### POST `/api/games/{id}/terminate`
+
+Terminate an in-progress game without requiring an active session. Marks it `INCOMPLETE` if it was `PLAYING`.
+
+**Auth:** Public | **Rate limit:** `mutation`
+
+**Path params:** `id` — game ID
+
+**Request body:** None
+
+**Response:** `200 OK`
+```json
+{
+  "data": {
+    "id": "string",
+    "status": "INCOMPLETE",
+    "finishedAt": "2026-11-10T01:05:00.000Z"
+  },
+  "status": 200,
+  "statusCode": "SUCCESS"
+}
+```
+
+If the game is already `COMPLETED` or `INCOMPLETE`, its current state is returned without modification. This endpoint is designed for unauthenticated recovery when a session has expired or was terminated from another tab.
+
+**Errors:**
+
+| Status | Reason |
+|---|---|
+| `400` | Invalid game ID |
 | `404` | Game not found |
 
 ---
@@ -1079,12 +1142,14 @@ Get paginated game logs only. Accepts the same query params as `/api/dashboard`.
 | `POST` | `/api/session/reset-password` | Public | `auth` |
 | `GET / POST` | `/api/auth/[...all]` | Public | `authRead` / `auth` |
 | `POST` | `/api/games` | Authenticated | `mutation` |
+| `GET` | `/api/games/active` | Authenticated | `read` |
 | `GET` | `/api/games/{id}/current-round` | Authenticated | `read` |
 | `POST` | `/api/games/{id}/current-round` | Authenticated | `mutation` |
 | `POST` | `/api/games/{id}/rounds/{n}/guess` | Authenticated | `mutation` |
 | `GET` | `/api/games/{id}/rounds/{n}/result` | Authenticated | `read` |
 | `GET` | `/api/games/{id}/summary` | Authenticated | `read` |
 | `POST` | `/api/games/{id}/exit` | Authenticated | `mutation` |
+| `POST` | `/api/games/{id}/terminate` | Public | `mutation` |
 | `GET` | `/api/profile` | Authenticated | `read` |
 | `PATCH` | `/api/profile` | Authenticated | `mutation` |
 | `GET` | `/api/leaderboard` | Authenticated | `read` |

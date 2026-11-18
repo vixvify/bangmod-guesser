@@ -255,6 +255,10 @@ export class GameService {
     return GameFactory.toExitResult(record);
   }
 
+  async findActiveGame(userId: string): Promise<{ id: string } | null> {
+    return this.gameRepository.findActiveGame(userId);
+  }
+
   async exitActiveGame(
     userId: string,
     now = new Date(),
@@ -262,5 +266,20 @@ export class GameService {
     const active = await this.gameRepository.findActiveGame(userId);
     if (!active) return null;
     return this.exitGame(active.id, userId, now);
+  }
+
+  async terminateGame(id: string, now = new Date()): Promise<GameExitResult> {
+    const existing = await this.gameRepository.findById(id);
+    if (!existing) throw new AppError("Game not found", 404);
+    if (existing.status !== "PLAYING")
+      return GameFactory.toExitResult(existing);
+
+    const record = await this.gameRepository.exitPlayingGame(
+      id,
+      existing.userId,
+      now,
+    );
+    if (!record) throw new AppError("Game not found", 404);
+    return GameFactory.toExitResult(record);
   }
 }

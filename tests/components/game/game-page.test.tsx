@@ -9,6 +9,9 @@ const push = vi.fn();
 const api = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn() }));
 const toastError = vi.hoisted(() => vi.fn());
 const toastInfo = vi.hoisted(() => vi.fn());
+const getSessionMock = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({ data: { user: { id: "u1" } } }),
+);
 vi.mock("sonner", () => ({ toast: { error: toastError, info: toastInfo, success: vi.fn() } }));
 vi.mock("@/shared/lib/http", () => ({ httpClient: api }));
 vi.mock("@/features/game/game.routes", () => ({ GameRoutes: {
@@ -16,13 +19,15 @@ vi.mock("@/features/game/game.routes", () => ({ GameRoutes: {
   guess: (id: string, round: number) => `/games/${id}/rounds/${round}/guess`,
   roundResult: (id: string, round: number) => `/games/${id}/rounds/${round}/result`,
   exit: (id: string) => `/games/${id}/exit`,
+  terminate: (id: string) => `/games/${id}/terminate`,
 } }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
 }));
 
 vi.mock("@/features/auth/auth-client", () => ({
-  authClient: { signOut: vi.fn() },
+  authClient: { signOut: vi.fn(), getSession: getSessionMock },
+  getSession: getSessionMock,
 }));
 
 vi.mock("next/image", () => ({
@@ -394,5 +399,60 @@ describe("GameSession", () => {
     expect(api.post).not.toHaveBeenCalledWith(
       expect.stringContaining("/exit"),
     );
+  });
+
+  it("shows session expired modal and terminates game when loadRound returns 401", async () => {
+    api.get.mockRejectedValueOnce(
+      Object.assign(new Error("unauthorized"), {
+        name: "HttpError",
+        status: 401,
+      }),
+    );
+    render(<GameSession gameId="test-game" />);
+    expect(
+      await screen.findByRole("dialog", { name: "Session นี้หมดอายุแล้ว" }),
+    ).toBeTruthy();
+
+    expect(api.post).toHaveBeenCalledWith("/games/test-game/terminate");
+
+    fireEvent.click(screen.getByRole("button", { name: "กลับหน้าแรก" }));
+    expect(push).toHaveBeenCalledWith(AppRoutes.home);
+  });
+
+  it("shows session expired modal and terminates game when submit returns 401", async () => {
+    render(<GameSession gameId="test-game" />);
+    await screen.findByRole("timer");
+
+    api.post.mockRejectedValueOnce(
+      Object.assign(new Error("unauthorized"), {
+        name: "HttpError",
+        status: 401,
+      }),
+    );
+
+    fireEvent.click(screen.getByTestId("mock-map"));
+    fireEvent.click(screen.getByRole("button", { name: "ส่งคำตอบ" }));
+
+    expect(
+      await screen.findByRole("dialog", { name: "Session นี้หมดอายุแล้ว" }),
+    ).toBeTruthy();
+    expect(api.post).toHaveBeenCalledWith("/games/test-game/terminate");
+  });
+
+  it("shows session expired modal when cross-tab storage logout event is received", async () => {
+    render(<GameSession gameId="test-game" />);
+    await screen.findByRole("timer");
+
+    window.dispatchEvent(
+      new StorageEvent("storage", {
+        key: "auth:logout",
+        newValue: Date.now().toString(),
+      }),
+    );
+
+    expect(
+      await screen.findByRole("dialog", { name: "Session นี้หมดอายุแล้ว" }),
+    ).toBeTruthy();
+    expect(api.post).toHaveBeenCalledWith("/games/test-game/terminate");
   });
 });
