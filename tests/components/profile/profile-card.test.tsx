@@ -235,4 +235,19 @@ describe("ProfileCard", () => {
 
     expect(screen.getByRole("link", { name: "จัดการระบบ" }).getAttribute("href")).toBe("/admin");
   });
+
+  it("hides email, edit button, and system management when viewing someone else's profile", () => {
+    render(
+      <ProfileCard
+        profile={{ name: "Other User", email: "other@example.com", image: null }}
+        isOwner={false}
+        canManageSystem
+      />,
+    );
+
+    expect(screen.getByRole("heading", { name: "Other User" })).toBeTruthy();
+    expect(screen.queryByText("other@example.com")).toBeNull();
+    expect(screen.queryByRole("button", { name: "แก้ไขชื่อผู้ใช้" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "จัดการระบบ" })).toBeNull();
+  });
 });

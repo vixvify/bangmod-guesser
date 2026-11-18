@@ -13,7 +13,7 @@ describe("leaderboard profile images", () => {
       set src(_value: string) { queueMicrotask(() => this.onload?.()); }
     }
     vi.stubGlobal("Image", LoadedImage);
-    const entry = { rank: 1, name: "Player", image: "https://example.com/player.jpg", gamesPlayed: 1, totalScore: 1000 };
+    const entry = { userId: "user_1", rank: 1, name: "Player", image: "https://example.com/player.jpg", gamesPlayed: 1, totalScore: 1000 };
     render(<><LeaderboardPodium entries={[entry]} /><LeaderboardRow entry={entry} current /></>);
     const images = await screen.findAllByRole("img", { name: "Player" });
     expect(images).toHaveLength(2);
@@ -21,7 +21,7 @@ describe("leaderboard profile images", () => {
   });
 
   it("falls back to the user's initial without an image", () => {
-    render(<LeaderboardRow entry={{ rank: 4, name: "Player", image: null, gamesPlayed: 1, totalScore: 1000 }} />);
+    render(<LeaderboardRow entry={{ userId: "user_4", rank: 4, name: "Player", image: null, gamesPlayed: 1, totalScore: 1000 }} />);
     expect(screen.getByText("P")).toBeTruthy();
   });
 });

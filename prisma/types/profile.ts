@@ -30,6 +30,7 @@ export const profileUserSelect = {
   id: true,
   name: true,
   email: true,
+  image: true,
   games: { select: profileGameSelect },
 } satisfies Prisma.UserSelect;
 

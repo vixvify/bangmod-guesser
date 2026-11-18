@@ -1,7 +1,9 @@
 import Avatar from "@mui/material/Avatar";
+import Link from "next/link";
 import { Button } from "@/shared/components/ui/button";
 import type { LeaderboardEntry } from "@/features/leaderboard/leaderboard";
 import { getProfileImageUrl } from "@/shared/lib/profile-image";
+import { AppRoutes } from "@/shared/routes/routes";
 
 type LeaderboardRowProps = {
   entry: LeaderboardEntry;
@@ -38,9 +40,7 @@ export function LeaderboardRow({ entry, current = false }: LeaderboardRowProps) 
         {entry.name.charAt(0).toUpperCase()}
       </Avatar>
       <div className="min-w-0">
-        <p className="truncate font-semibold text-surface-text">
-          {entry.name} {current && <span className="text-primary-light">(คุณ)</span>}
-        </p>
+        {current ? <p className="truncate font-semibold text-surface-text">{entry.name} <span className="text-primary-light">(คุณ)</span></p> : <Link href={AppRoutes.userProfile(entry.userId)} className="block truncate font-semibold text-surface-text hover:text-primary-light" aria-label={`ดูโปรไฟล์ของ ${entry.name}`}>{entry.name}</Link>}
         <p className="text-xs text-surface-muted">เล่นแล้ว {entry.gamesPlayed} เกม</p>
       </div>
       <p className="text-right font-bold tabular-nums text-primary-light sm:text-lg">
@@ -48,7 +48,13 @@ export function LeaderboardRow({ entry, current = false }: LeaderboardRowProps) 
         <span className="block text-xs font-normal text-surface-muted sm:inline sm:pl-1">คะแนน</span>
       </p>
       {!current && (
-        <Button variant="outline" size="small" disabled className="hidden sm:inline-flex">
+        <Button
+          href={AppRoutes.userProfile(entry.userId)}
+          variant="outline"
+          size="small"
+          sound="click"
+          className="hidden sm:inline-flex"
+        >
           ดูโปรไฟล์ →
         </Button>
       )}
