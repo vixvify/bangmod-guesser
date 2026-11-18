@@ -63,3 +63,72 @@ describe("GameService.exitGame", () => {
     await expect(service.exitGame("game-1", "player-1", now)).rejects.toThrow("write failed");
   });
 });
+
+describe("GameService.exitActiveGame", () => {
+  it("exits the active playing game if one exists for the user", async () => {
+    repository.findActiveGame.mockResolvedValue({ id: "game-1" });
+    repository.findById.mockResolvedValue(playing);
+    repository.exitPlayingGame.mockResolvedValue({ ...playing, status: "INCOMPLETE", finishedAt: now });
+
+    const result = await service.exitActiveGame("player-1", now);
+    expect(result).toEqual({
+      id: "game-1",
+      status: "INCOMPLETE",
+      finishedAt: now.toISOString(),
+    });
+    expect(repository.findActiveGame).toHaveBeenCalledWith("player-1");
+    expect(repository.exitPlayingGame).toHaveBeenCalledWith("game-1", "player-1", now);
+  });
+
+  it("returns null when no active game exists for the user", async () => {
+    repository.findActiveGame.mockResolvedValue(null);
+
+    const result = await service.exitActiveGame("player-1", now);
+    expect(result).toBeNull();
+    expect(repository.findActiveGame).toHaveBeenCalledWith("player-1");
+    expect(repository.findById).not.toHaveBeenCalled();
+    expect(repository.exitPlayingGame).not.toHaveBeenCalled();
+  });
+});
+
+describe("GameService.findActiveGame", () => {
+  it("delegates finding active game to repository", async () => {
+    repository.findActiveGame.mockResolvedValue({ id: "active-1" });
+    expect(await service.findActiveGame("player-1")).toEqual({ id: "active-1" });
+    expect(repository.findActiveGame).toHaveBeenCalledWith("player-1");
+  });
+});
+
+describe("GameService.terminateGame", () => {
+  it("terminates a playing game by gameId without requiring user session", async () => {
+    repository.findById.mockResolvedValue(playing);
+    repository.exitPlayingGame.mockResolvedValue({ ...playing, status: "INCOMPLETE", finishedAt: now });
+
+    const result = await service.terminateGame("game-1", now);
+    expect(result).toEqual({
+      id: "game-1",
+      status: "INCOMPLETE",
+      finishedAt: now.toISOString(),
+    });
+    expect(repository.findById).toHaveBeenCalledWith("game-1");
+    expect(repository.exitPlayingGame).toHaveBeenCalledWith("game-1", "player-1", now);
+  });
+
+  it("throws 404 when game does not exist", async () => {
+    repository.findById.mockResolvedValue(null);
+    await expect(service.terminateGame("missing", now)).rejects.toMatchObject({ status: 404 });
+  });
+
+  it("returns already exited result when status is not playing", async () => {
+    const exitedRecord = { ...playing, status: "INCOMPLETE" as const, finishedAt: now };
+    repository.findById.mockResolvedValue(exitedRecord);
+
+    const result = await service.terminateGame("game-1", now);
+    expect(result).toEqual({
+      id: "game-1",
+      status: "INCOMPLETE",
+      finishedAt: now.toISOString(),
+    });
+    expect(repository.exitPlayingGame).not.toHaveBeenCalled();
+  });
+});

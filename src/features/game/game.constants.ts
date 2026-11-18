@@ -11,6 +11,11 @@ export const GAME_MESSAGES = {
     description: "เกมนี้อาจถูกจบหรือมีการเริ่มเกมใหม่ในแท็บอื่น กรุณากลับหน้าแรกเพื่อเล่นต่อ",
     back: "กลับหน้าแรก",
   },
+  sessionExpired: {
+    title: "Session นี้หมดอายุแล้ว",
+    description: "การเข้าสู่ระบบของคุณหมดอายุหรือออกจากระบบจากอุปกรณ์อื่นแล้ว กรุณากลับหน้าแรก",
+    back: "กลับหน้าแรก",
+  },
 } as const;
 
 export const GAME_ERROR_CODES = { ended: "GAME_ENDED" } as const;

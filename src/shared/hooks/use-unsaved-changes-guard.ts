@@ -7,17 +7,22 @@ const GUARD_KEY = "__unsavedChangesGuard";
 export function useUnsavedChangesGuard(
   hasUnsavedChanges: boolean,
   onBrowserBack: () => void,
+  options?: {
+    onPageHide?: () => void;
+  },
 ) {
   const dirtyRef = useRef(hasUnsavedChanges);
   const backCallbackRef = useRef(onBrowserBack);
   const guardActiveRef = useRef(false);
   const backPendingRef = useRef(false);
   const leavingRef = useRef(false);
+  const onPageHideRef = useRef(options?.onPageHide);
 
   useEffect(() => {
     dirtyRef.current = hasUnsavedChanges;
     backCallbackRef.current = onBrowserBack;
-  }, [hasUnsavedChanges, onBrowserBack]);
+    onPageHideRef.current = options?.onPageHide;
+  }, [hasUnsavedChanges, onBrowserBack, options?.onPageHide]);
 
   useEffect(() => {
     if (!hasUnsavedChanges || guardActiveRef.current) return;
@@ -63,8 +68,17 @@ export function useUnsavedChangesGuard(
       event.returnValue = "";
     }
 
+    function handlePageHide() {
+      if (leavingRef.current) return;
+      onPageHideRef.current?.();
+    }
+
     window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("pagehide", handlePageHide);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("pagehide", handlePageHide);
+    };
   }, [hasUnsavedChanges]);
 
   return {
@@ -83,6 +97,9 @@ export function useUnsavedChangesGuard(
         fallback();
       }
       return true;
+    },
+    markLeaving() {
+      leavingRef.current = true;
     },
   };
 }

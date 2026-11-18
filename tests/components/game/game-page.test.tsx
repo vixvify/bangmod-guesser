@@ -9,6 +9,9 @@ const push = vi.fn();
 const api = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn() }));
 const toastError = vi.hoisted(() => vi.fn());
 const toastInfo = vi.hoisted(() => vi.fn());
+const getSessionMock = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({ data: { user: { id: "u1" } } }),
+);
 vi.mock("sonner", () => ({ toast: { error: toastError, info: toastInfo, success: vi.fn() } }));
 vi.mock("@/shared/lib/http", () => ({ httpClient: api }));
 vi.mock("@/features/game/game.routes", () => ({ GameRoutes: {
@@ -16,13 +19,15 @@ vi.mock("@/features/game/game.routes", () => ({ GameRoutes: {
   guess: (id: string, round: number) => `/games/${id}/rounds/${round}/guess`,
   roundResult: (id: string, round: number) => `/games/${id}/rounds/${round}/result`,
   exit: (id: string) => `/games/${id}/exit`,
+  terminate: (id: string) => `/games/${id}/terminate`,
 } }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
 }));
 
 vi.mock("@/features/auth/auth-client", () => ({
-  authClient: { signOut: vi.fn() },
+  authClient: { signOut: vi.fn(), getSession: getSessionMock },
+  getSession: getSessionMock,
 }));
 
 vi.mock("next/image", () => ({
@@ -56,6 +61,26 @@ vi.mock("next/dynamic", () => ({
 import { GameSession } from "@/features/game/components/game-session";
 import { preloadGameImage } from "@/features/game/game-image";
 import { AppRoutes } from "@/shared/routes/routes";
+import {
+  NavigationGuardProvider,
+  useNavigationGuard,
+} from "@/shared/hooks/use-navigation-guard";
+
+function TestNavTrigger({ target = "/leaderboard" }: { target?: string }) {
+  const guard = useNavigationGuard();
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        if (!guard?.request(() => push(target))) {
+          push(target);
+        }
+      }}
+    >
+      นำทางไปที่อื่น
+    </button>
+  );
+}
 
 describe("GameSession", () => {
   beforeEach(() => {
@@ -238,5 +263,196 @@ describe("GameSession", () => {
     window.dispatchEvent(event);
 
     expect(event.defaultPrevented).toBe(true);
+  });
+
+  it("warns when client navigation is requested via useNavigationGuard, then cancels", async () => {
+    render(
+      <NavigationGuardProvider>
+        <GameSession gameId="test-game" />
+        <TestNavTrigger target="/leaderboard" />
+      </NavigationGuardProvider>,
+    );
+
+    await screen.findByRole("timer");
+    fireEvent.click(screen.getByRole("button", { name: "นำทางไปที่อื่น" }));
+
+    const dialog = screen.getByRole("dialog", {
+      name: GAME_MESSAGES.exitGame.title,
+    });
+    expect(push).not.toHaveBeenCalled();
+    fireEvent.click(
+      within(dialog).getByRole("button", {
+        name: GAME_MESSAGES.exitGame.cancel,
+      }),
+    );
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(push).not.toHaveBeenCalled();
+    expect(api.post).not.toHaveBeenCalledWith("/games/test-game/exit");
+  });
+
+  it("exits the game via API and proceeds with client navigation when confirmed", async () => {
+    render(
+      <NavigationGuardProvider>
+        <GameSession gameId="test-game" />
+        <TestNavTrigger target="/profile" />
+      </NavigationGuardProvider>,
+    );
+
+    await screen.findByRole("timer");
+    fireEvent.click(screen.getByRole("button", { name: "นำทางไปที่อื่น" }));
+
+    const dialog = screen.getByRole("dialog", {
+      name: GAME_MESSAGES.exitGame.title,
+    });
+    fireEvent.click(
+      within(dialog).getByRole("button", {
+        name: GAME_MESSAGES.exitGame.confirm,
+      }),
+    );
+
+    await waitFor(() =>
+      expect(api.post).toHaveBeenCalledWith("/games/test-game/exit"),
+    );
+    expect(push).toHaveBeenCalledWith("/profile");
+  });
+
+  it("shows an error and stays on page if exit API fails during navigation confirmation", async () => {
+    api.post.mockImplementation((url: string) => {
+      if (url === "/games/test-game/exit") {
+        return Promise.reject(new Error("network error"));
+      }
+      return Promise.resolve({ data: {} });
+    });
+
+    render(
+      <NavigationGuardProvider>
+        <GameSession gameId="test-game" />
+        <TestNavTrigger target="/profile" />
+      </NavigationGuardProvider>,
+    );
+
+    await screen.findByRole("timer");
+    fireEvent.click(screen.getByRole("button", { name: "นำทางไปที่อื่น" }));
+
+    const dialog = screen.getByRole("dialog", {
+      name: GAME_MESSAGES.exitGame.title,
+    });
+    fireEvent.click(
+      within(dialog).getByRole("button", {
+        name: GAME_MESSAGES.exitGame.confirm,
+      }),
+    );
+
+    await waitFor(() =>
+      expect(toastError).toHaveBeenCalledWith(
+        "ออกจากเกมไม่สำเร็จ กรุณาลองอีกครั้ง",
+      ),
+    );
+    expect(push).not.toHaveBeenCalled();
+  });
+
+  it("sends exit on pagehide when navigating away or closing window directly", async () => {
+    render(<GameSession gameId="test-game" />);
+    await screen.findByRole("timer");
+
+    window.dispatchEvent(new Event("pagehide"));
+
+    expect(api.post).toHaveBeenCalledWith("/games/test-game/exit");
+  });
+
+  it("does not send exit on pagehide after a round is submitted", async () => {
+    render(<GameSession gameId="test-game" />);
+    await screen.findByRole("timer");
+
+    fireEvent.click(screen.getByTestId("mock-map"));
+    fireEvent.click(screen.getByRole("button", { name: "ส่งคำตอบ" }));
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith(
+        AppRoutes.gameRoundScore("test-game", 1),
+      ),
+    );
+
+    api.post.mockClear();
+    window.dispatchEvent(new Event("pagehide"));
+
+    expect(api.post).not.toHaveBeenCalledWith(
+      expect.stringContaining("/exit"),
+    );
+  });
+
+  it("does not send exit on pagehide if game has already ended", async () => {
+    api.get.mockRejectedValueOnce(
+      Object.assign(new Error("ended"), {
+        name: "HttpError",
+        status: 409,
+        statusCode: "GAME_ENDED",
+      }),
+    );
+    render(<GameSession gameId="test-game" />);
+    expect(
+      await screen.findByRole("dialog", { name: "เกมนี้สิ้นสุดแล้ว" }),
+    ).toBeTruthy();
+
+    api.post.mockClear();
+    window.dispatchEvent(new Event("pagehide"));
+
+    expect(api.post).not.toHaveBeenCalledWith(
+      expect.stringContaining("/exit"),
+    );
+  });
+
+  it("shows session expired modal and terminates game when loadRound returns 401", async () => {
+    api.get.mockRejectedValueOnce(
+      Object.assign(new Error("unauthorized"), {
+        name: "HttpError",
+        status: 401,
+      }),
+    );
+    render(<GameSession gameId="test-game" />);
+    expect(
+      await screen.findByRole("dialog", { name: "Session นี้หมดอายุแล้ว" }),
+    ).toBeTruthy();
+
+    expect(api.post).toHaveBeenCalledWith("/games/test-game/terminate");
+
+    fireEvent.click(screen.getByRole("button", { name: "กลับหน้าแรก" }));
+    expect(push).toHaveBeenCalledWith(AppRoutes.home);
+  });
+
+  it("shows session expired modal and terminates game when submit returns 401", async () => {
+    render(<GameSession gameId="test-game" />);
+    await screen.findByRole("timer");
+
+    api.post.mockRejectedValueOnce(
+      Object.assign(new Error("unauthorized"), {
+        name: "HttpError",
+        status: 401,
+      }),
+    );
+
+    fireEvent.click(screen.getByTestId("mock-map"));
+    fireEvent.click(screen.getByRole("button", { name: "ส่งคำตอบ" }));
+
+    expect(
+      await screen.findByRole("dialog", { name: "Session นี้หมดอายุแล้ว" }),
+    ).toBeTruthy();
+    expect(api.post).toHaveBeenCalledWith("/games/test-game/terminate");
+  });
+
+  it("shows session expired modal when cross-tab storage logout event is received", async () => {
+    render(<GameSession gameId="test-game" />);
+    await screen.findByRole("timer");
+
+    window.dispatchEvent(
+      new StorageEvent("storage", {
+        key: "auth:logout",
+        newValue: Date.now().toString(),
+      }),
+    );
+
+    expect(
+      await screen.findByRole("dialog", { name: "Session นี้หมดอายุแล้ว" }),
+    ).toBeTruthy();
+    expect(api.post).toHaveBeenCalledWith("/games/test-game/terminate");
   });
 });

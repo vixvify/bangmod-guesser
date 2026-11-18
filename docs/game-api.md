@@ -15,6 +15,8 @@
 | 03 ส่งคำตอบและเฉลย | POST | `/api/games/{gameId}/rounds/{questionNumber}/guess` |
 | 04 สรุปคะแนน | GET | `/api/games/{gameId}/summary` |
 | 05 อ่านผลรอบที่บันทึกแล้ว | GET | `/api/games/{gameId}/rounds/{questionNumber}/result` |
+| 06 ตรวจสอบเกมที่กำลังเล่นอยู่ | GET | `/api/games/active` |
+| 07 ยุติเกมกลางคัน (Terminate) | POST | `/api/games/{gameId}/terminate` |
 
 `gameId` คือรหัสเกมที่ได้จาก API 01 ส่วน `questionNumber` คือเลขรอบ 1–5 Frontend แทนค่าลงใน URL เช่น `POST /api/games/g7/rounds/2/guess` และส่งพิกัดที่ทายใน JSON body
 
@@ -177,6 +179,40 @@ Backend ตรวจเจ้าของเกม สถานะ COMPLETED แ
 - GET นี้เป็นการอ่านอย่างเดียว การเรียกซ้ำไม่เปลี่ยนคะแนน เวลา หรือสถานะรอบ
 - คะแนนและพิกัดที่ทายอ่านจาก GameRound; ข้อมูลสถานที่และรูปอ่านจาก relation ปัจจุบัน จึงอาจเปลี่ยนตามการแก้สถานที่ของแอดมิน และ imageUrl อาจเป็น null ถ้ารูปประวัติถูกลบ
 
+## 06 ตรวจสอบเกมที่กำลังเล่นอยู่
+
+**GET `/api/games/active`**
+
+Frontend เรียกเพื่อตรวจสอบว่าผู้เล่นปัจจุบันมีเกมสถานะ `PLAYING` ค้างอยู่หรือไม่ (เช่น ก่อนทำการ Logout บน Navbar)
+
+ตอบกลับ HTTP 200 โดยข้อมูลภายใน `data` มีดังนี้:
+
+```json
+{
+  "activeGameId": "g7"
+}
+```
+
+หากไม่มีเกมที่กำลังเล่นอยู่ `activeGameId` จะเป็น `null`
+
+## 07 ยุติเกมกลางคัน (Terminate)
+
+**POST `/api/games/{gameId}/terminate`**
+
+Frontend หรือระบบกู้คืนเรียกเมื่อต้องการปรับสถานะเกมจาก `PLAYING` เป็น `INCOMPLETE` โดยไม่ต้องใช้ Session (เช่น เมื่อ Session หมดอายุหรือออกจากระบบจากอีกแท็บหนึ่งแล้ว)
+
+ตอบกลับ HTTP 200:
+
+```json
+{
+  "id": "g7",
+  "status": "INCOMPLETE",
+  "finishedAt": "2026-11-18T12:00:00.000Z"
+}
+```
+
+หากเกมจบไปแล้ว (`COMPLETED` หรือ `INCOMPLETE`) จะส่งคืนสถานะเดิมโดยไม่แก้ไขข้อมูลซ้ำ
+
 ## Deadline และวิธีบันทึกรอบหมดเวลา
 
 - ใช้ `GAME_DEFAULTS.roundDurationSeconds` เดิม (40 วินาที) ร่วมกันทั้ง UI และ Backend ไม่เชื่อเวลาหรือคะแนนที่ Client ส่งมา
@@ -269,8 +305,11 @@ JSON response ใช้รูปแบบกลางของโปรเจก
 src/
 ├── app/api/games/
 │   ├── route.ts
+│   ├── active/route.ts
 │   └── [id]/
 │       ├── current-round/route.ts
+│       ├── exit/route.ts
+│       ├── terminate/route.ts
 │       ├── rounds/[questionNumber]/
 │       │   ├── guess/route.ts
 │       │   └── result/route.ts
@@ -301,6 +340,8 @@ prisma/
 | API 03 `POST /api/games/{gameId}/rounds/{questionNumber}/guess` | `guess/route.ts` ใช้ schema ตรวจพิกัด/เลขรอบ → `GameService.submitGuess` ตรวจเจ้าของและรอบ → shared Haversine คิดระยะ → lib คิดคะแนน → repository บันทึกแบบ conditional ภายใน transaction → factory คืนเฉลยพร้อมรูป; รอบ 5 เรียก lib รวมคะแนน/เวลา/โบนัสและปิดเกม |
 | API 04 `GET /api/games/{gameId}/summary` | `summary/route.ts` ตรวจ session/input → `GameService.summary` ตรวจเจ้าของ/COMPLETED/ผลครบ 5 รอบ → lib รวม baseScore และเวลา โดยใช้ totalScore ที่บันทึกแล้ว → คืน baseScore, totalTimeSeconds, bonusScore, totalScore |
 | API 05 `GET /api/games/{gameId}/rounds/{questionNumber}/result` | `result/route.ts` ตรวจ session/input → `GameService.roundResult` ตรวจเจ้าของ/ผลรอบสมบูรณ์ → factory คืนผลจากข้อมูลที่บันทึกโดยไม่เขียนซ้ำ |
+| API 06 `GET /api/games/active` | `active/route.ts` ตรวจ session → `GameService.findActiveGame` คืน activeGameId |
+| API 07 `POST /api/games/{id}/terminate` | `terminate/route.ts` ตรวจ GameIdSchema (Public) → `GameService.terminateGame` เปลี่ยนสถานะเป็น INCOMPLETE และบันทึก finishedAt |
 
 `game.schema.ts` เป็นขอบเขต validation, `game.ts` เป็นสัญญาข้อมูลสาธารณะ, `game.repository.port.ts` เป็นสัญญา persistence, `prisma/types/game.ts` เป็นชนิดข้อมูลจาก Prisma และ `container.ts` ประกอบ instance เดิมให้ routes เรียกใช้
 

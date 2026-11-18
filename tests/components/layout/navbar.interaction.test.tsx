@@ -1,15 +1,17 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { UserRole } from "@/features/users/user";
 import { SETTINGS_MESSAGES } from "@/features/settings/settings.constants";
 
-const { signOut, routerRefresh, toastError, toastSuccess } = vi.hoisted(() => ({
+const { signOut, routerRefresh, toastError, toastSuccess, httpGet, httpPost } = vi.hoisted(() => ({
   signOut: vi.fn(),
   routerRefresh: vi.fn(),
   toastError: vi.fn(),
   toastSuccess: vi.fn(),
+  httpGet: vi.fn(),
+  httpPost: vi.fn(),
 }));
 
 const { playSoundEffect } = vi.hoisted(() => ({ playSoundEffect: vi.fn() }));
@@ -22,7 +24,10 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("@/shared/lib/http", () => ({
-  default: { post: vi.fn(() => signOut()) },
+  default: {
+    post: vi.fn((url: string, body?: unknown) => httpPost(url, body)),
+    get: vi.fn((url: string) => httpGet(url)),
+  },
 }));
 
 vi.mock("@/features/auth/session.routes", () => ({
@@ -53,17 +58,25 @@ describe("Navbar logout", () => {
     toastError.mockReset();
     toastSuccess.mockReset();
     playSoundEffect.mockReset();
+    httpGet.mockReset().mockResolvedValue({ data: { activeGameId: null } });
+    httpPost.mockReset().mockImplementation((url: string) => {
+      if (url === "/session/logout") {
+        return signOut();
+      }
+      return Promise.resolve({ data: {} });
+    });
   });
 
   it("opens a confirmation dialog and leaves the user signed in when cancelled", async () => {
-    const { getByRole, queryByRole } = render(<Navbar user={user} />);
+    const { getByRole, queryByRole, findByRole } = render(<Navbar user={user} />);
 
     fireEvent.click(getByRole("button", { name: /ออกจากระบบ/ }));
 
-    expect(getByRole("dialog").className).toContain("bg-secondary-main");
+    const dialog = await findByRole("dialog");
+    expect(dialog.className).toContain("bg-secondary-main");
     expect(signOut).not.toHaveBeenCalled();
 
-    fireEvent.click(getByRole("button", { name: "ยกเลิก" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "ยกเลิก" }));
 
     await waitFor(() => expect(queryByRole("dialog")).toBeNull());
     expect(signOut).not.toHaveBeenCalled();
@@ -73,11 +86,12 @@ describe("Navbar logout", () => {
 
   it("signs out and refreshes only after confirmation", async () => {
     signOut.mockResolvedValue({});
-    const { getByRole } = render(<Navbar user={user} />);
+    const { getByRole, findByRole } = render(<Navbar user={user} />);
 
     fireEvent.click(getByRole("button", { name: /ออกจากระบบ/ }));
+    const dialog = await findByRole("dialog");
     expect(signOut).not.toHaveBeenCalled();
-    fireEvent.click(getByRole("button", { name: "ยืนยัน" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "ยืนยัน" }));
 
     await waitFor(() => {
       expect(signOut).toHaveBeenCalledOnce();
@@ -89,10 +103,11 @@ describe("Navbar logout", () => {
 
   it("keeps the dialog open and shows an error when logout fails", async () => {
     signOut.mockRejectedValue(new Error("Logout failed"));
-    const { getByRole } = render(<Navbar user={user} />);
+    const { getByRole, findByRole } = render(<Navbar user={user} />);
 
     fireEvent.click(getByRole("button", { name: /ออกจากระบบ/ }));
-    fireEvent.click(getByRole("button", { name: "ยืนยัน" }));
+    const dialog = await findByRole("dialog");
+    fireEvent.click(within(dialog).getByRole("button", { name: "ยืนยัน" }));
 
     await waitFor(() => {
       expect(signOut).toHaveBeenCalledOnce();
@@ -106,15 +121,52 @@ describe("Navbar logout", () => {
 
   it("does not refresh when sign out returns an error response", async () => {
     signOut.mockRejectedValue(new Error("Sign out failed"));
-    const { getByRole } = render(<Navbar user={user} />);
+    const { getByRole, findByRole } = render(<Navbar user={user} />);
 
     fireEvent.click(getByRole("button", { name: /ออกจากระบบ/ }));
-    fireEvent.click(getByRole("button", { name: "ยืนยัน" }));
+    const dialog = await findByRole("dialog");
+    fireEvent.click(within(dialog).getByRole("button", { name: "ยืนยัน" }));
 
     await waitFor(() => expect(toastError).toHaveBeenCalledOnce());
     expect(toastSuccess).not.toHaveBeenCalled();
     expect(getByRole("dialog")).toBeTruthy();
     expect(routerRefresh).not.toHaveBeenCalled();
+  });
+
+  it("shows active game warning when active game exists and stays signed in when cancelled", async () => {
+    httpGet.mockResolvedValueOnce({ data: { activeGameId: "game-active-123" } });
+    const { getByRole, queryByRole, findByRole } = render(<Navbar user={user} />);
+
+    fireEvent.click(getByRole("button", { name: /ออกจากระบบ/ }));
+
+    const dialog = await findByRole("dialog");
+    expect(dialog.textContent).toContain("มีเกมกำลังเล่นอยู่");
+    expect(dialog.textContent).toContain("ต้องการจะออกจากระบบหรือไม่");
+    expect(signOut).not.toHaveBeenCalled();
+
+    fireEvent.click(getByRole("button", { name: "ยกเลิก" }));
+    await waitFor(() => expect(queryByRole("dialog")).toBeNull());
+    expect(signOut).not.toHaveBeenCalled();
+  });
+
+  it("terminates active game and logs out when active game warning is confirmed", async () => {
+    httpGet.mockResolvedValueOnce({ data: { activeGameId: "game-active-123" } });
+    signOut.mockResolvedValue({});
+    const { getByRole, findByRole } = render(<Navbar user={user} />);
+
+    fireEvent.click(getByRole("button", { name: /ออกจากระบบ/ }));
+
+    const dialog = await findByRole("dialog");
+    expect(dialog.textContent).toContain("มีเกมกำลังเล่นอยู่");
+
+    fireEvent.click(getByRole("button", { name: "ยืนยัน" }));
+
+    await waitFor(() => {
+      expect(httpPost).toHaveBeenCalledWith(expect.stringContaining("/games/game-active-123/exit"), undefined);
+      expect(signOut).toHaveBeenCalledOnce();
+      expect(toastSuccess).toHaveBeenCalledWith("ออกจากระบบสำเร็จ");
+      expect(routerRefresh).toHaveBeenCalledOnce();
+    });
   });
 
   it("opens settings modal when settings button is clicked and closes on cancel", async () => {

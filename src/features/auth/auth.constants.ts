@@ -61,6 +61,8 @@ export const AUTH_MESSAGES = {
     cancel: "ยกเลิก",
     success: "ออกจากระบบสำเร็จ",
     failed: "ออกจากระบบไม่สำเร็จ กรุณาลองอีกครั้ง",
+    activeGameTitle: "มีเกมกำลังเล่นอยู่",
+    activeGameDescription: "มีเกมกำลังเล่นอยู่ ต้องการจะออกจากระบบหรือไม่?",
   },
 } as const;
 
