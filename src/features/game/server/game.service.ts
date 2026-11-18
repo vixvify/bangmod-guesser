@@ -254,4 +254,13 @@ export class GameService {
     if (!record) throw new AppError("Game not found", 404);
     return GameFactory.toExitResult(record);
   }
+
+  async exitActiveGame(
+    userId: string,
+    now = new Date(),
+  ): Promise<GameExitResult | null> {
+    const active = await this.gameRepository.findActiveGame(userId);
+    if (!active) return null;
+    return this.exitGame(active.id, userId, now);
+  }
 }

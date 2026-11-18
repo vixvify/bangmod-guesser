@@ -63,3 +63,30 @@ describe("GameService.exitGame", () => {
     await expect(service.exitGame("game-1", "player-1", now)).rejects.toThrow("write failed");
   });
 });
+
+describe("GameService.exitActiveGame", () => {
+  it("exits the active playing game if one exists for the user", async () => {
+    repository.findActiveGame.mockResolvedValue({ id: "game-1" });
+    repository.findById.mockResolvedValue(playing);
+    repository.exitPlayingGame.mockResolvedValue({ ...playing, status: "INCOMPLETE", finishedAt: now });
+
+    const result = await service.exitActiveGame("player-1", now);
+    expect(result).toEqual({
+      id: "game-1",
+      status: "INCOMPLETE",
+      finishedAt: now.toISOString(),
+    });
+    expect(repository.findActiveGame).toHaveBeenCalledWith("player-1");
+    expect(repository.exitPlayingGame).toHaveBeenCalledWith("game-1", "player-1", now);
+  });
+
+  it("returns null when no active game exists for the user", async () => {
+    repository.findActiveGame.mockResolvedValue(null);
+
+    const result = await service.exitActiveGame("player-1", now);
+    expect(result).toBeNull();
+    expect(repository.findActiveGame).toHaveBeenCalledWith("player-1");
+    expect(repository.findById).not.toHaveBeenCalled();
+    expect(repository.exitPlayingGame).not.toHaveBeenCalled();
+  });
+});

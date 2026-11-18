@@ -14,6 +14,7 @@ import { GAME_DEFAULTS, GAME_ERROR_CODES, GAME_MESSAGES } from "@/features/game/
 import type { CurrentGameRound, GameGuessResult } from "@/features/game/game";
 import type { GuessInput } from "@/features/game/game.schema";
 import { GameRoutes } from "@/features/game/game.routes";
+import { useNavigationGuard } from "@/shared/hooks/use-navigation-guard";
 import { useUnsavedChangesGuard } from "@/shared/hooks/use-unsaved-changes-guard";
 import { useGameMusic } from "@/features/game/hooks/use-game-music";
 import { httpClient } from "@/shared/lib/http";
@@ -28,6 +29,7 @@ import { preloadGameImage } from "@/features/game/game-image";
 export function GameSession({ gameId }: { gameId: string }) {
   useGameMusic();
   const router = useRouter();
+  const navigationGuard = useNavigationGuard();
   const [round, setRound] = useState<CurrentGameRound | null>(null);
   const [deadline, setDeadline] = useState<number | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -41,11 +43,45 @@ export function GameSession({ gameId }: { gameId: string }) {
   const [exitOpen, setExitOpen] = useState(false);
   const [exiting, setExiting] = useState(false);
   const [gameEnded, setGameEnded] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<
+    (() => void) | null
+  >(null);
   const submittingRef = useRef(false);
-  const { cancelBrowserBack, confirmBrowserBack } = useUnsavedChangesGuard(
-    true,
-    () => setExitOpen(true),
-  );
+  const exitedRef = useRef(false);
+  const gameEndedRef = useRef(false);
+  const isCompletingRoundRef = useRef(false);
+
+  useEffect(() => {
+    gameEndedRef.current = gameEnded;
+  }, [gameEnded]);
+
+  useEffect(() => {
+    if (gameEnded) return;
+    return navigationGuard?.register((continueNavigation) => {
+      setPendingNavigation(() => continueNavigation);
+      setExitOpen(true);
+    });
+  }, [gameEnded, navigationGuard]);
+
+  const { cancelBrowserBack, confirmBrowserBack, markLeaving } =
+    useUnsavedChangesGuard(!gameEnded, () => setExitOpen(true), {
+      onPageHide: () => {
+        if (
+          !exitedRef.current &&
+          !gameEndedRef.current &&
+          !isCompletingRoundRef.current
+        ) {
+          try {
+            fetch(GameRoutes.exit(gameId), {
+              method: "POST",
+              keepalive: true,
+            });
+          } catch {
+            // Ignore unload errors
+          }
+        }
+      },
+    });
 
   useEffect(() => {
     let cancelled = false;
@@ -113,6 +149,8 @@ export function GameSession({ gameId }: { gameId: string }) {
             throw error;
           }
         }
+        isCompletingRoundRef.current = true;
+        markLeaving();
         router.push(AppRoutes.gameRoundScore(gameId, round.questionNumber));
       } catch (error) {
         if (getHttpErrorCode(error) === GAME_ERROR_CODES.ended) {
@@ -125,7 +163,7 @@ export function GameSession({ gameId }: { gameId: string }) {
         setSubmitting(false);
       }
     },
-    [gameEnded, gameId, round, router],
+    [gameEnded, gameId, markLeaving, round, router],
   );
 
   const handleTimeUp = useCallback(() => {
@@ -137,9 +175,15 @@ export function GameSession({ gameId }: { gameId: string }) {
     setExiting(true);
     try {
       await httpClient.post(GameRoutes.exit(gameId));
+      exitedRef.current = true;
+      markLeaving();
       setExitOpen(false);
-      if (!confirmBrowserBack(() => router.push(AppRoutes.home)))
+      if (pendingNavigation) {
+        pendingNavigation();
+        setPendingNavigation(null);
+      } else if (!confirmBrowserBack(() => router.push(AppRoutes.home))) {
         router.push(AppRoutes.home);
+      }
     } catch (error) {
       toast.error(
         getErrorMessage(error, "ออกจากเกมไม่สำเร็จ กรุณาลองอีกครั้ง"),
@@ -230,6 +274,7 @@ export function GameSession({ gameId }: { gameId: string }) {
         }}
         onCancel={() => {
           cancelBrowserBack();
+          setPendingNavigation(null);
           setExitOpen(false);
         }}
       />
