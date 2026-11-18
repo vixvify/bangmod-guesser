@@ -9,7 +9,6 @@ export const POST = secureRoute({ access: "public", rateLimit: "auth" }, async (
       try {
         await gameService.exitActiveGame(user.id);
       } catch {
-        // Ignore if no active game or already exited
       }
     }
     const authHeaders = await authService.signOut(request.headers);

@@ -61,7 +61,6 @@ export function Navbar({
         }
       }
     } catch {
-      // If check fails, fallback to standard logout modal
     } finally {
       setIsCheckingActiveGame(false);
     }
@@ -77,7 +76,6 @@ export function Navbar({
         try {
           await httpClient.post(GameRoutes.exit(gameIdToTerminate));
         } catch {
-          // If exit fails, continue with logout
         }
       }
 
@@ -91,7 +89,6 @@ export function Navbar({
           window.localStorage.setItem("auth:logout", Date.now().toString());
         }
       } catch {
-        // Ignore broadcast errors
       }
 
       setIsActiveGameModalOpen(false);

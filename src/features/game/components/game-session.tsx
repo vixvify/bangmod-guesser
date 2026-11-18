@@ -71,7 +71,6 @@ export function GameSession({ gameId }: { gameId: string }) {
     try {
       void httpClient.post(GameRoutes.terminate(gameId));
     } catch {
-      // Ignore termination error
     }
   }, [gameId]);
 
@@ -93,7 +92,6 @@ export function GameSession({ gameId }: { gameId: string }) {
         }
       };
     } catch {
-      // BroadcastChannel might not be supported in some environments
     }
 
     function handleStorage(event: StorageEvent) {
@@ -123,7 +121,6 @@ export function GameSession({ gameId }: { gameId: string }) {
           handleSessionExpired();
         }
       } catch {
-        // Ignore passive session check error
       }
     }
 
@@ -147,12 +144,8 @@ export function GameSession({ gameId }: { gameId: string }) {
           !isCompletingRoundRef.current
         ) {
           try {
-            fetch(GameRoutes.exit(gameId), {
-              method: "POST",
-              keepalive: true,
-            });
+            void httpClient.post(GameRoutes.exit(gameId));
           } catch {
-            // Ignore unload errors
           }
         }
       },
