@@ -1,3 +1,6 @@
+import type { UserStatus } from "@/shared/lib/user-status";
+export type { UserStatus } from "@/shared/lib/user-status";
+
 export enum UserRole {
   USER = "USER",
   ADMIN = "ADMIN",
@@ -10,8 +13,6 @@ export interface User {
   image?: string | null;
   role: UserRole;
 }
-
-export type UserStatus = "ACTIVE" | "SUSPENDED" | "INACTIVE";
 
 export type UserAccount = User & {
   image: string | null;

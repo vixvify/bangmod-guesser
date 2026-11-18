@@ -22,7 +22,6 @@ type UsersTableProps = {
 const statusLabels: Record<UserStatus, string> = {
   ACTIVE: "ปกติ",
   SUSPENDED: "ระงับถาวร",
-  INACTIVE: "ปิดใช้งาน",
 };
 
 const badgeClass =
@@ -34,7 +33,6 @@ const roleClasses = {
 const statusClasses: Record<UserStatus, string> = {
   ACTIVE: "border-emerald-400/30 bg-emerald-400/10 text-emerald-200",
   SUSPENDED: "border-rose-400/30 bg-rose-400/10 text-rose-200",
-  INACTIVE: "border-surface-border bg-surface-control text-surface-muted",
 };
 
 function getStatusDisplay(user: UserAccount) {

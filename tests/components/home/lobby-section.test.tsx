@@ -6,6 +6,20 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
 }));
 
+vi.mock("@/features/game/hooks/use-start-game", () => ({
+  useStartGame: () => ({
+    loading: false,
+    countingDown: false,
+    error: null,
+    prepare: vi.fn(),
+    start: vi.fn(),
+    activeGameId: null,
+    resume: vi.fn(),
+    restart: vi.fn(),
+    closeActiveGame: vi.fn(),
+  }),
+}));
+
 describe("LobbySection", () => {
   it("renders the lobby hero section with title, emblem, play button, and scroll anchor", () => {
     const markup = renderToStaticMarkup(<LobbySection />);

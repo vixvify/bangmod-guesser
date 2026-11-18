@@ -131,6 +131,7 @@ describe("admin users", () => {
     fireEvent.click(within(modal).getByRole("button", { name: "บันทึก" }));
     fireEvent.click(within(await screen.findByRole("dialog", { name: USER_MESSAGES.updateConfirm.title })).getByRole("button", { name: USER_MESSAGES.updateConfirm.confirm }));
     await waitFor(() => expect(error).toHaveBeenCalledWith(USER_MESSAGES.updateFailed));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: USER_MESSAGES.updateConfirm.title })).toBeNull());
     expect(screen.getByRole("dialog", { name: "แก้ไขผู้ใช้" })).toBeTruthy();
   });
 

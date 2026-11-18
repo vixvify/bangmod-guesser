@@ -48,7 +48,7 @@ describe("UserFormSchema", () => {
     expect(result.success).toBe(true);
   });
 
-  it("should accept INACTIVE user", () => {
+  it("should reject INACTIVE status", () => {
     const result = UserFormSchema.safeParse({
       name: "John Doe",
       role: "USER",
@@ -59,7 +59,8 @@ describe("UserFormSchema", () => {
       },
       reason: "",
     });
-    expect(result.success).toBe(true);
+
+    expect(result.success).toBe(false);
   });
 
   it("should reject TEMPORARY status", () => {

@@ -7,7 +7,8 @@ import type {
   UserFormInput,
 } from "@/features/users/user.schema";
 import { UserFactory } from "@/features/users/server/user.factory";
-import { formatDateOnly } from "@/shared/lib/utils";
+import { formatDateOnly, toBangkokStartOfDay } from "@/shared/lib/utils";
+import { getUserStatus } from "@/shared/lib/user-status";
 import { handleAuthError } from "@/features/auth/server/auth-error";
 
 export class UserService {
@@ -38,54 +39,62 @@ export class UserService {
     input: UserFormInput,
   ): Promise<UserAccount> {
     try {
-    const existing = await this.userRepository.findById(id);
-    if (!existing) throw new AppError("User not found", 404);
+      const existing = await this.userRepository.findById(id);
+      if (!existing) throw new AppError("User not found", 404);
 
-    const existingEndDate = existing.banExpires
-      ? formatDateOnly(existing.banExpires)
-      : null;
-    const nextEndDate =
-      input.status === "SUSPENDED" ? input.suspension.endDate : null;
-    const statusChanged = input.status !== existing.status;
-    const suspensionChanged =
-      input.status === "SUSPENDED" &&
-      (!existing.banned ||
-        existingEndDate !== nextEndDate ||
-        existing.banReason !== (input.reason || null));
-    const expiresIn = nextEndDate
-      ? Math.floor((new Date(nextEndDate).getTime() - Date.now()) / 1000)
-      : undefined;
-    if (
-      (statusChanged || suspensionChanged) &&
-      expiresIn !== undefined &&
-      expiresIn <= 0
-    ) {
-      throw new AppError("End date must be in the future", 400);
-    }
+      const existingStatus = getUserStatus(existing);
+      const existingEndDate = existing.banExpires
+        ? formatDateOnly(existing.banExpires, "Asia/Bangkok")
+        : null;
+      const nextEndDate =
+        input.status === "SUSPENDED" ? input.suspension.endDate : null;
 
-    if (input.name !== existing.name) {
-      await this.userAdmin.updateName(headers, { userId: id, data: { name: input.name } });
-    }
-    if (input.role !== existing.role) {
-      await this.userAdmin.setRole(headers, { userId: id, role: input.role });
-    }
+      const statusChanged = input.status !== existingStatus;
+      const suspensionChanged =
+        input.status === "SUSPENDED" &&
+        (!existing.banned ||
+          existingEndDate !== nextEndDate ||
+          existing.banReason !== (input.reason || null));
 
-    if (statusChanged || suspensionChanged) {
-      if (input.status === "SUSPENDED") {
+      const expiresIn = nextEndDate
+        ? Math.floor(
+            (toBangkokStartOfDay(nextEndDate).getTime() - Date.now()) / 1000,
+          )
+        : undefined;
+
+      if (
+        (statusChanged || suspensionChanged) &&
+        expiresIn !== undefined &&
+        expiresIn <= 0
+      ) {
+        throw new AppError("End date must be in the future", 400);
+      }
+
+      if (input.name !== existing.name) {
+        await this.userAdmin.updateName(headers, {
+          userId: id,
+          data: { name: input.name },
+        });
+      }
+
+      if (input.role !== existing.role) {
+        await this.userAdmin.setRole(headers, {
+          userId: id,
+          role: input.role,
+        });
+      }
+
+      if (input.status === "SUSPENDED" && (statusChanged || suspensionChanged)) {
         await this.userAdmin.banUser(headers, {
           userId: id,
           banReason: input.reason || undefined,
           banExpiresIn: expiresIn,
         });
-      } else if (existing.banned) {
+      } else if (input.status === "ACTIVE" && existing.banned) {
         await this.userAdmin.unbanUser(headers, { userId: id });
       }
 
-      if (statusChanged)
-        await this.userRepository.updateStatus(id, input.status);
-    }
-
-    return await this.getUser(id);
+      return await this.getUser(id);
     } catch (error) {
       return handleAuthError(error, "User update failed");
     }
@@ -93,9 +102,9 @@ export class UserService {
 
   async deleteUser(headers: Headers, id: string): Promise<void> {
     try {
-    const existing = await this.userRepository.findById(id);
-    if (!existing) throw new AppError("User not found", 404);
-    await this.userAdmin.removeUser(headers, { userId: id });
+      const existing = await this.userRepository.findById(id);
+      if (!existing) throw new AppError("User not found", 404);
+      await this.userAdmin.removeUser(headers, { userId: id });
     } catch (error) {
       handleAuthError(error, "User deletion failed");
     }

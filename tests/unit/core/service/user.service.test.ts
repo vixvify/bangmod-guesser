@@ -21,7 +21,6 @@ const form: UserFormInput = {
 const repository = {
   findMany: vi.fn(),
   findById: vi.fn(),
-  updateStatus: vi.fn(),
 } satisfies UserRepository;
 const admin = {
   updateName: vi.fn(),
@@ -61,19 +60,75 @@ describe("UserService", () => {
     expect(admin.updateName).toHaveBeenCalledWith(headers, { userId: record.id, data: { name: "Changed" } });
     expect(admin.setRole).toHaveBeenCalledWith(headers, { userId: record.id, role: UserRole.ADMIN });
     expect(admin.banUser).not.toHaveBeenCalled();
-    expect(repository.updateStatus).not.toHaveBeenCalled();
     expect(result.name).toBe("Changed");
   });
 
-  it("bans and persists a suspended status", async () => {
+  it("bans a user through Better Auth", async () => {
     await service.updateUser(new Headers(), record.id, {
-      ...form, status: "SUSPENDED", reason: "Violation",
+      ...form,
+      status: "SUSPENDED",
+      reason: "Violation",
     });
 
     expect(admin.banUser).toHaveBeenCalledWith(expect.any(Headers), {
-      userId: record.id, banReason: "Violation", banExpiresIn: undefined,
+      userId: record.id,
+      banReason: "Violation",
+      banExpiresIn: undefined,
     });
-    expect(repository.updateStatus).toHaveBeenCalledWith(record.id, "SUSPENDED");
+  });
+
+  it("sets the suspension expiry at midnight Thailand time", async () => {
+    const now = new Date("2026-11-18T05:00:00.000Z").getTime();
+    const nowSpy = vi.spyOn(Date, "now").mockReturnValue(now);
+
+    try {
+      await service.updateUser(new Headers(), record.id, {
+        ...form,
+        status: "SUSPENDED",
+        suspension: { startDate: null, endDate: "2026-11-19" },
+      });
+
+      expect(admin.banUser).toHaveBeenCalledWith(expect.any(Headers), {
+        userId: record.id,
+        banReason: undefined,
+        banExpiresIn: 43200,
+      });
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
+  it("does not reapply a suspension when editing the user with the same Bangkok expiry date", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2099-12-29T05:00:00Z"));
+    try {
+      repository.findById.mockResolvedValue({ ...record, banned: true, banExpires: new Date("2099-12-30T17:00:00Z"), banReason: "Violation" });
+      await service.updateUser(new Headers(), record.id, {
+        ...form, name: "Changed", status: "SUSPENDED", reason: "Violation",
+        suspension: { startDate: null, endDate: "2099-12-31" },
+      });
+      expect(admin.updateName).toHaveBeenCalledOnce();
+      expect(admin.banUser).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("preserves the expiry date when changing the reason for a temporary suspension", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2099-12-29T05:00:00Z"));
+    try {
+      repository.findById.mockResolvedValue({ ...record, banned: true, banExpires: new Date("2099-12-30T17:00:00Z"), banReason: "Old reason" });
+      await service.updateUser(new Headers(), record.id, {
+        ...form, status: "SUSPENDED", reason: "New reason",
+        suspension: { startDate: null, endDate: "2099-12-31" },
+      });
+      expect(admin.banUser).toHaveBeenCalledWith(expect.any(Headers), {
+        userId: record.id, banReason: "New reason", banExpiresIn: 129600,
+      });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("rejects an expired suspension before changing the account", async () => {
@@ -89,11 +144,31 @@ describe("UserService", () => {
   });
 
   it("unbans a suspended account when reactivated", async () => {
-    repository.findById.mockResolvedValueOnce({ ...record, status: "SUSPENDED", banned: true });
+    repository.findById.mockResolvedValueOnce({
+      ...record,
+      banned: true,
+      banExpires: null,
+    });
+
     await service.updateUser(new Headers(), record.id, form);
 
-    expect(admin.unbanUser).toHaveBeenCalled();
-    expect(repository.updateStatus).toHaveBeenCalledWith(record.id, "ACTIVE");
+    expect(admin.unbanUser).toHaveBeenCalledWith(expect.any(Headers), {
+      userId: record.id,
+    });
+  });
+
+  it("unbans an account with an expired suspension when reactivated", async () => {
+    repository.findById.mockResolvedValueOnce({
+      ...record,
+      banned: true,
+      banExpires: new Date("2020-01-01"),
+    });
+
+    await service.updateUser(new Headers(), record.id, form);
+
+    expect(admin.unbanUser).toHaveBeenCalledWith(expect.any(Headers), {
+      userId: record.id,
+    });
   });
 
   it("returns 404 for a missing user and does not call the adapter", async () => {

@@ -6,6 +6,7 @@ import {
 } from "@/features/users/user";
 import type { UserModel, UserModelWithGameCount } from "../../../../prisma/types/user";
 import { formatDateOnly } from "@/shared/lib/utils";
+import { getUserStatus } from "@/shared/lib/user-status";
 
 const roleMap: Record<PrismaRole, UserRole> = {
   [PrismaRole.USER]: UserRole.USER,
@@ -23,19 +24,21 @@ export const UserFactory = {
   },
 
   toAccount(user: UserModelWithGameCount): UserAccount {
+    const status = getUserStatus(user);
     return {
       id: user.id,
       name: user.name,
       email: user.email,
       image: user.image,
       role: roleMap[user.role],
-      status: user.status,
+      status,
       gameCount: user._count.games,
       suspension: {
         startDate: null,
         endDate:
-          user.status === "SUSPENDED" &&
-          user.banExpires ? formatDateOnly(user.banExpires) : null,
+          status === "SUSPENDED" && user.banExpires
+            ? formatDateOnly(user.banExpires, "Asia/Bangkok")
+            : null,
       },
       reason: user.banReason ?? "",
     };

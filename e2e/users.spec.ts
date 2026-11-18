@@ -31,7 +31,7 @@ test("admin lists, edits, and deletes a user through the management page", async
   await prisma.user.update({ where: { email: admin.email }, data: { role: "ADMIN" } });
   await prisma.user.update({
     where: { email: player.email },
-    data: { name: player.name, role: "USER", status: "ACTIVE", banned: false },
+    data: { name: player.name, role: "USER", banned: false, banExpires: null, banReason: null },
   });
 
   const login = await page.request.post("/api/auth/sign-in/email", {
@@ -74,8 +74,8 @@ test("admin lists, edits, and deletes a user through the management page", async
   expect((await statusResponse).ok()).toBe(true);
   await expect.poll(async () => {
     const user = await prisma.user.findUnique({ where: { email: player.email } });
-    return { status: user?.status, banned: user?.banned };
-  }).toEqual({ status: "SUSPENDED", banned: true });
+    return { banned: user?.banned, banExpires: user?.banExpires };
+  }).toEqual({ banned: true, banExpires: null });
 
   await page.getByRole("button", { name: "ลบ Updated E2E Player" }).click();
   const deleteConfirmation = page.getByRole("dialog", { name: USER_MESSAGES.delete.title });
