@@ -15,6 +15,7 @@ import { getProfileImageUrl } from "@/shared/lib/profile-image";
 import { playSoundEffect } from "@/shared/lib/sound-effect";
 import { AppRoutes } from "@/shared/routes/routes";
 import { getErrorMessage } from "@/shared/lib/error-message";
+import type { LeaderboardEntry } from "@/features/leaderboard/leaderboard";
 
 type ProfileCardProps = {
   profile: {
@@ -24,12 +25,14 @@ type ProfileCardProps = {
   };
   canManageSystem?: boolean;
   isOwner?: boolean;
+  stats?: LeaderboardEntry | null;
 };
 
 export function ProfileCard({
   profile,
   canManageSystem = false,
   isOwner = true,
+  stats,
 }: ProfileCardProps) {
   const router = useRouter();
   const [prevName, setPrevName] = useState(profile.name);
@@ -93,7 +96,13 @@ export function ProfileCard({
                 playSoundEffect("click");
                 setIsEditOpen(true);
               }}
-              sx={{ color: "var(--color-primary-light)", "&:hover": { backgroundColor: "color-mix(in srgb, var(--color-primary-main) 12%, transparent)" } }}
+              sx={{
+                color: "var(--color-primary-light)",
+                "&:hover": {
+                  backgroundColor:
+                    "color-mix(in srgb, var(--color-primary-main) 12%, transparent)",
+                },
+              }}
             >
               <EditOutlinedIcon fontSize="small" />
             </IconButton>
@@ -105,8 +114,36 @@ export function ProfileCard({
           </p>
         )}
       </div>
+      <dl className="grid w-full grid-cols-3 gap-3 border-t border-surface-border pt-4 sm:w-auto sm:min-w-72 sm:border-t-0 sm:border-l sm:pl-6 sm:pt-0">
+        <div>
+          <dt className="text-xs text-surface-muted">อันดับ</dt>
+          <dd className="mt-1 font-bold text-primary-light">
+            {stats
+              ? `#${stats.rank.toLocaleString("th-TH")}`
+              : "ยังไม่มีอันดับ"}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-xs text-surface-muted">คะแนนรวม</dt>
+          <dd className="mt-1 font-bold text-surface-text">
+            {(stats?.totalScore ?? 0).toLocaleString("th-TH")}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-xs text-surface-muted">เกมที่เล่นจบ</dt>
+          <dd className="mt-1 font-bold text-surface-text">
+            {(stats?.gamesPlayed ?? 0).toLocaleString("th-TH")}
+          </dd>
+        </div>
+      </dl>
       {isOwner && canManageSystem && (
-        <Button href={AppRoutes.admin} sound="click" variant="primary" size="small" className="ml-auto shrink-0">
+        <Button
+          href={AppRoutes.admin}
+          sound="click"
+          variant="primary"
+          size="small"
+          className="ml-auto shrink-0"
+        >
           จัดการระบบ
         </Button>
       )}

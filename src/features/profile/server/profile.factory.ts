@@ -9,9 +9,8 @@ export const ProfileFactory = {
     totalGames: number,
     page: number,
     pageSize: number,
-    viewerId?: string,
+    isOwner: boolean,
   ): ProfileResult {
-    const isOwner = viewerId ? user.id === viewerId : true;
     return {
       id: user.id,
       name: user.name,

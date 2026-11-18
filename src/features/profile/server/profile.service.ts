@@ -13,7 +13,7 @@ export class ProfileService {
   async getProfile(
     userId: string,
     options: ProfileQueryInput,
-    viewerId?: string,
+    viewerId: string,
   ): Promise<ProfileResult> {
     const result = await this.profileRepository.findProfile(userId, {
       from: options.from ? toBangkokStartOfDay(options.from) : undefined,
@@ -31,7 +31,7 @@ export class ProfileService {
       result.totalGames,
       options.page,
       PROFILE_PAGE_SIZE,
-      viewerId,
+      result.user.id === viewerId,
     );
   }
 }

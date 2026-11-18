@@ -59,6 +59,7 @@ describe("LeaderboardPage", () => {
     expect(markup).toContain('aria-current="page"');
     expect(markup).toContain("bg-secondary-main text-surface-text");
     expect(markup).toContain('href="/profile/user_4"');
+    expect(markup).toContain('aria-label="ดูโปรไฟล์ของ Player 4"');
     expect(markup).toContain("ดูโปรไฟล์ →");
   });
 

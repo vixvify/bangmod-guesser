@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { httpClient } from "@/shared/lib/http";
 import { getErrorMessage } from "@/shared/lib/error-message";
 import { AppRoutes } from "@/shared/routes/routes";
@@ -15,14 +16,12 @@ export function useStartGame() {
   const busy = useRef(false);
   const [loading, setLoading] = useState(false);
   const [countingDown, setCountingDown] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [activeGameId, setActiveGameId] = useState<string | null>(null);
 
   const prepare = useCallback(async (replaceGameId?: string) => {
     if (busy.current) return;
     busy.current = true;
     setLoading(true);
-    setError(null);
     try {
       if (!gameId.current || replaceGameId) {
         const { data } = replaceGameId
@@ -42,7 +41,7 @@ export function useStartGame() {
       }
       setCountingDown(true);
     } catch (error) {
-      setError(getErrorMessage(error, "ไม่สามารถเตรียมเกมหรือโหลดรูปได้ กรุณาลองอีกครั้ง"));
+      toast.error(getErrorMessage(error, "ไม่สามารถเตรียมเกมหรือโหลดรูปได้ กรุณาลองอีกครั้ง"));
     } finally {
       setLoading(false);
       busy.current = false;
@@ -71,5 +70,5 @@ export function useStartGame() {
     void prepare(previousGameId);
   }, [activeGameId, prepare]);
 
-  return { loading, countingDown, error, prepare, start, activeGameId, resume, restart, closeActiveGame: () => setActiveGameId(null) };
+  return { loading, countingDown, prepare, start, activeGameId, resume, restart, closeActiveGame: () => setActiveGameId(null) };
 }

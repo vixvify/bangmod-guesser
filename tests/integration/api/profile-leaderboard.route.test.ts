@@ -54,7 +54,7 @@ describe("profile and leaderboard API routes", () => {
     const response = await profile(new Request("http://localhost/api/profile?from=2026-10-01&to=2026-10-31&page=2"));
 
     expect(response.status).toBe(200);
-    expect(getProfile).toHaveBeenCalledWith("player-1", { from: "2026-10-01", to: "2026-10-31", page: 2 });
+    expect(getProfile).toHaveBeenCalledWith("player-1", { from: "2026-10-01", to: "2026-10-31", page: 2 }, "player-1");
     expect((await response.json()).data.games).toEqual([]);
   });
 

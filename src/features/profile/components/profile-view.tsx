@@ -3,6 +3,7 @@ import { ProfileHistory } from "@/features/profile/components/profile-history";
 import { UserRole, type User } from "@/features/users/user";
 import type { ProfileResult } from "@/features/profile/profile";
 import type { ProfileQueryInput } from "@/features/profile/profile.schema";
+import type { LeaderboardEntry } from "@/features/leaderboard/leaderboard";
 import { MainLayout } from "@/shared/components/layout/main-layout";
 import { hasRole } from "@/shared/lib/role-check";
 
@@ -12,6 +13,7 @@ type ProfileViewProps = {
   query: ProfileQueryInput;
   isOwner: boolean;
   targetUserId?: string;
+  stats?: LeaderboardEntry | null;
 };
 
 export function ProfileView({
@@ -20,6 +22,7 @@ export function ProfileView({
   query,
   isOwner,
   targetUserId,
+  stats,
 }: ProfileViewProps) {
   return (
     <MainLayout
@@ -39,6 +42,7 @@ export function ProfileView({
               }
         }
         isOwner={isOwner}
+        stats={stats}
         canManageSystem={isOwner && hasRole(viewer, [UserRole.ADMIN])}
       />
       <ProfileHistory

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { ProfileQuerySchema } from "@/features/profile/profile.schema";
-import { profileService } from "@/container";
+import { profileService, leaderboardService } from "@/container";
 import { requireAuth } from "@/features/auth/server/auth-check";
 import { parseSchema } from "@/shared/lib/validation";
 import { AppError } from "@/shared/errors/app.error";
@@ -23,9 +23,7 @@ export default async function UserProfilePage({
 
   let profile;
   try {
-    profile = isOwner
-      ? await profileService.getProfile(user.id, query)
-      : await profileService.getProfile(userId, query, user.id);
+    profile = await profileService.getProfile(userId, query, user.id);
   } catch (error) {
     if (error instanceof AppError && error.status === 404) {
       notFound();
@@ -34,6 +32,7 @@ export default async function UserProfilePage({
     throw error;
   }
 
+  const stats = (await leaderboardService.getLeaderboard(userId)).myRank;
   return (
     <ProfileView
       viewer={user}
@@ -41,6 +40,7 @@ export default async function UserProfilePage({
       query={query}
       isOwner={isOwner}
       targetUserId={userId}
+      stats={stats}
     />
   );
 }

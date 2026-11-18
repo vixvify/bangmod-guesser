@@ -1,5 +1,5 @@
 import { ProfileQuerySchema } from "@/features/profile/profile.schema";
-import { profileService } from "@/container";
+import { profileService, leaderboardService } from "@/container";
 import { requireAuth } from "@/features/auth/server/auth-check";
 import { parseSchema } from "@/shared/lib/validation";
 import { ProfileView } from "@/features/profile/components/profile-view";
@@ -14,7 +14,10 @@ export default async function ProfilePage({
 }) {
   const user = await requireAuth();
   const query = parseSchema(ProfileQuerySchema, await searchParams);
-  const profile = await profileService.getProfile(user.id, query);
+  const [profile, leaderboard] = await Promise.all([
+    profileService.getProfile(user.id, query, user.id),
+    leaderboardService.getLeaderboard(user.id),
+  ]);
 
   return (
     <ProfileView
@@ -22,6 +25,7 @@ export default async function ProfilePage({
       profile={profile}
       query={query}
       isOwner={true}
+      stats={leaderboard.myRank}
     />
   );
 }
