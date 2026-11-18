@@ -24,6 +24,7 @@ type DateRangePickerProps = {
   defaultValue?: DateRange;
   onChange?: (value: DateRange) => void;
   theme?: "light" | "dark";
+  minDate?: string;
 };
 
 export function DateRangePicker({
@@ -31,6 +32,7 @@ export function DateRangePicker({
   defaultValue,
   onChange,
   theme = "light",
+  minDate,
 }: DateRangePickerProps) {
   const isDark = theme === "dark";
   const [range, setRange] = useState<DateRange>(
@@ -184,6 +186,7 @@ export function DateRangePicker({
           <DateCalendar
             value={range.startDate ? dayjs(range.startDate) : range.endDate ? dayjs(range.endDate) : null}
             onChange={selectDate}
+            minDate={minDate ? dayjs(minDate) : undefined}
             slotProps={{
               day: ({ day }) => {
                 const isStart = Boolean(

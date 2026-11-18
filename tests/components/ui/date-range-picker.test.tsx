@@ -14,9 +14,11 @@ vi.mock("@mui/material/Popover", () => ({
 vi.mock("@mui/x-date-pickers/DateCalendar", () => ({
   DateCalendar: ({
     onChange,
+    minDate,
     slotProps,
   }: {
     onChange: (date: ReturnType<typeof dayjs>) => void;
+    minDate?: ReturnType<typeof dayjs>;
     slotProps?: {
       day?: (state: { day: ReturnType<typeof dayjs> }) => {
         sx?: {
@@ -30,22 +32,24 @@ vi.mock("@mui/x-date-pickers/DateCalendar", () => ({
       };
     };
   }) => (
-    <div>
+    <div data-min-date={minDate?.format("YYYY-MM-DD")}>
       {[2, 3, 4, 5, 6, 7, 8, 10, 12].map((day) => {
         const date = dayjs(`2026-09-${String(day).padStart(2, "0")}`);
-        const dayStyles = slotProps?.day?.({ day: date })?.sx;
+        const dayStyles = slotProps?.day?.({ day: date });
+
         return (
           <button
             key={day}
-            data-background={dayStyles?.backgroundColor}
-            data-image={dayStyles?.backgroundImage}
-            data-radius={dayStyles?.borderRadius}
-            data-margin-left={dayStyles?.marginLeft}
-            data-margin-right={dayStyles?.marginRight}
-            data-width={dayStyles?.width}
+            disabled={minDate ? date.isBefore(minDate, "day") : false}
+            data-background={dayStyles?.sx?.backgroundColor}
+            data-image={dayStyles?.sx?.backgroundImage}
+            data-radius={dayStyles?.sx?.borderRadius}
+            data-margin-left={dayStyles?.sx?.marginLeft}
+            data-margin-right={dayStyles?.sx?.marginRight}
+            data-width={dayStyles?.sx?.width}
             onClick={() => onChange(date)}
           >
-            {day} กันยายน
+            {day} à¸à¸±à¸™à¸¢à¸²à¸¢à¸™
           </button>
         );
       })}
@@ -175,7 +179,7 @@ describe("DateRangePicker", () => {
     expect(field.value).toContain("4 กันยายน");
     fireEvent.click(field);
     expect(screen.getByRole("status").textContent).toContain("วันสิ้นสุด4 ก.ย.");
-    const endDate = screen.getByRole("button", { name: "4 กันยายน" });
+    const endDate = screen.getByRole("button", { name: /^4 / });
     expect(endDate.dataset.image).toContain("radial-gradient(circle");
     expect(endDate.dataset.image).not.toContain("linear-gradient(to ");
   });
@@ -189,9 +193,9 @@ describe("DateRangePicker", () => {
     );
 
     fireEvent.click(screen.getByRole("combobox", { name: "เลือกช่วงเวลา" }));
-    expect(screen.getByRole("button", { name: "2 กันยายน" }).dataset.image).toContain("radial-gradient(circle");
-    expect(screen.getByRole("button", { name: "3 กันยายน" }).dataset.background).toBe("var(--color-primary-soft)");
-    expect(screen.getByRole("button", { name: "4 กันยายน" }).dataset.image).toContain("radial-gradient(circle");
+    expect(screen.getByRole("button", { name: /^2 / }).dataset.image).toContain("radial-gradient(circle");
+    expect(screen.getByRole("button", { name: /^3 / }).dataset.background).toBe("var(--color-primary-soft)");
+    expect(screen.getByRole("button", { name: /^4 / }).dataset.image).toContain("radial-gradient(circle");
   });
 
   it("selects a new start and end date, then closes the calendar", () => {
@@ -200,14 +204,14 @@ describe("DateRangePicker", () => {
 
     fireEvent.click(screen.getByRole("combobox", { name: "เลือกช่วงเวลา" }));
     expect(screen.queryByText("เลือกวันเริ่มต้น")).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "10 กันยายน" }));
+    fireEvent.click(screen.getByRole("button", { name: /^10 / }));
     expect(onChange).toHaveBeenLastCalledWith({
       startDate: "2026-09-10",
       endDate: null,
     });
     expect(screen.queryByText("เลือกวันสิ้นสุด")).toBeNull();
 
-    fireEvent.click(screen.getByRole("button", { name: "12 กันยายน" }));
+    fireEvent.click(screen.getByRole("button", { name: /^12 / }));
     expect(onChange).toHaveBeenLastCalledWith({
       startDate: "2026-09-10",
       endDate: "2026-09-12",
@@ -224,13 +228,38 @@ describe("DateRangePicker", () => {
     render(<DateRangePicker label="เลือกช่วงเวลา" onChange={onChange} />);
 
     fireEvent.click(screen.getByRole("combobox", { name: "เลือกช่วงเวลา" }));
-    fireEvent.click(screen.getByRole("button", { name: "10 กันยายน" }));
-    fireEvent.click(screen.getByRole("button", { name: "8 กันยายน" }));
+    fireEvent.click(screen.getByRole("button", { name: /^10 / }));
+    fireEvent.click(screen.getByRole("button", { name: /^8 / }));
 
     expect(onChange).toHaveBeenLastCalledWith({
       startDate: "2026-09-08",
       endDate: null,
     });
     expect(screen.queryByText("เลือกวันสิ้นสุด")).toBeNull();
+  });
+
+  it("disables dates before minDate", () => {
+    render(
+      <DateRangePicker
+        label="Date range"
+        minDate="2026-09-04"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("combobox", { name: "Date range" }));
+
+    expect(screen.getByRole("button", { name: /^2 / })).toHaveProperty("disabled", true);
+    expect(screen.getByRole("button", { name: /^3 / })).toHaveProperty("disabled", true);
+    expect(screen.getByRole("button", { name: /^4 / })).toHaveProperty("disabled", false);
+    expect(screen.getByRole("button", { name: /^5 / })).toHaveProperty("disabled", false);
+  });
+
+  it("keeps past dates selectable when minDate is not provided", () => {
+    render(<DateRangePicker label="Date range" />);
+
+    fireEvent.click(screen.getByRole("combobox", { name: "Date range" }));
+
+    expect(screen.getByRole("button", { name: /^2 / })).toHaveProperty("disabled", false);
+    expect(screen.getByRole("button", { name: /^3 / })).toHaveProperty("disabled", false);
   });
 });

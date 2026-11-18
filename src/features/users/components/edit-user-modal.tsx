@@ -210,15 +210,24 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
                   control={control}
                   render={({ field }) => {
                     const { startDate, endDate } = field.value;
-                    const showsRemainingRange = !startDate && endDate !== null && endDate > today;
+                    const showsRemainingRange =
+                      !startDate && endDate !== null && endDate > today;
 
                     return (
                       <div>
                         <DateRangePicker
                           theme="dark"
                           label="ระยะเวลาการระงับ (ไม่บังคับ)"
-                          defaultValue={showsRemainingRange ? { startDate: today, endDate } : field.value}
+                          defaultValue={
+                            showsRemainingRange
+                              ? { startDate: today, endDate }
+                              : field.value
+                          }
                           onChange={field.onChange}
+                          minDate={formatDateOnly(
+                            new Date(),
+                            "Asia/Bangkok",
+                          )}
                         />
                         {showsRemainingRange && (
                           <p className="mt-1 text-xs text-surface-muted">

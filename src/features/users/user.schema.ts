@@ -2,6 +2,7 @@ import { z } from "zod";
 import { UserRole } from "@/features/users/user";
 import { UpdateUsernameSchema } from "@/features/users/username.schema";
 import { USER_MESSAGES } from "@/features/users/user.constants";
+import { formatDateOnly } from "@/shared/lib/utils";
 
 export const UserIdSchema = z
   .string()
@@ -43,6 +44,21 @@ export const UserFormSchema = z
       endDate: z.iso.date().nullable(),
     }),
     reason: z.string().trim().max(200, USER_MESSAGES.reasonMax),
+  })
+  .superRefine((data, ctx) => {
+    if (data.status !== "SUSPENDED" || !data.suspension.endDate) {
+      return;
+    }
+
+    const today = formatDateOnly(new Date(), "Asia/Bangkok");
+
+    if (data.suspension.endDate < today) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["suspension", "endDate"],
+        message: "Suspension end date cannot be in the past",
+      });
+    }
   });
 
 export type UserFormInput = z.input<typeof UserFormSchema>;

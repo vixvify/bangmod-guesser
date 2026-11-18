@@ -88,10 +88,11 @@ describe("UserService", () => {
         status: "SUSPENDED",
         suspension: { startDate: null, endDate: "2026-11-19" },
       });
+
       expect(admin.banUser).toHaveBeenCalledWith(expect.any(Headers), {
         userId: record.id,
         banReason: undefined,
-        banExpiresIn: 43200,
+        banExpiresIn: 129600,
       });
     } finally {
       nowSpy.mockRestore();
@@ -108,6 +109,28 @@ describe("UserService", () => {
         status: "SUSPENDED",
         suspension: { startDate: null, endDate: "2026-11-19" },
       });
+
+      expect(admin.banUser).toHaveBeenCalledWith(expect.any(Headers), {
+        userId: record.id,
+        banReason: undefined,
+        banExpiresIn: 129600,
+      });
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
+  it("allows suspending through the selected end date when it is today", async () => {
+    const now = new Date("2026-11-18T05:00:00.000Z").getTime();
+    const nowSpy = vi.spyOn(Date, "now").mockReturnValue(now);
+
+    try {
+      await service.updateUser(new Headers(), record.id, {
+        ...form,
+        status: "SUSPENDED",
+        suspension: { startDate: null, endDate: "2026-11-18" },
+      });
+
       expect(admin.banUser).toHaveBeenCalledWith(expect.any(Headers), {
         userId: record.id,
         banReason: undefined,
@@ -122,7 +145,7 @@ describe("UserService", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2099-12-29T05:00:00Z"));
     try {
-      repository.findById.mockResolvedValue({ ...record, banned: true, banExpires: new Date("2099-12-30T17:00:00Z"), banReason: "Violation" });
+      repository.findById.mockResolvedValue({ ...record, banned: true, banExpires: new Date("2099-12-31T17:00:00Z"), banReason: "Violation" });
       await service.updateUser(new Headers(), record.id, {
         ...form, name: "Changed", status: "SUSPENDED", reason: "Violation",
         suspension: { startDate: null, endDate: "2099-12-31" },
@@ -138,13 +161,13 @@ describe("UserService", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2099-12-29T05:00:00Z"));
     try {
-      repository.findById.mockResolvedValue({ ...record, banned: true, banExpires: new Date("2099-12-30T17:00:00Z"), banReason: "Old reason" });
+      repository.findById.mockResolvedValue({ ...record, banned: true, banExpires: new Date("2099-12-31T17:00:00Z"), banReason: "Old reason" });
       await service.updateUser(new Headers(), record.id, {
         ...form, status: "SUSPENDED", reason: "New reason",
         suspension: { startDate: null, endDate: "2099-12-31" },
       });
       expect(admin.banUser).toHaveBeenCalledWith(expect.any(Headers), {
-        userId: record.id, banReason: "New reason", banExpiresIn: 129600,
+        userId: record.id, banReason: "New reason", banExpiresIn: 216000,
       });
     } finally {
       vi.useRealTimers();
