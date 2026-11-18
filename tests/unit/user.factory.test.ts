@@ -45,4 +45,12 @@ describe("UserFactory.toAccount", () => {
     });
     expect(result.suspension.endDate).toBeNull();
   });
+
+  it("shows the Bangkok date when the stored expiry is on the previous UTC day", () => {
+    const result = UserFactory.toAccount({
+      ...createUserModel({ banned: true, banExpires: new Date("2099-12-30T17:00:00Z") }),
+      _count: { games: 0 },
+    });
+    expect(result.suspension.endDate).toBe("2099-12-31");
+  });
 });

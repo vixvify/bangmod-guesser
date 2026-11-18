@@ -98,6 +98,39 @@ describe("UserService", () => {
     }
   });
 
+  it("does not reapply a suspension when editing the user with the same Bangkok expiry date", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2099-12-29T05:00:00Z"));
+    try {
+      repository.findById.mockResolvedValue({ ...record, banned: true, banExpires: new Date("2099-12-30T17:00:00Z"), banReason: "Violation" });
+      await service.updateUser(new Headers(), record.id, {
+        ...form, name: "Changed", status: "SUSPENDED", reason: "Violation",
+        suspension: { startDate: null, endDate: "2099-12-31" },
+      });
+      expect(admin.updateName).toHaveBeenCalledOnce();
+      expect(admin.banUser).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("preserves the expiry date when changing the reason for a temporary suspension", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2099-12-29T05:00:00Z"));
+    try {
+      repository.findById.mockResolvedValue({ ...record, banned: true, banExpires: new Date("2099-12-30T17:00:00Z"), banReason: "Old reason" });
+      await service.updateUser(new Headers(), record.id, {
+        ...form, status: "SUSPENDED", reason: "New reason",
+        suspension: { startDate: null, endDate: "2099-12-31" },
+      });
+      expect(admin.banUser).toHaveBeenCalledWith(expect.any(Headers), {
+        userId: record.id, banReason: "New reason", banExpiresIn: 129600,
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("rejects an expired suspension before changing the account", async () => {
     await expect(service.updateUser(new Headers(), record.id, {
       ...form,

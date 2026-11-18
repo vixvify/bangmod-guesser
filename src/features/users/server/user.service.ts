@@ -7,7 +7,7 @@ import type {
   UserFormInput,
 } from "@/features/users/user.schema";
 import { UserFactory } from "@/features/users/server/user.factory";
-import { formatDateOnly } from "@/shared/lib/utils";
+import { formatDateOnly, toBangkokStartOfDay } from "@/shared/lib/utils";
 import { getUserStatus } from "@/shared/lib/user-status";
 import { handleAuthError } from "@/features/auth/server/auth-error";
 
@@ -44,7 +44,7 @@ export class UserService {
 
       const existingStatus = getUserStatus(existing);
       const existingEndDate = existing.banExpires
-        ? formatDateOnly(existing.banExpires)
+        ? formatDateOnly(existing.banExpires, "Asia/Bangkok")
         : null;
       const nextEndDate =
         input.status === "SUSPENDED" ? input.suspension.endDate : null;
@@ -58,7 +58,7 @@ export class UserService {
 
       const expiresIn = nextEndDate
         ? Math.floor(
-            (new Date(`${nextEndDate}T00:00:00+07:00`).getTime() - Date.now()) / 1000,
+            (toBangkokStartOfDay(nextEndDate).getTime() - Date.now()) / 1000,
           )
         : undefined;
 

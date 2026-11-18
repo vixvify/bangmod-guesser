@@ -37,7 +37,7 @@ export const UserFactory = {
         startDate: null,
         endDate:
           status === "SUSPENDED" && user.banExpires
-            ? formatDateOnly(user.banExpires)
+            ? formatDateOnly(user.banExpires, "Asia/Bangkok")
             : null,
       },
       reason: user.banReason ?? "",
