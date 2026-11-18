@@ -57,7 +57,7 @@ export class UserService {
           existing.banReason !== (input.reason || null));
 
       const expiresIn = nextEndDate
-        ? Math.floor(
+        ? Math.ceil(
             (toBangkokStartOfDay(nextEndDate).getTime() - Date.now()) / 1000,
           )
         : undefined;
