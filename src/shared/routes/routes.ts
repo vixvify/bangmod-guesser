@@ -12,6 +12,8 @@ export const AppRoutes = {
   resetPassword: "/reset-password",
   dashboard: "/dashboard",
   profile: "/profile",
+  userProfile: (userId?: string) =>
+    userId ? `/profile/${encodeURIComponent(userId)}` : "/profile",
   admin: "/admin",
   adminUsers: "/admin/users",
   adminLocations: "/admin/locations",

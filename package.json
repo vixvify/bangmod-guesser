@@ -9,6 +9,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "seed:admin": "tsx prisma/seed.ts",
+    "game:expire-inactive": "tsx scripts/expire-inactive-games.ts",
     "test": "npm run test:unit && npm run test:component && npm run test:integration && npm run test:e2e",
     "test:unit": "vitest run tests/unit",
     "test:component": "vitest run tests/components",

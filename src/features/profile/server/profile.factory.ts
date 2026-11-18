@@ -9,11 +9,14 @@ export const ProfileFactory = {
     totalGames: number,
     page: number,
     pageSize: number,
+    isOwner: boolean,
   ): ProfileResult {
     return {
       id: user.id,
       name: user.name,
-      email: user.email,
+      email: isOwner ? user.email : null,
+      image: user.image ?? null,
+      isOwner,
       games: user.games.map((game) => this.toGameHistory(game)),
       pagination: {
         page,
@@ -35,7 +38,7 @@ export const ProfileFactory = {
         bestRoundNumber = round.questionNumber;
       }
 
-      if (round.guessedLatitude === null || round.guessedLongitude === null) {
+      if (!round.location || round.guessedLatitude === null || round.guessedLongitude === null) {
         continue;
       }
 

@@ -13,13 +13,16 @@ export function playSoundEffect(sound: SoundEffect) {
   if (typeof Audio === "undefined") return;
 
   try {
+    const systemSound = useSettingsStore.getState().systemSound;
+    if (systemSound <= 0) return;
+
     let player = players.get(sound);
     if (!player) {
       player = new Audio(soundSources[sound]);
       players.set(sound, player);
     }
 
-    player.volume = useSettingsStore.getState().systemSound / 100;
+    player.volume = Math.min(1, Math.max(0, systemSound / 100));
     player.currentTime = 0;
     void player.play().catch((error: unknown) => {
       if (error instanceof DOMException && error.name === "NotAllowedError") return;

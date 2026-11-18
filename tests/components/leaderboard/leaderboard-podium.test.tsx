@@ -17,4 +17,15 @@ describe("LeaderboardPodium", () => {
     expect(markup).toContain("bg-rank-bronze-card");
     expect(markup).toContain("sm:scale-105");
   });
+
+  it("renders a view profile link on each podium card", () => {
+    const markup = renderToStaticMarkup(
+      <LeaderboardPodium entries={leaderboardEntries.slice(0, 3)} />,
+    );
+
+    expect(markup).toContain('href="/profile/user_1"');
+    expect(markup).toContain('href="/profile/user_2"');
+    expect(markup).toContain('href="/profile/user_3"');
+    expect(markup).toContain("ดูโปรไฟล์");
+  });
 });

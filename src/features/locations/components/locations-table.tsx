@@ -29,19 +29,19 @@ export function LocationsTable({
     <TableContainer
       component={Paper}
       elevation={0}
-      sx={{ border: "1px solid #e2e8f0", borderRadius: "1rem", boxShadow: "0 1px 3px rgb(15 23 42 / 6%)" }}
+      sx={{ border: "1px solid var(--color-surface-border)", backgroundColor: "var(--color-surface-overlay)", borderRadius: "1rem", boxShadow: "0 1px 3px rgb(15 23 42 / 6%)" }}
     >
       <Table
         aria-label="รายชื่อสถานที่"
         sx={{
           minWidth: "44rem",
-          "& .MuiTableCell-root": { fontFamily: "var(--font-prompt), sans-serif", px: 2.5 },
+          "& .MuiTableCell-root": { fontFamily: "var(--font-prompt), sans-serif", color: "var(--color-surface-text)", borderColor: "var(--color-surface-border)", px: 2.5 },
         }}
       >
         <TableHead
           sx={{
-            backgroundColor: "#f1f5f9",
-            "& .MuiTableCell-root": { fontSize: "0.75rem", fontWeight: 700, color: "#475569" },
+            backgroundColor: "var(--color-surface-control)",
+            "& .MuiTableCell-root": { fontSize: "0.75rem", fontWeight: 700, color: "var(--color-surface-muted)" },
           }}
         >
           <TableRow>
@@ -53,11 +53,11 @@ export function LocationsTable({
         </TableHead>
         <TableBody>
           {locations.map((location, index) => (
-            <TableRow key={location.id} hover sx={{ "&:hover": { backgroundColor: "#fff7ed" } }}>
-              <TableCell sx={{ color: "#64748b" }}>
+            <TableRow key={location.id} hover sx={{ "&:hover": { backgroundColor: "var(--color-surface-control-hover)" } }}>
+              <TableCell sx={{ color: "var(--color-surface-muted)" }}>
                 {String(startIndex + index + 1).padStart(2, "0")}
               </TableCell>
-              <TableCell sx={{ fontWeight: 600, color: "var(--color-secondary-dark)" }}>
+              <TableCell sx={{ fontWeight: 600, color: "var(--color-surface-text)" }}>
                 {location.name}
               </TableCell>
               <TableCell sx={{ fontVariantNumeric: "tabular-nums" }}>
@@ -70,7 +70,7 @@ export function LocationsTable({
                     href={AppRoutes.adminLocationEdit(location.id)}
                     aria-label={`แก้ไข ${location.name}`}
                     size="small"
-                    sx={{ color: "var(--color-secondary-dark)", "&:hover": { color: "var(--color-primary-main)" } }}
+                    sx={{ color: "var(--color-surface-text)", "&:hover": { color: "var(--color-primary-main)" } }}
                   >
                     <EditOutlinedIcon fontSize="small" />
                   </IconButton>
@@ -78,7 +78,7 @@ export function LocationsTable({
                     aria-label={`ลบ ${location.name}`}
                     onClick={() => onDelete(location)}
                     size="small"
-                    sx={{ color: "var(--color-secondary-dark)", "&:hover": { color: "#b91c1c" } }}
+                    sx={{ color: "var(--color-surface-text)", "&:hover": { color: "#b91c1c" } }}
                   >
                     <DeleteOutlineRoundedIcon fontSize="small" />
                   </IconButton>

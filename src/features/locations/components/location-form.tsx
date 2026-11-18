@@ -149,7 +149,7 @@ export function LocationForm(props: LocationFormProps) {
         <>
           <Link
             href={AppRoutes.adminLocations}
-            className="inline-flex items-center gap-1 text-sm text-slate-500 transition-colors hover:text-primary-main"
+            className="inline-flex items-center gap-1 text-sm text-surface-muted transition-colors hover:text-primary-main"
             onClick={(event) => {
               if (!hasUnsavedChanges) return;
               event.preventDefault();
@@ -163,13 +163,13 @@ export function LocationForm(props: LocationFormProps) {
         </>
       )}
       <form noValidate onSubmit={handleSubmit(() => setConfirmationOpen(true))}>
-        <div className="grid gap-8 border-t border-slate-200 py-8 lg:grid-cols-2 lg:gap-10">
+        <div className="grid gap-8 border-t border-surface-border py-8 lg:grid-cols-2 lg:gap-10">
           <section aria-labelledby="location-info-title">
             <h2 id="location-info-title" className="mb-5 text-lg font-bold">
               ข้อมูลสถานที่
             </h2>
             <div className="flex flex-col gap-4">
-              <Input
+              <Input theme="dark"
                 id="location-name"
                 label="ชื่อสถานที่ *"
                 placeholder="เช่น อาคารเรียนรวม 2 (CB2)"
@@ -178,7 +178,7 @@ export function LocationForm(props: LocationFormProps) {
                 error={errors.name?.message}
                 inputProps={{ maxLength: 100 }}
               />
-              <Input
+              <Input theme="dark"
                 id="location-description"
                 label="คำอธิบาย"
                 placeholder="อธิบายรายละเอียดหรือจุดสังเกตของสถานที่"
@@ -190,7 +190,7 @@ export function LocationForm(props: LocationFormProps) {
                 inputProps={{ maxLength: 500 }}
               />
               <div className="grid gap-4 sm:grid-cols-2">
-                <Input
+                <Input theme="dark"
                   id="location-latitude"
                   label="ละติจูด *"
                   placeholder="เช่น 13.6516"
@@ -199,7 +199,7 @@ export function LocationForm(props: LocationFormProps) {
                   {...register("latitude")}
                   error={errors.latitude?.message}
                 />
-                <Input
+                <Input theme="dark"
                   id="location-longitude"
                   label="ลองจิจูด *"
                   placeholder="เช่น 100.4952"
@@ -209,7 +209,7 @@ export function LocationForm(props: LocationFormProps) {
                   error={errors.longitude?.message}
                 />
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-surface-muted">
                 ระบุพิกัดของสถานที่ในรูปแบบเลขทศนิยม
               </p>
             </div>
@@ -220,10 +220,10 @@ export function LocationForm(props: LocationFormProps) {
             onChange={onImagesChange}
           />
         </div>
-        <div className="flex flex-wrap justify-end gap-3 border-t border-slate-200 pt-5">
+        <div className="flex flex-wrap justify-end gap-3 border-t border-surface-border pt-5">
           <Button
             type="button"
-            variant="surface"
+            variant="outline"
             size="small"
             onClick={leaveLocationForm}
           >
@@ -242,7 +242,7 @@ export function LocationForm(props: LocationFormProps) {
                 : "สร้างสถานที่"}
           </Button>
         </div>
-        <ConfirmModal
+        <ConfirmModal theme="dark"
           open={confirmationOpen}
           busy={isSubmitting}
           busyLabel="กำลังบันทึกสถานที่..."
@@ -253,7 +253,7 @@ export function LocationForm(props: LocationFormProps) {
           onConfirm={() => void handleSubmit(saveLocation)()}
           onCancel={() => setConfirmationOpen(false)}
         />
-        <ConfirmModal
+        <ConfirmModal theme="dark"
           open={discardConfirmationOpen}
           title={LOCATION_MESSAGES.discardConfirm.title}
           description={LOCATION_MESSAGES.discardConfirm.description}

@@ -77,6 +77,27 @@ describe("UserService", () => {
     });
   });
 
+  it("sets the suspension expiry at midnight Thailand time", async () => {
+    const now = new Date("2026-11-18T05:00:00.000Z").getTime();
+    const nowSpy = vi.spyOn(Date, "now").mockReturnValue(now);
+
+    try {
+      await service.updateUser(new Headers(), record.id, {
+        ...form,
+        status: "SUSPENDED",
+        suspension: { startDate: null, endDate: "2026-11-19" },
+      });
+
+      expect(admin.banUser).toHaveBeenCalledWith(expect.any(Headers), {
+        userId: record.id,
+        banReason: undefined,
+        banExpiresIn: 43200,
+      });
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
   it("rejects an expired suspension before changing the account", async () => {
     await expect(service.updateUser(new Headers(), record.id, {
       ...form,

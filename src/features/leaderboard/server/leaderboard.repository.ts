@@ -52,12 +52,14 @@ export class LeaderboardRepositoryImpl implements LeaderboardRepository {
     `;
 
     const toEntry = ({
+      userId: recordUserId,
       rank,
       name,
       image,
       gamesPlayed,
       totalScore,
     }: LeaderboardQueryRecord) => ({
+      userId: recordUserId,
       rank,
       name,
       image: image ?? null,

@@ -15,6 +15,9 @@ describe("GameHistory", () => {
     expect(screen.queryByText("#GAME-0001")).toBeNull();
     expect(screen.getAllByText("เล่นจบแล้ว")).toHaveLength(4);
     expect(screen.getAllByRole("listitem")).toHaveLength(4);
+    expect(screen.getByText("ระดับ SSS")).toBeTruthy();
+    expect(screen.getByText("ระดับ S")).toBeTruthy();
+    expect(screen.getAllByText("ระดับ A")).toHaveLength(2);
   });
 
   it("shows unfinished games without inventing a total score or displaying the ID", () => {
@@ -22,6 +25,17 @@ describe("GameHistory", () => {
     expect(screen.getByText("ออกกลางคัน")).toBeTruthy();
     expect(screen.getByText("—")).toBeTruthy();
     expect(screen.queryByText("#unfinished")).toBeNull();
+    expect(screen.queryByTestId("rank-tier")).toBeNull();
+  });
+
+  it("renders rank tier for completed games with 0 score", () => {
+    render(<GameHistory games={[{ ...mockGameHistory[0], id: "zero-score", totalScore: 0, grade: "D" }]} />);
+    expect(screen.getByText("ระดับ D")).toBeTruthy();
+  });
+
+  it("calculates rank tier dynamically when grade is not pre-computed but totalScore exists", () => {
+    render(<GameHistory games={[{ ...mockGameHistory[0], id: "dynamic", totalScore: 2600, grade: null }]} />);
+    expect(screen.getByText("ระดับ B")).toBeTruthy();
   });
 
   it("shows an empty state when no games are supplied", () => {

@@ -16,9 +16,9 @@ type UsersFiltersProps = {
 export function UsersFilters({ role, status, onRoleChange, onStatusChange }: UsersFiltersProps) {
   return (
     <div className="flex w-full flex-wrap justify-end gap-3 sm:w-auto">
-      <label className="flex flex-col gap-1 text-xs font-medium text-slate-500">
+      <label className="flex flex-col gap-1 text-xs font-medium text-surface-muted">
         กรองตามบทบาท
-        <Dropdown<RoleFilter>
+        <Dropdown<RoleFilter> theme="dark"
           value={role}
           options={[
             { value: "ALL", label: "ทั้งหมด" },
@@ -30,9 +30,9 @@ export function UsersFilters({ role, status, onRoleChange, onStatusChange }: Use
           className="min-w-36"
         />
       </label>
-      <label className="flex flex-col gap-1 text-xs font-medium text-slate-500">
+      <label className="flex flex-col gap-1 text-xs font-medium text-surface-muted">
         กรองตามสถานะ
-        <Dropdown<StatusFilter>
+        <Dropdown<StatusFilter> theme="dark"
           value={status}
           options={[
             { value: "ALL", label: "ทั้งหมด" },

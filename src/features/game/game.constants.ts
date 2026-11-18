@@ -39,3 +39,4 @@ export const MAP_CONFIG = {
 } as const;
 
 export const GAME_ROUND_COUNT = 5;
+export const GAME_INACTIVITY_HOURS = 4;

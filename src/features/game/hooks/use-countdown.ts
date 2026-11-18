@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 type UseCountdownOptions = {
   initialSeconds: number;
-  deadlineAt?: string;
+  deadline?: number;
   onTimeUp?: () => void;
 };
 
@@ -15,11 +15,11 @@ const URGENT_THRESHOLD = 10;
 
 export function useCountdown({
   initialSeconds,
-  deadlineAt,
+  deadline,
   onTimeUp,
 }: UseCountdownOptions): UseCountdownReturn {
-  const [secondsLeft, setSecondsLeft] = useState(initialSeconds);
-  const hasNotifiedTimeUp = useRef(initialSeconds <= 0);
+  const [secondsLeft, setSecondsLeft] = useState(() => deadline === undefined ? initialSeconds : Math.max(0, Math.min(initialSeconds, Math.ceil((deadline - performance.now()) / 1000))));
+  const hasNotifiedTimeUp = useRef(deadline === undefined && initialSeconds <= 0);
 
   useEffect(() => {
     if (secondsLeft !== 0 || hasNotifiedTimeUp.current) return;
@@ -29,8 +29,8 @@ export function useCountdown({
   }, [secondsLeft, onTimeUp]);
 
   useEffect(() => {
-    if (deadlineAt) {
-      const update = () => setSecondsLeft(Math.max(0, Math.ceil((Date.parse(deadlineAt) - Date.now()) / 1000)));
+    if (deadline !== undefined) {
+      const update = () => setSecondsLeft(Math.max(0, Math.min(initialSeconds, Math.ceil((deadline - performance.now()) / 1000))));
       update();
       const id = window.setInterval(update, 250);
       return () => window.clearInterval(id);
@@ -40,7 +40,7 @@ export function useCountdown({
       setSecondsLeft((previous) => Math.max(0, previous - 1));
     }, 1000);
     return () => window.clearInterval(id);
-  }, [secondsLeft, deadlineAt]);
+  }, [secondsLeft, deadline, initialSeconds]);
 
   return {
     secondsLeft,

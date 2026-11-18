@@ -9,7 +9,7 @@ export default function CreateLocationPage() {
             <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
               สร้างสถานที่
             </h1>
-            <p className="mt-1 text-sm text-slate-500 sm:text-base">
+            <p className="mt-1 text-sm text-surface-muted sm:text-base">
               เพิ่มข้อมูล พิกัด และรูปภาพของสถานที่สำหรับใช้ในเกม
             </p>
           </header>

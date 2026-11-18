@@ -2,12 +2,13 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ProfilePage from "@/app/profile/page";
 import { UserRole } from "@/features/users/user";
-import { profileService } from "@/container";
+import { profileService, leaderboardService } from "@/container";
 import { requireAuth } from "@/features/auth/server/auth-check";
 
 vi.mock("@/features/auth/server/auth-check", () => ({ requireAuth: vi.fn() }));
 vi.mock("@/container", () => ({
   profileService: { getProfile: vi.fn() },
+  leaderboardService: { getLeaderboard: vi.fn() },
 }));
 vi.mock("@/shared/lib/http", () => ({ default: { get: vi.fn() } }));
 vi.mock("@/features/profile/profile.routes", () => ({ ProfileRoutes: { history: "/api/profile" } }));
@@ -23,6 +24,7 @@ describe("ProfilePage", () => {
   const searchParams = Promise.resolve({});
 
   beforeEach(() => {
+    vi.mocked(leaderboardService.getLeaderboard).mockResolvedValue({ entries: [], myRank: { userId: "user_1", rank: 4, name: "KMUTT Student", image: null, gamesPlayed: 12, totalScore: 15000 } });
     vi.mocked(profileService.getProfile).mockResolvedValue({
       id: "user_1",
       name: "KMUTT Student",
@@ -49,8 +51,11 @@ describe("ProfilePage", () => {
     expect(markup).toContain("https://example.com/student.jpg");
     expect(markup).not.toContain("example@gmail.com");
     expect(markup).toContain("ประวัติการเล่นเกม");
+    expect(leaderboardService.getLeaderboard).toHaveBeenCalledWith("user_1");
+    expect(markup).toContain("#4");
+    expect(markup).toContain("15,000");
     expect(markup).toContain("เลือกช่วงเวลา");
-    expect(profileService.getProfile).toHaveBeenCalledWith("user_1", { page: 1 });
+    expect(profileService.getProfile).toHaveBeenCalledWith("user_1", { page: 1 }, "user_1");
     expect(markup).not.toContain("ตั้งแต่วันที่");
     expect(markup).not.toContain("persisted-game");
     expect(markup).not.toContain("#GAME-0001");
@@ -93,12 +98,20 @@ describe("ProfilePage", () => {
     expect(markup).toContain("No Photo");
   });
 
+  it("shows an empty rank when the player has not completed a game", async () => {
+    vi.mocked(requireAuth).mockResolvedValue({ id: "user_1", name: "Student", email: "student@example.com", role: UserRole.USER });
+    vi.mocked(leaderboardService.getLeaderboard).mockResolvedValue({ entries: [], myRank: null });
+    const markup = renderToStaticMarkup(await ProfilePage({ searchParams }));
+    expect(markup).toContain("ยังไม่มีอันดับ");
+    expect(markup).toContain("เกมที่เล่นจบ");
+  });
+
   it("passes validated date and page query to the profile service", async () => {
     vi.mocked(requireAuth).mockResolvedValue({ id: "user_1", name: "Student", email: "student@example.com", role: UserRole.USER });
 
     await ProfilePage({ searchParams: Promise.resolve({ from: "2026-10-01", to: "2026-10-31", page: "2" }) });
 
-    expect(profileService.getProfile).toHaveBeenCalledWith("user_1", { from: "2026-10-01", to: "2026-10-31", page: 2 });
+    expect(profileService.getProfile).toHaveBeenCalledWith("user_1", { from: "2026-10-01", to: "2026-10-31", page: 2 }, "user_1");
   });
 
   it("rejects invalid history filters before reading the profile", async () => {

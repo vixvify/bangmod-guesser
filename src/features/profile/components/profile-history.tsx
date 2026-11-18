@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { GameHistory } from "@/features/profile/components/game-history";
+import { HistorySkeleton } from "@/features/profile/components/history-skeleton";
 import { Button } from "@/shared/components/ui/button";
 import { DateRangePicker } from "@/shared/components/ui/date-range-picker";
 import { ListPagination } from "@/shared/components/ui/list-pagination";
@@ -15,9 +16,10 @@ import { getErrorMessage } from "@/shared/lib/error-message";
 type ProfileHistoryProps = {
   initialProfile: ProfileResult;
   initialQuery: ProfileQueryInput;
+  userId?: string;
 };
 
-export function ProfileHistory({ initialProfile, initialQuery }: ProfileHistoryProps) {
+export function ProfileHistory({ initialProfile, initialQuery, userId }: ProfileHistoryProps) {
   const [profile, setProfile] = useState(initialProfile);
   const [query, setQuery] = useState(initialQuery);
   const [pickerKey, setPickerKey] = useState(0);
@@ -43,6 +45,7 @@ export function ProfileHistory({ initialProfile, initialQuery }: ProfileHistoryP
     const params = new URLSearchParams({ page: String(nextQuery.page) });
     if (nextQuery.from) params.set("from", nextQuery.from);
     if (nextQuery.to) params.set("to", nextQuery.to);
+    if (userId) params.set("userId", userId);
 
     try {
       const { data } = await httpClient.get<ProfileResult>(
@@ -52,7 +55,15 @@ export function ProfileHistory({ initialProfile, initialQuery }: ProfileHistoryP
       if (controller.signal.aborted) return;
       setProfile(data);
       setQuery(nextQuery);
-      window.history.replaceState(window.history.state, "", `${AppRoutes.profile}?${params}`);
+      const basePath = userId ? AppRoutes.userProfile(userId) : AppRoutes.profile;
+      const historyParams = new URLSearchParams(params);
+      historyParams.delete("userId");
+      const queryString = historyParams.toString();
+      window.history.replaceState(
+        window.history.state,
+        "",
+        queryString ? `${basePath}?${queryString}` : basePath,
+      );
     } catch (error) {
       if (!controller.signal.aborted) setErrorMessage(getErrorMessage(error, "โหลดประวัติการเล่นไม่สำเร็จ"));
     } finally {
@@ -66,7 +77,7 @@ export function ProfileHistory({ initialProfile, initialQuery }: ProfileHistoryP
       aria-busy={loading}
       className="mt-5 rounded-3xl border border-surface-border bg-surface-overlay p-4 shadow-2xl shadow-black/20 sm:p-6"
     >
-      <div className="flex flex-col gap-5 rounded-2xl border border-surface-border bg-surface-overlay p-5 sm:flex-row sm:items-end sm:justify-between sm:p-6">
+      <div className="flex flex-col gap-5 rounded-2xl border border-surface-border bg-surface-overlay p-5 sm:flex-row sm:items-start sm:justify-between sm:p-6">
         <div>
           <h2 id="game-history-title" className="text-xl font-bold text-surface-text">
             ประวัติการเล่นเกม
@@ -103,9 +114,7 @@ export function ProfileHistory({ initialProfile, initialQuery }: ProfileHistoryP
       </div>
 
       {loading ? (
-        <p role="status" className="mt-4 py-12 text-center text-surface-muted">
-          กำลังโหลดประวัติการเล่น...
-        </p>
+        <HistorySkeleton />
       ) : errorMessage ? (
         <div role="alert" className="mt-4 rounded-2xl border border-surface-border p-6 text-center text-surface-text">
           <p>{errorMessage}</p>

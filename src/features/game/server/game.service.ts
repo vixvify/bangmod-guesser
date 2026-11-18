@@ -8,7 +8,7 @@ import type {
 } from "../game";
 import type { CreateGameInput, GuessInput } from "../game.schema";
 import type { GameRepository } from "./game.repository.port";
-import { GAME_DEFAULTS, GAME_ERROR_CODES, GAME_ROUND_COUNT } from "../game.constants";
+import { GAME_DEFAULTS, GAME_ERROR_CODES, GAME_INACTIVITY_HOURS, GAME_ROUND_COUNT } from "../game.constants";
 import {
   calculateRoundScore,
   calculateGameSummary,
@@ -19,6 +19,11 @@ import { haversineDistanceMeters } from "@/shared/lib/calculate-distance";
 
 export class GameService {
   constructor(private readonly gameRepository: GameRepository) {}
+
+  async expireInactiveGames(now = new Date()): Promise<number> {
+    const cutoff = new Date(now.getTime() - GAME_INACTIVITY_HOURS * 60 * 60 * 1000);
+    return this.gameRepository.expireInactiveGames(cutoff, now);
+  }
 
   async summary(id: string, userId: string): Promise<GameSummaryResult> {
     const game = await this.ownedGame(id, userId);
@@ -48,6 +53,7 @@ export class GameService {
   ): Promise<GameGuessResult> {
     const game = await this.ownedGame(id, userId);
     const round = this.pendingRound(game);
+    if (!round.location) throw new AppError("Round location has been deleted", 410);
     if (round.questionNumber !== questionNumber)
       throw new AppError("Round already answered or out of order", 409);
     if (!round.startedAt)
@@ -127,6 +133,7 @@ export class GameService {
       (round) => round.questionNumber === questionNumber,
     );
     if (!round) throw new AppError("Round not found", 404);
+    if (!round.location) throw new AppError("Round location has been deleted", 410);
     if (!this.hasCompleteAnswer(round))
       throw new AppError("Round result is not available", 409);
     const guess = {

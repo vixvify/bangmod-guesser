@@ -6,6 +6,7 @@ import { GAME_DEFAULTS } from "../game.constants";
 
 export const GameFactory = {
   toGuessResult(round: GamePlayRecord["rounds"][number], guess: GuessInput, distance: number | null, score: number, accumulatedScore: number): GameGuessResult {
+    if (!round.location) throw new AppError("Round location has been deleted", 410);
     return {
       ...guess, distanceMeters: distance === null ? null : Math.round(distance * 100) / 100,
       timedOut: guess.guessedLatitude === null, score, accumulatedScore,
@@ -19,7 +20,7 @@ export const GameFactory = {
   toCurrentRound(round: GamePlayRecord["rounds"][number]): CurrentGameRound {
     if (!round.locationImage) throw new AppError("Round image unavailable", 409);
     const deadlineAt = round.startedAt ? new Date(round.startedAt.getTime() + GAME_DEFAULTS.roundDurationSeconds * 1000).toISOString() : null;
-    return { questionNumber: round.questionNumber, imageUrl: round.locationImage.imageUrl, deadlineAt };
+    return { questionNumber: round.questionNumber, imageUrl: round.locationImage.imageUrl, deadlineAt, serverTime: new Date().toISOString() };
   },
   toExitResult(record: GameStateRecord): GameExitResult {
     return {

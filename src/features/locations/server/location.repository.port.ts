@@ -23,5 +23,5 @@ export interface LocationRepository {
     input: UpdateLocationInput,
     imageUpdate?: LocationImageUpdateInput,
   ): Promise<LocationModelWithImages>;
-  delete(id: string): Promise<void>;
+  delete(id: string): Promise<LocationModelWithImages>;
 }

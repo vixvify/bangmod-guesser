@@ -8,6 +8,7 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
+import { dashboardTableSx } from "@/features/dashboard/components/dashboard-table-style";
 import type { DashboardGameLog } from "@/features/dashboard/dashboard";
 import { formatThaiClockTime, formatThaiNumericDate } from "@/shared/lib/utils";
 
@@ -26,9 +27,9 @@ export function DashboardGamesTable({
   onView: (game: DashboardGameLog) => void;
 }) {
   return (
-    <TableContainer className="rounded-xl border border-slate-200 bg-white">
-      <Table aria-label="บันทึกเกมล่าสุด" size="small">
-        <TableHead className="bg-slate-100">
+    <TableContainer className="rounded-xl border border-surface-border bg-surface-overlay">
+      <Table sx={dashboardTableSx} aria-label="บันทึกเกมล่าสุด" size="small">
+        <TableHead className="bg-surface-control">
           <TableRow>
             <TableCell>GAME ID</TableCell>
             <TableCell>ชื่อผู้ใช้</TableCell>
@@ -53,7 +54,7 @@ export function DashboardGamesTable({
                 <TableCell>{game.user.name}</TableCell>
                 <TableCell>
                   <span
-                    className={`inline-block whitespace-nowrap rounded-full px-2 py-1 text-xs font-medium ${game.status === "COMPLETED" ? "bg-emerald-50 text-emerald-800" : game.status === "PLAYING" ? "bg-blue-50 text-blue-800" : "bg-amber-50 text-amber-800"}`}
+                    className={`inline-block whitespace-nowrap rounded-full border px-2 py-1 text-xs font-medium ${game.status === "COMPLETED" ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-200" : game.status === "PLAYING" ? "border-sky-400/30 bg-sky-400/10 text-sky-200" : "border-amber-400/30 bg-amber-400/10 text-amber-200"}`}
                   >
                     {statusLabel[game.status]}
                   </span>

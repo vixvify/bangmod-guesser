@@ -58,7 +58,7 @@ export class UserService {
 
       const expiresIn = nextEndDate
         ? Math.floor(
-            (new Date(nextEndDate).getTime() - Date.now()) / 1000,
+            (new Date(`${nextEndDate}T00:00:00+07:00`).getTime() - Date.now()) / 1000,
           )
         : undefined;
 

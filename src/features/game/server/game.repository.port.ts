@@ -10,4 +10,5 @@ export interface GameRepository {
   saveGuess(input: SaveGameGuess): Promise<void>;
   findById(id: string): Promise<GameStateRecord | null>;
   exitPlayingGame(id: string, userId: string, finishedAt: Date): Promise<GameStateRecord | null>;
+  expireInactiveGames(cutoff: Date, finishedAt: Date): Promise<number>;
 }

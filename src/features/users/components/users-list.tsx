@@ -15,6 +15,7 @@ import { UsersTable } from "@/features/users/components/users-table";
 import { ConfirmModal } from "@/shared/components/ui/confirm-modal";
 import { EmptyState } from "@/shared/components/ui/empty-state";
 import { ListPagination } from "@/shared/components/ui/list-pagination";
+import { TableSkeleton } from "@/shared/components/ui/table-skeleton";
 import { USER_MESSAGES } from "@/features/users/user.constants";
 import type { PaginatedUsers, UserAccount } from "@/features/users/user";
 import type { UserFormInput } from "@/features/users/user.schema";
@@ -148,7 +149,7 @@ export function UsersList({
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
             จัดการผู้ใช้
           </h1>
-          <p className="mt-1 text-sm text-slate-500 sm:text-base">
+          <p className="mt-1 text-sm text-surface-muted sm:text-base">
             จัดการบัญชีผู้เล่นและสิทธิ์การใช้งานระบบ
           </p>
         </div>
@@ -160,14 +161,9 @@ export function UsersList({
         />
       </div>
       {loading ? (
-        <div
-          role="status"
-          className="rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-500"
-        >
-          กำลังโหลดผู้ใช้...
-        </div>
+        <TableSkeleton label="กำลังโหลดผู้ใช้" columns={5} />
       ) : users.users.length === 0 ? (
-        <EmptyState
+        <EmptyState theme="dark"
           title={USER_MESSAGES.empty}
           icon={<PeopleOutlineRoundedIcon fontSize="large" />}
         />
@@ -179,7 +175,7 @@ export function UsersList({
             onEdit={setEditingUser}
             onDelete={setDeletingUser}
           />
-          <ListPagination
+          <ListPagination theme="dark"
             totalItems={users.total}
             pageSize={users.limit}
             page={users.page}
@@ -196,7 +192,7 @@ export function UsersList({
           onSave={saveUser}
         />
       )}
-      <ConfirmModal
+      <ConfirmModal theme="dark"
         open={Boolean(deletingUser)}
         title={USER_MESSAGES.delete.title}
         description={USER_MESSAGES.delete.description(

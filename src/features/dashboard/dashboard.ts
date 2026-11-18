@@ -31,7 +31,7 @@ export type DashboardGameLog = {
   rounds: {
     questionNumber: number;
     status: "PENDING" | "COMPLETED" | null;
-    location: { id: string; name: string };
+    location: { id: string; name: string } | null;
     score: number | null;
     distanceMeters: number | null;
     playTimeSeconds: number | null;

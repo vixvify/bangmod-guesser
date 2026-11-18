@@ -25,8 +25,12 @@ describe("GET current-round", () => {
     const response = await request();
     expect(response.headers.get("cache-control")).toBe("private, no-store");
     const body = await response.json();
-    expect(body).toEqual({data:{questionNumber:1,imageUrl:"https://example.test/image-0.webp",deadlineAt:null},status:200,statusCode:"SUCCESS"});
-    expect(await (await request()).json()).toEqual(body);
+    const expected = { data: { questionNumber: 1, imageUrl: "https://example.test/image-0.webp", deadlineAt: null, serverTime: expect.any(String) }, status: 200, statusCode: "SUCCESS" };
+    expect(body).toEqual(expected);
+    expect(Number.isFinite(Date.parse(body.data.serverTime))).toBe(true);
+    const nextBody = await (await request()).json();
+    expect(nextBody).toEqual(expected);
+    expect(Number.isFinite(Date.parse(nextBody.data.serverTime))).toBe(true);
     expect(repository.openRound).not.toHaveBeenCalled();
   });
   it("requires authentication before querying", async () => {

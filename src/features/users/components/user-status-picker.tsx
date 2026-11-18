@@ -46,7 +46,7 @@ export function UserStatusPicker({ value, onChange }: UserStatusPickerProps) {
             <Radio
               size="small"
               sx={{
-                color: "var(--color-secondary-dark)",
+                color: "var(--color-surface-text)",
                 "&.Mui-checked": { color: "var(--color-primary-main)" },
               }}
             />
@@ -54,7 +54,7 @@ export function UserStatusPicker({ value, onChange }: UserStatusPickerProps) {
           label={
             <span className="flex flex-col">
               <span className="text-sm font-semibold">{option.label}</span>
-              <span className="text-xs text-slate-600">
+              <span className="text-xs text-surface-muted">
                 {option.description}
               </span>
             </span>
@@ -65,8 +65,8 @@ export function UserStatusPicker({ value, onChange }: UserStatusPickerProps) {
             alignItems: "center",
             border: "1px solid",
             borderColor:
-              value === option.value ? "var(--color-primary-main)" : "#e2e8f0",
-            bgcolor: value === option.value ? "#fff7ed" : "#fff",
+              value === option.value ? "var(--color-primary-main)" : "var(--color-surface-border)",
+            bgcolor: value === option.value ? "var(--color-surface-control-hover)" : "var(--color-surface-overlay)",
             borderRadius: "0.75rem",
             px: 1.5,
             py: 0.5,

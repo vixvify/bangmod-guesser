@@ -23,15 +23,15 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
             ภาพรวมระบบ
           </h1>
-          <p className="mt-2 text-sm text-slate-500">ภาพรวมระบบและผลการเล่น</p>
+          <p className="mt-2 text-sm text-surface-muted">ภาพรวมระบบและผลการเล่น</p>
         </div>
         <nav aria-label="จัดการระบบ" className="flex flex-wrap gap-2">
-          <Button href={AppRoutes.adminUsers} variant="surface" size="small">
+          <Button href={AppRoutes.adminUsers} variant="outline" size="small">
             จัดการผู้ใช้
           </Button>
           <Button
             href={AppRoutes.adminLocations}
-            variant="surface"
+            variant="outline"
             size="small"
           >
             จัดการสถานที่
