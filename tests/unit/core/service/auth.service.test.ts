@@ -26,6 +26,25 @@ describe("AuthService", () => {
     })).rejects.toMatchObject({ name: "AppError", status: 401, message: "Sign in failed" });
   });
 
+  it("preserves the banned-user error code when converting a sign-in failure", async () => {
+    const adapter = createAuthAdapter({
+      signIn: vi.fn().mockRejectedValue(
+        APIError.from("FORBIDDEN", {
+          code: "BANNED_USER",
+          message: "You have been banned from this application.",
+        }),
+      ),
+    });
+    await expect(new AuthService(adapter).signIn(new Headers(), {
+      email: "a@example.com", password: "Password1",
+    })).rejects.toMatchObject({
+      name: "AppError",
+      status: 403,
+      code: "BANNED_USER",
+      message: "Sign in failed",
+    });
+  });
+
   it("rejects a Google sign-in response without a redirect URL", async () => {
     const adapter = createAuthAdapter({
       googleSignIn: vi.fn().mockResolvedValue({ url: undefined, headers: new Headers() }),

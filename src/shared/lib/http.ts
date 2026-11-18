@@ -26,6 +26,7 @@ export class HttpError extends Error {
     public readonly status?: number,
     public readonly statusCode?: string,
     public readonly retryAfter?: number,
+    public readonly data?: unknown,
   ) {
     super(message);
     this.name = "HttpError";
@@ -58,6 +59,7 @@ const handleRequest = async <T>(
       axiosError.response?.status,
       errorData?.statusCode,
       retryAfter,
+      errorData?.data,
     );
   }
 };

@@ -13,8 +13,8 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { AUTH_MESSAGES } from "@/features/auth/auth.constants";
 import { LoginSchema, type LoginInput } from "@/features/auth/auth.schema";
-import httpClient from "@/shared/lib/http";
-import { getErrorMessage } from "@/shared/lib/error-message";
+import httpClient, { HttpError } from "@/shared/lib/http";
+import { getErrorMessage, getHttpErrorCode } from "@/shared/lib/error-message";
 import { getAuthRedirect } from "@/features/auth/auth-redirect";
 import { SessionRoutes } from "@/features/auth/session.routes";
 import { AppRoutes } from "@/shared/routes/routes";
@@ -25,6 +25,37 @@ type LoginPageProps = {
     error?: string | string[];
   }>;
 };
+
+function getSuspensionMessage(error: unknown): string {
+  if (!(error instanceof HttpError) || !error.data || typeof error.data !== "object") {
+    return AUTH_MESSAGES.submit.loginSuspended;
+  }
+
+  const banExpires = (error.data as { banExpires?: unknown }).banExpires;
+
+  if (typeof banExpires !== "string") {
+    return AUTH_MESSAGES.submit.loginSuspended;
+  }
+
+  const date = new Date(banExpires);
+
+  if (Number.isNaN(date.getTime())) {
+    return AUTH_MESSAGES.submit.loginSuspended;
+  }
+
+  const parts = new Intl.DateTimeFormat("th-TH", {
+    timeZone: "Asia/Bangkok",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const getPart = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
+  const formattedDate = `${getPart("day")} ${getPart("month")} ${getPart("year")} เวลา ${getPart("hour")}:${getPart("minute")} น.`;
+  return AUTH_MESSAGES.submit.loginSuspendedUntil(formattedDate);
+}
 
 export default function LoginPage({ searchParams }: LoginPageProps) {
   const { callbackUrl, error } = use(searchParams);
@@ -49,6 +80,10 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
       router.replace(redirectTo);
       router.refresh();
     } catch (error) {
+      if (getHttpErrorCode(error) === "BANNED_USER") {
+        toast.error(getSuspensionMessage(error));
+        return;
+      }
       toast.error(getErrorMessage(error, AUTH_MESSAGES.submit.loginFailed, {
         401: AUTH_MESSAGES.submit.loginFailed,
       }));

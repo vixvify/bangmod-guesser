@@ -24,10 +24,22 @@ vi.mock("@/features/auth/session.routes", () => ({
 vi.mock("@/shared/lib/http", () => ({
   HttpError: class HttpError extends Error {
     status?: number;
-    constructor(message: string, status?: number) {
+    statusCode?: string;
+    retryAfter?: number;
+    data?: unknown;
+    constructor(
+      message: string,
+      status?: number,
+      statusCode?: string,
+      retryAfter?: number,
+      data?: unknown,
+    ) {
       super(message);
       this.name = "HttpError";
       this.status = status;
+      this.statusCode = statusCode;
+      this.retryAfter = retryAfter;
+      this.data = data;
     }
   },
   default: { post: vi.fn((url: string, body: unknown) =>
@@ -206,6 +218,56 @@ describe("LoginPage", () => {
       );
     });
     expect(replace).not.toHaveBeenCalled();
+  });
+
+  it("shows a suspended-account message when a banned user attempts to sign in", async () => {
+    signInEmail.mockRejectedValue(
+      new HttpError("Sign in failed", 403, "BANNED_USER", undefined, {
+        banExpires: null,
+      }),
+    );
+    await renderPage();
+
+    fireEvent.change(screen.getByLabelText("อีเมล"), {
+      target: { value: "student@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("รหัสผ่าน"), {
+      target: { value: "Password1" },
+    });
+    await submitValidLogin();
+
+    await waitFor(() => {
+      expect(toastError).toHaveBeenCalledWith(
+        "บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ",
+      );
+    });
+    expect(replace).not.toHaveBeenCalled();
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it("shows the suspension end date and time for a temporarily banned user", async () => {
+    signInEmail.mockRejectedValue(
+      new HttpError("Sign in failed", 403, "BANNED_USER", undefined, {
+      banExpires: "2026-11-18T00:00:00.000Z",
+    }),
+    );
+    await renderPage();
+
+    fireEvent.change(screen.getByLabelText("อีเมล"), {
+      target: { value: "student@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("รหัสผ่าน"), {
+      target: { value: "Password1" },
+    });
+    await submitValidLogin();
+
+    await waitFor(() => {
+      expect(toastError).toHaveBeenCalledWith(
+        "บัญชีของคุณถูกระงับการใช้งาน คุณจะสามารถกลับมาใช้งานได้อีกครั้งในวันที่ 18 พฤศจิกายน 2569 เวลา 07:00 น.",
+      );
+    });
+    expect(replace).not.toHaveBeenCalled();
+    expect(refresh).not.toHaveBeenCalled();
   });
 
   it("shows a network toast when sign-in fails unexpectedly", async () => {
