@@ -233,7 +233,7 @@ export function LocationForm(props: LocationFormProps) {
               <p className="text-xs text-surface-muted">
                 ระบุพิกัดของสถานที่ในรูปแบบเลขทศนิยม
               </p>
-              <label className="flex flex-col gap-1 text-xs font-medium text-slate-500">
+              <label className="flex flex-col gap-1 text-xs font-medium text-surface-muted">
                 สถานะสถานที่
                 <Dropdown<LocationStatus>
                   value={status ?? LocationStatus.ACTIVE}

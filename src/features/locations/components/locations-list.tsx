@@ -149,7 +149,7 @@ export function LocationsList({
               size="small"
             />
           </div>
-          <label className="flex w-full flex-col gap-1 text-xs font-medium text-slate-500 sm:w-auto">
+          <label className="flex w-full flex-col gap-1 text-xs font-medium text-surface-muted sm:w-auto">
             กรองตามสถานะ
             <Dropdown
               id="location-status-filter"
