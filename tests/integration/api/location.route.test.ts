@@ -68,7 +68,7 @@ describe("Locations API routes", () => {
       });
 
       const request = new Request(
-        "http://localhost/api/locations?search=CB2&searchBy=description&page=2&pageSize=15&orderBy=asc",
+        "http://localhost/api/locations?search=CB2&searchBy=description&page=2&pageSize=15&orderBy=asc&status=INACTIVE",
       );
       const response = await getLocations(request);
       const json = await response.json();
@@ -82,6 +82,7 @@ describe("Locations API routes", () => {
         page: 2,
         pageSize: 15,
         orderBy: "asc",
+        status: "INACTIVE",
       });
     });
   });
@@ -144,6 +145,66 @@ describe("Locations API routes", () => {
         new Request("http://localhost/api/locations", {
           method: "POST",
           body: form,
+        }),
+      );
+
+      expect(response.status).toBe(400);
+      expect(mockLocationService.createLocation).not.toHaveBeenCalled();
+    });
+
+    it("creates a location with INACTIVE status", async () => {
+      mockLocationService.createLocation.mockResolvedValue({
+        id: "loc_inactive",
+        name: "Library",
+        description: null,
+        latitude: 13.65,
+        longitude: 100.49,
+        status: "INACTIVE",
+        images: [],
+        createdAt: new Date(),
+        updatedAt: null,
+      });
+
+      const formData = new FormData();
+      formData.append("name", "Library");
+      formData.append("latitude", "13.65");
+      formData.append("longitude", "100.49");
+      formData.append("status", "INACTIVE");
+      formData.append(
+        "images",
+        new File([sampleJpeg], "image.jpg", { type: "image/jpeg" }),
+      );
+
+      const response = await createLocation(
+        new Request("http://localhost/api/locations", {
+          method: "POST",
+          body: formData,
+        }),
+      );
+
+      expect(response.status).toBe(201);
+      expect(mockLocationService.createLocation).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "Library",
+          status: "INACTIVE",
+        }),
+        expect.arrayContaining([
+          expect.objectContaining({ contentType: "image/jpeg" }),
+        ]),
+      );
+    });
+
+    it("rejects an invalid location status", async () => {
+      const formData = new FormData();
+      formData.append("name", "Library");
+      formData.append("latitude", "13.65");
+      formData.append("longitude", "100.49");
+      formData.append("status", "INVALID");
+
+      const response = await createLocation(
+        new Request("http://localhost/api/locations", {
+          method: "POST",
+          body: formData,
         }),
       );
 
@@ -225,9 +286,11 @@ describe("Locations API routes", () => {
       );
     });
 
-    it("passes validated retained numbers and new images to the service", async () => {
+    it("passes status, validated retained numbers and new images to the service", async () => {
       mockLocationService.updateLocation.mockResolvedValue({ id: "loc_1" });
+
       const form = new FormData();
+      form.append("status", "INACTIVE");
       form.append("keepImageNumbers", "2");
       form.append("keepImageNumbers", "3");
       form.append(
@@ -246,7 +309,9 @@ describe("Locations API routes", () => {
       expect(response.status).toBe(200);
       expect(mockLocationService.updateLocation).toHaveBeenCalledWith(
         "loc_1",
-        expect.any(Object),
+        expect.objectContaining({
+          status: "INACTIVE",
+        }),
         expect.objectContaining({
           keepImageNumbers: [2, 3],
           newImages: [

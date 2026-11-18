@@ -80,7 +80,7 @@ export class LocationService {
 
       const record = await this.locationRepository.create(
         input,
-        LocationStatus.ACTIVE,
+        input.status ?? LocationStatus.ACTIVE,
         images,
       );
       return LocationFactory.toDomain(record);

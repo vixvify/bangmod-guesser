@@ -21,14 +21,17 @@ export class LocationRepositoryImpl implements LocationRepository {
     const searchField =
       query.searchBy === "description" ? "description" : "name";
 
-    const where: Prisma.LocationWhereInput = query.search
-      ? {
-          [searchField]: {
-            contains: query.search,
-            mode: "insensitive",
-          },
-        }
-      : {};
+    const where: Prisma.LocationWhereInput = {
+      ...(query.search
+        ? {
+            [searchField]: {
+              contains: query.search,
+              mode: "insensitive",
+            },
+          }
+        : {}),
+      ...(query.status ? { status: query.status } : {}),
+    };
 
     const orderDirection = query.orderBy === "asc" ? "asc" : "desc";
 

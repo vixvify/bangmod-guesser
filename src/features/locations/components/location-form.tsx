@@ -5,7 +5,7 @@ import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { LocationImages } from "@/features/locations/components/location-images";
 import { useNavigationGuard } from "@/shared/hooks/use-navigation-guard";
 import { Button } from "@/shared/components/ui/button";
@@ -19,11 +19,15 @@ import type {
 } from "@/features/images/image.schema";
 import {
   CreateLocationSchema,
+  LocationFormSchema,
   type CreateLocationInput,
+  type LocationFormInput,
   type UpdateLocationFormInput,
 } from "@/features/locations/location.schema";
 import { useUnsavedChangesGuard } from "@/shared/hooks/use-unsaved-changes-guard";
 import { AppRoutes } from "@/shared/routes/routes";
+import { Dropdown } from "@/shared/components/ui/dropdown";
+import { LocationStatus } from "@/features/locations/location";
 
 type LocationFormProps = { header?: ReactNode } & (
   | {
@@ -60,16 +64,24 @@ export function LocationForm(props: LocationFormProps) {
     register,
     handleSubmit,
     trigger,
+    control,
+    setValue,
     formState: { errors, isDirty, isValid, isSubmitting },
   } = useForm({
-    resolver: zodResolver(CreateLocationSchema),
+    resolver: zodResolver(LocationFormSchema),
     mode: "onChange",
     defaultValues: {
       name: location?.name ?? "",
       description: location?.description ?? "",
       latitude: location ? String(location.latitude) : "",
       longitude: location ? String(location.longitude) : "",
+      status: location?.status ?? LocationStatus.ACTIVE,
     },
+  });
+
+  const status = useWatch({
+    control,
+    name: "status",
   });
 
   useEffect(() => {
@@ -108,15 +120,24 @@ export function LocationForm(props: LocationFormProps) {
     setNewImages(nextNewImages);
   }
 
-  async function saveLocation(values: CreateLocationInput) {
+  async function saveLocation(values: LocationFormInput) {
     try {
       if (props.location) {
-        await props.onSave(values, {
+        const updateValues: UpdateLocationFormInput = {
+          ...values,
+          status: values.status ?? LocationStatus.ACTIVE,
+        };
+
+        await props.onSave(updateValues, {
           keepImageNumbers: existingImages.map((image) => image.imageNumber),
           newImages,
         });
       } else {
-        await props.onSave(values, { images: newImages });
+        const createValues = CreateLocationSchema.parse(values);
+
+        await props.onSave(createValues, {
+          images: newImages,
+        });
       }
     } finally {
       setConfirmationOpen(false);
@@ -212,6 +233,24 @@ export function LocationForm(props: LocationFormProps) {
               <p className="text-xs text-surface-muted">
                 ระบุพิกัดของสถานที่ในรูปแบบเลขทศนิยม
               </p>
+              <label className="flex flex-col gap-1 text-xs font-medium text-surface-muted">
+                สถานะสถานที่
+                <Dropdown<LocationStatus>
+                  value={status ?? LocationStatus.ACTIVE}
+                  options={[
+                    { value: LocationStatus.ACTIVE, label: "เปิดใช้งาน" },
+                    { value: LocationStatus.INACTIVE, label: "ปิดใช้งาน" },
+                  ]}
+                  onChange={(value) =>
+                    setValue("status", value, {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }
+                  aria-label="สถานะสถานที่"
+                  className="w-full"
+                 />
+              </label>
             </div>
           </section>
           <LocationImages

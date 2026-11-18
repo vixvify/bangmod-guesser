@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mockLocations } from "@/features/locations/locations.mock";
 import LocationsPage from "@/app/admin/locations/page";
 import { AppRoutes } from "@/shared/routes/routes";
+import { LocationStatus } from "@/features/locations/location";
 
 const { getLocations, list, remove, push, refresh, success, error } = vi.hoisted(() => ({
   getLocations: vi.fn(),
@@ -51,7 +52,9 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-async function renderLocations(searchParams: { search?: string; page?: string } = {}) {
+async function renderLocations(
+  searchParams: { search?: string; page?: string; status?: string } = {},
+) {
   await act(async () => {
     render(await LocationsPage({ searchParams: Promise.resolve(searchParams) }));
   });
@@ -74,6 +77,28 @@ describe("admin location navigation", () => {
     expect(screen.getByRole("link", { name: "สร้างสถานที่" }).getAttribute("href")).toBe(AppRoutes.adminLocationCreate);
     expect(within(table).getByRole("link", { name: "แก้ไข อาคารเรียนรวม 2 (CB2)" }).getAttribute("href")).toBe(AppRoutes.adminLocationEdit("location-01"));
     expect(screen.getByText(/แสดง 1–9 จาก 72 สถานที่/)).toBeTruthy();
+  });
+
+  it("displays the correct status for each location", async () => {
+    const locationsWithStatus = mockLocations.slice(0, 2).map((location, index) => ({
+      ...location,
+      status: index === 0 ? LocationStatus.ACTIVE : LocationStatus.INACTIVE,
+    }));
+
+    getLocations.mockResolvedValueOnce({
+      items: locationsWithStatus,
+      total: 2,
+      page: 1,
+      pageSize: 10,
+      totalPages: 1,
+    });
+
+    await renderLocations();
+
+    const table = screen.getByRole("table", { name: "รายชื่อสถานที่" });
+
+    expect(within(table).getByText("เปิดใช้งาน")).toBeTruthy();
+    expect(within(table).getByText("ปิดใช้งาน")).toBeTruthy();
   });
 
   it("shows a reusable empty state instead of an empty table and pagination", async () => {
@@ -130,6 +155,7 @@ describe("admin location navigation", () => {
     expect((screen.getByRole("textbox", { name: "ค้นหาสถานที่" }) as HTMLInputElement).value).toBe("CB2");
   });
 
+
   it("continues row numbering on the second page", async () => {
     getLocations.mockResolvedValueOnce({
       items: mockLocations,
@@ -148,6 +174,41 @@ describe("admin location navigation", () => {
     expect(firstCell.textContent).toBe("11");
   });
 
+  it("applies the initial status filter from the URL", async () => {
+    await renderLocations({ status: LocationStatus.ACTIVE });
+
+    expect(getLocations).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: LocationStatus.ACTIVE,
+      }),
+    );
+
+    expect(
+      (screen.getByRole("combobox", { name: "กรองตามสถานะ" }) as HTMLInputElement)
+        .textContent,
+    ).toContain("เปิดใช้งาน");
+  });
+
+  it("changes the status filter while preserving the search", async () => {
+    await renderLocations({
+      search: "CB2",
+      status: LocationStatus.ACTIVE,
+    });
+
+    fireEvent.mouseDown(
+      screen.getByRole("combobox", { name: "กรองตามสถานะ" }),
+    );
+
+    fireEvent.click(
+      await screen.findByRole("option", { name: "ปิดใช้งาน" }),
+    );
+
+    expect(push).toHaveBeenCalledWith(
+      "/admin/locations?search=CB2&status=INACTIVE",
+      { scroll: false },
+    );
+  });
+
   it("searches after 200 ms without navigating away or needing a search button", async () => {
     await renderLocations();
     vi.useFakeTimers();
@@ -163,6 +224,29 @@ describe("admin location navigation", () => {
     expect(push).not.toHaveBeenCalled();
     expect(screen.queryByRole("button", { name: "ค้นหา" })).toBeNull();
     expect(screen.getByRole("heading", { name: "จัดการสถานที่" })).toBeTruthy();
+  });
+
+  it("preserves the status filter when searching", async () => {
+    await renderLocations({ status: LocationStatus.ACTIVE });
+
+    vi.useFakeTimers();
+    const replaceState = vi.spyOn(window.history, "replaceState");
+    const search = screen.getByRole("textbox", { name: "ค้นหาสถานที่" });
+
+    fireEvent.change(search, { target: { value: "CB2" } });
+
+    await act(async () => {
+      vi.advanceTimersByTime(200);
+    });
+
+    expect(list).toHaveBeenCalledWith(
+      "/api/locations?search=CB2&status=ACTIVE",
+    );
+    expect(replaceState).toHaveBeenCalledWith(
+      window.history.state,
+      "",
+      "/admin/locations?search=CB2&status=ACTIVE",
+    );
   });
 
   it("shows loading feedback only in the results area while locations are pending", async () => {
@@ -206,11 +290,14 @@ describe("admin location navigation", () => {
     expect(getLocations).not.toHaveBeenCalled();
   });
 
-  it("navigates pagination while preserving the search", async () => {
-    await renderLocations({ search: "CB2" });
+  it("navigates pagination while preserving search and status", async () => {
+    await renderLocations({ search: "CB2", status: "ACTIVE" });
     fireEvent.click(screen.getByRole("button", { name: "ไปหน้า 2" }));
 
-    expect(push).toHaveBeenCalledWith("/admin/locations?page=2&search=CB2", { scroll: false });
+    expect(push).toHaveBeenCalledWith(
+      "/admin/locations?page=2&search=CB2&status=ACTIVE",
+      { scroll: false },
+    );
   });
 
   it("confirms deletion through the API and refreshes the server list", async () => {

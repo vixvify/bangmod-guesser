@@ -12,6 +12,7 @@ import type { CreateLocationInput } from "@/features/locations/location.schema";
 import httpClient from "@/shared/lib/http";
 import { LocationRoutes } from "@/features/locations/location.routes";
 import { AppRoutes } from "@/shared/routes/routes";
+import { LocationStatus } from "@/features/locations/location";
 
 export function CreateLocation({ header }: { header: ReactNode }) {
   const router = useRouter();
@@ -25,6 +26,7 @@ export function CreateLocation({ header }: { header: ReactNode }) {
     form.append("description", values.description ?? "");
     form.append("latitude", String(values.latitude));
     form.append("longitude", String(values.longitude));
+    form.append("status", values.status ?? LocationStatus.ACTIVE);
     images.images.forEach((image) => form.append("images", image));
 
     try {

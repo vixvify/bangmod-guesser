@@ -12,6 +12,7 @@ import { AppError } from "@/shared/errors/app.error";
 import { UserRole } from "@/features/users/user";
 import { HttpError } from "@/shared/lib/http";
 import { LOCATION_MESSAGES } from "@/features/locations/location.constants";
+import { LocationStatus } from "@/features/locations/location";
 
 const { getLocationById, post, put, push, refresh, success, error } = vi.hoisted(() => ({
   getLocationById: vi.fn(),
@@ -294,6 +295,7 @@ describe("location editor", () => {
           description: "",
           latitude: 13.6516,
           longitude: 100.4952,
+          status: LocationStatus.ACTIVE,
         },
         { images: [file] },
       ),
@@ -637,5 +639,65 @@ describe("location editor", () => {
     fireEvent.click(screen.getByRole("button", { name: "ลบรูป campus-1.jpg" }));
     expect(screen.getByText("4 / 5 รูป")).toBeTruthy();
     expect(URL.revokeObjectURL).toHaveBeenCalled();
+  });
+
+  it("shows the current location status and allows changing it", async () => {
+    const onSave = vi.fn();
+    const location = {
+      ...mockLocations[0],
+      status: LocationStatus.ACTIVE,
+    };
+
+    render(<LocationForm location={location} onSave={onSave} />);
+
+    const statusDropdown = screen.getByRole("combobox", {
+      name: "สถานะสถานที่",
+    });
+
+    expect(statusDropdown.textContent).toContain("เปิดใช้งาน");
+
+    fireEvent.mouseDown(statusDropdown);
+
+    fireEvent.click(
+      await screen.findByRole("option", { name: "ปิดใช้งาน" }),
+    );
+
+    const submit = screen.getByRole("button", {
+      name: "แก้ไขสถานที่",
+    });
+
+    await waitFor(() => expect(submit.hasAttribute("disabled")).toBe(false));
+
+    fireEvent.click(submit);
+
+    const dialog = await screen.findByRole("dialog", {
+      name: "ยืนยันการแก้ไขสถานที่",
+    });
+
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "ยืนยัน" }),
+    );
+
+    await waitFor(() => {
+      expect(onSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: LocationStatus.INACTIVE,
+        }),
+        expect.objectContaining({
+          keepImageNumbers: expect.any(Array),
+          newImages: [],
+        }),
+      );
+    });
+  });
+
+  it("shows the status dropdown on the create form with ACTIVE as default", () => {
+    render(<LocationForm onSave={vi.fn()} />);
+
+    const statusDropdown = screen.getByRole("combobox", {
+      name: "สถานะสถานที่",
+    });
+
+    expect(statusDropdown.textContent).toContain("เปิดใช้งาน");
   });
 });

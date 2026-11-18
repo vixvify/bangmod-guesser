@@ -7,13 +7,21 @@ import { parseSchema } from "@/shared/lib/validation";
 import { AppRoutes } from "@/shared/routes/routes";
 
 type ManageLocationProps = {
-  searchParams: Promise<{ search?: string; page?: string }>;
+  searchParams: Promise<{
+    search?: string;
+    page?: string;
+    status?: string;
+  }>;
 };
 
 export default async function LocationsPage({
   searchParams,
 }: ManageLocationProps) {
-  const filters = parseSchema(SearchLocationQuerySchema, await searchParams);
+  const filters = parseSchema(
+    SearchLocationQuerySchema,
+    await searchParams,
+  );
+
   const locations = await locationService.getLocations(filters);
 
   return (
@@ -26,9 +34,10 @@ export default async function LocationsPage({
         กลับไปภาพรวมระบบ
       </Link>
       <LocationsList
-        key={`${filters.search ?? ""}:${filters.page}`}
+        key={`${filters.search ?? ""}:${filters.status ?? ""}:${filters.page}`}
         initialLocations={locations}
         initialSearch={filters.search ?? ""}
+        initialStatus={filters.status}
       />
     </div>
   );

@@ -179,6 +179,58 @@ describe("LocationService", () => {
       );
     });
 
+    it("saves location with INACTIVE status when specified", async () => {
+      const { locationService, locationRepository, imageRepository } =
+        createTestService();
+
+      imageRepository.upload.mockResolvedValue();
+      imageRepository.getPublicUrl.mockImplementation(
+        (key) => `https://example.com/${key}`,
+      );
+
+      locationRepository.create.mockResolvedValue({
+        id: "loc_inactive",
+        name: "Inactive Building",
+        description: null,
+        latitude: 13.65,
+        longitude: 100.49,
+        status: LocationStatus.INACTIVE,
+        createdAt: new Date(),
+        updatedAt: null,
+        images: [
+          {
+            locationId: "loc_inactive",
+            imageNumber: 1,
+            imageUrl: "https://example.com/images/file_1.jpg",
+            createdAt: new Date(),
+          },
+        ],
+      });
+
+      await locationService.createLocation(
+        {
+          name: "Inactive Building",
+          latitude: 13.65,
+          longitude: 100.49,
+          status: LocationStatus.INACTIVE,
+        },
+        [
+          {
+            contentType: "image/jpeg",
+            content: sampleImageBuffer,
+          },
+        ],
+      );
+
+      expect(locationRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({ name: "Inactive Building" }),
+        LocationStatus.INACTIVE,
+        expect.arrayContaining([
+          expect.objectContaining({ imageNumber: 1 }),
+        ]),
+      );
+    });
+
     it("cleans up uploaded images from storage if database creation fails", async () => {
       const { locationService, locationRepository, imageRepository } =
         createTestService();

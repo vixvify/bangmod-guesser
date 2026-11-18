@@ -10,12 +10,17 @@ import { getErrorMessage, getHttpErrorCode } from "@/shared/lib/error-message";
 import { LocationsTable } from "@/features/locations/components/locations-table";
 import { Button } from "@/shared/components/ui/button";
 import { ConfirmModal } from "@/shared/components/ui/confirm-modal";
+import { Dropdown } from "@/shared/components/ui/dropdown";
 import { EmptyState } from "@/shared/components/ui/empty-state";
 import { Input } from "@/shared/components/ui/input";
 import { ListPagination } from "@/shared/components/ui/list-pagination";
 import { TableSkeleton } from "@/shared/components/ui/table-skeleton";
 import { LOCATION_MESSAGES } from "@/features/locations/location.constants";
-import type { Location, PaginatedLocations } from "@/features/locations/location";
+import {
+  LocationStatus,
+  type Location,
+  type PaginatedLocations,
+} from "@/features/locations/location";
 import { useDebounce } from "@/shared/hooks/use-debounce";
 import httpClient from "@/shared/lib/http";
 import { LocationRoutes } from "@/features/locations/location.routes";
@@ -24,15 +29,18 @@ import { AppRoutes } from "@/shared/routes/routes";
 export function LocationsList({
   initialLocations,
   initialSearch,
+  initialStatus,
 }: {
   initialLocations: PaginatedLocations;
   initialSearch: string;
+  initialStatus?: LocationStatus;
 }) {
   const router = useRouter();
   const [locations, setLocations] = useState(initialLocations);
   const [previousLocations, setPreviousLocations] = useState(initialLocations);
   const [searchInput, setSearchInput] = useState(initialSearch);
   const [search, setSearch] = useState(initialSearch);
+  const [status, setStatus] = useState<LocationStatus | undefined>(initialStatus);
   const [deletingLocation, setDeletingLocation] = useState<Location | null>(null);
   const [deleting, setDeleting] = useState(false);
   const requestId = useRef(0);
@@ -44,6 +52,7 @@ export function LocationsList({
     setLocations(initialLocations);
     setSearch(initialSearch);
     setSearchInput(initialSearch);
+    setStatus(initialStatus);
   }
 
   useEffect(() => {
@@ -54,6 +63,7 @@ export function LocationsList({
     const currentRequest = ++requestId.current;
     const params = new URLSearchParams();
     if (nextSearch) params.set("search", nextSearch);
+    if (status) params.set("status", status);
     async function searchLocations() {
       try {
         const { data } = await httpClient.get<PaginatedLocations>(
@@ -73,12 +83,30 @@ export function LocationsList({
 
     void searchLocations();
     return () => { requestId.current += 1; };
-  }, [debouncedSearch, initialLocations, search, searchInput]);
+  }, [debouncedSearch, initialLocations, search, searchInput, status]);
+
+  function changeStatus(value: string) {
+    const nextStatus = value === "ALL" ? undefined : (value as LocationStatus);
+    const nextSearch = searchInput.trim();
+    setStatus(nextStatus);
+    setSearchInput(nextSearch);
+    setSearch(nextSearch);
+    const params = new URLSearchParams();
+    if (nextSearch) params.set("search", nextSearch);
+    if (nextStatus) params.set("status", nextStatus);
+    router.push(
+      `${AppRoutes.adminLocations}${params.size ? `?${params}` : ""}`,
+      { scroll: false },
+    );
+  }
 
   function goToPage(page: number) {
     const params = new URLSearchParams({ page: String(page) });
     if (search) params.set("search", search);
-    router.push(`${AppRoutes.adminLocations}?${params}`, { scroll: false });
+    if (status) params.set("status", status);
+    router.push(`${AppRoutes.adminLocations}?${params}`, {
+      scroll: false,
+    });
   }
 
   async function deleteLocation() {
@@ -121,6 +149,21 @@ export function LocationsList({
               size="small"
             />
           </div>
+          <label className="flex w-full flex-col gap-1 text-xs font-medium text-surface-muted sm:w-auto">
+            กรองตามสถานะ
+            <Dropdown
+              id="location-status-filter"
+              aria-label="กรองตามสถานะ"
+              value={status ?? "ALL"}
+              onChange={changeStatus}
+              options={[
+                { value: "ALL", label: "ทั้งหมด" },
+                { value: LocationStatus.ACTIVE, label: "เปิดใช้งาน" },
+                { value: LocationStatus.INACTIVE, label: "ปิดใช้งาน" },
+              ]}
+              className="min-w-36"
+            />
+          </label>
           <Button
             href={AppRoutes.adminLocationCreate}
             variant="primary"
