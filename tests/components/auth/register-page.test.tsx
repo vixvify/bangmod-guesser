@@ -130,7 +130,7 @@ describe("RegisterPage", () => {
       expect(replace).toHaveBeenCalledWith("/login?callbackUrl=%2Fgame%2Fdemo");
     });
     expect(refresh).not.toHaveBeenCalled();
-    expect(toastSuccess).toHaveBeenCalledWith("สมัครสมาชิกสำเร็จ กรุณาเข้าสู่ระบบ");
+    expect(toastSuccess).toHaveBeenCalledWith("กรุณาตรวจสอบอีเมลเพื่อยืนยันบัญชีก่อนเข้าสู่ระบบ");
   });
 
   it("shows a registration error without navigating", async () => {

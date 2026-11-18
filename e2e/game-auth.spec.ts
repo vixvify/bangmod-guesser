@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { E2E_BASE_URL } from "./config";
 import { mockGameApi } from "./helpers/mock-game";
+import { emailVerificationUrl } from "./helpers/email-verification";
 
 test("guests are sent to login and return to their game after signing in", async ({ page }) => {
   for (const destination of [
@@ -24,6 +25,8 @@ test("guests are sent to login and return to their game after signing in", async
     headers: { Origin: E2E_BASE_URL },
   });
   expect(registration.ok()).toBe(true);
+  const verification = await page.request.get(await emailVerificationUrl(account.email), { maxRedirects: 0 });
+  expect(verification.headers().location).toBe("/login?verification=email");
 
   await page.goto("/game/demo?mode=practice", { waitUntil: "networkidle" });
   await page.getByRole("textbox", { name: "อีเมล" }).fill(account.email);
@@ -31,8 +34,10 @@ test("guests are sent to login and return to their game after signing in", async
   const loginButton = page.getByRole("button", { name: "เข้าสู่ระบบ", exact: true });
   await expect(loginButton).toBeEnabled();
   await mockGameApi(page);
+  const loginResponse = page.waitForResponse((response) => response.url().endsWith("/api/session/login"));
   await loginButton.click();
-  await expect(page).toHaveURL(/\/game\/demo\?mode=practice$/);
+  expect((await loginResponse).ok()).toBe(true);
+  await expect(page).toHaveURL(/\/game\/demo\?mode=practice$/, { timeout: 15_000 });
   await expect(page.getByRole("heading", { name: "ทายสถานที่" })).toBeVisible();
 
   await page.goto("/game/demo/round-score?round=2", { waitUntil: "domcontentloaded" });

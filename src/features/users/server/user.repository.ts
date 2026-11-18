@@ -50,4 +50,12 @@ export class UserRepositoryImpl implements UserRepository {
   async findById(id: string): Promise<UserModelWithGameCount | null> {
     return prisma.user.findUnique({ where: { id }, include: withGameCount });
   }
+
+  async findBanExpiryByEmail(email: string): Promise<Date | null> {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { banExpires: true },
+    });
+    return user?.banExpires ?? null;
+  }
 }

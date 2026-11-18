@@ -24,10 +24,22 @@ vi.mock("@/features/auth/session.routes", () => ({
 vi.mock("@/shared/lib/http", () => ({
   HttpError: class HttpError extends Error {
     status?: number;
-    constructor(message: string, status?: number) {
+    statusCode?: string;
+    retryAfter?: number;
+    data?: unknown;
+    constructor(
+      message: string,
+      status?: number,
+      statusCode?: string,
+      retryAfter?: number,
+      data?: unknown,
+    ) {
       super(message);
       this.name = "HttpError";
       this.status = status;
+      this.statusCode = statusCode;
+      this.retryAfter = retryAfter;
+      this.data = data;
     }
   },
   default: { post: vi.fn((url: string, body: unknown) =>
@@ -39,13 +51,21 @@ vi.mock("sonner", () => ({ toast: { success: toastSuccess, error: toastError } }
 
 import LoginPage from "@/app/(auth)/login/page";
 import { HttpError } from "@/shared/lib/http";
+import { AUTH_MESSAGES, EMAIL_NOT_VERIFIED_CODE } from "@/features/auth/auth.constants";
 
-async function renderPage(callbackUrl?: string, error?: string) {
+async function renderPage(
+  callbackUrl?: string,
+  error?: string,
+  reactStrictMode = false,
+  errorDescription?: string,
+  verification?: string,
+) {
   await act(async () => {
     render(
       <Suspense fallback={<p>Loading</p>}>
-        <LoginPage searchParams={Promise.resolve({ callbackUrl, error })} />
+        <LoginPage searchParams={Promise.resolve({ callbackUrl, error, error_description: errorDescription, verification })} />
       </Suspense>,
+      { reactStrictMode },
     );
   });
 }
@@ -110,6 +130,7 @@ describe("LoginPage", () => {
     await waitFor(() => {
       expect(toastError).toHaveBeenCalledWith(
         "เข้าสู่ระบบด้วย Google ไม่สำเร็จ กรุณาลองอีกครั้ง",
+        { id: "google-login-error" },
       );
     });
   });
@@ -118,7 +139,16 @@ describe("LoginPage", () => {
     signInSocial.mockRejectedValue(new HttpError("Too many requests", 429));
     await renderPage();
     fireEvent.click(screen.getByRole("button", { name: "เข้าสู่ระบบด้วย Google" }));
-    await waitFor(() => expect(toastError).toHaveBeenCalledWith("ส่งคำขอบ่อยเกินไป กรุณารอสักครู่แล้วลองอีกครั้ง"));
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith("ส่งคำขอบ่อยเกินไป กรุณารอสักครู่แล้วลองอีกครั้ง", { id: "google-login-error" }));
+  });
+
+  it("explains the suspension when Google returns a banned-user error", async () => {
+    await renderPage(undefined, "BANNED_USER", true);
+
+    await waitFor(() => expect(toastError).toHaveBeenCalledExactlyOnceWith(
+      "บัญชีของคุณถูกระงับการใช้งาน",
+      { id: "google-login-error" },
+    ));
   });
 
   it("shows a safe error after Google redirects back with an OAuth failure", async () => {
@@ -127,9 +157,53 @@ describe("LoginPage", () => {
     await waitFor(() => {
       expect(toastError).toHaveBeenCalledWith(
         "เข้าสู่ระบบด้วย Google ไม่สำเร็จ กรุณาลองอีกครั้ง",
+        { id: "google-login-error" },
       );
     });
     expect(signInSocial).not.toHaveBeenCalled();
+  });
+
+  it("shows a timed Google suspension in Bangkok time exactly once", async () => {
+    await renderPage(undefined, "BANNED_USER", true, "2026-11-18T00:00:00.000Z");
+
+    expect(toastError).toHaveBeenCalledExactlyOnceWith(
+      "บัญชีของคุณถูกระงับการใช้งาน คุณจะสามารถกลับมาใช้งานได้อีกครั้งในวันที่ 18 พฤศจิกายน 2569 เวลา 07:00 น.",
+      { id: "google-login-error" },
+    );
+  });
+
+  it("asks for email verification after sign-in is refused for an unverified account", async () => {
+    signInEmail.mockRejectedValue(new HttpError("Sign in failed", 403, EMAIL_NOT_VERIFIED_CODE));
+    await renderPage();
+    fireEvent.change(screen.getByRole("textbox", { name: "อีเมล" }), {
+      target: { value: "student@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("รหัสผ่าน"), { target: { value: "Password1" } });
+    await submitValidLogin();
+
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith(
+      AUTH_MESSAGES.submit.emailNotVerified, { id: "email-verification" },
+    ));
+    expect(replace).not.toHaveBeenCalled();
+  });
+
+  it("shows the verification result after following a valid link", async () => {
+    await renderPage(undefined, undefined, false, undefined, "email");
+    expect(toastSuccess).toHaveBeenCalledWith(AUTH_MESSAGES.submit.emailVerificationSuccess, { id: "email-verification" });
+  });
+
+  it("shows a verification error when the link has expired", async () => {
+    await renderPage(undefined, "TOKEN_EXPIRED", false, undefined, "email");
+    expect(toastError).toHaveBeenCalledWith(AUTH_MESSAGES.submit.emailVerificationFailed, { id: "email-verification" });
+  });
+
+  it("ignores an invalid suspension date in the Google callback", async () => {
+    await renderPage(undefined, "BANNED_USER", false, "invalid date");
+
+    expect(toastError).toHaveBeenCalledExactlyOnceWith(
+      "บัญชีของคุณถูกระงับการใช้งาน",
+      { id: "google-login-error" },
+    );
   });
 
   it("lets the user reveal the login password before submitting", async () => {
@@ -206,6 +280,56 @@ describe("LoginPage", () => {
       );
     });
     expect(replace).not.toHaveBeenCalled();
+  });
+
+  it("shows a suspended-account message when a banned user attempts to sign in", async () => {
+    signInEmail.mockRejectedValue(
+      new HttpError("Sign in failed", 403, "BANNED_USER", undefined, {
+        banExpires: null,
+      }),
+    );
+    await renderPage();
+
+    fireEvent.change(screen.getByLabelText("อีเมล"), {
+      target: { value: "student@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("รหัสผ่าน"), {
+      target: { value: "Password1" },
+    });
+    await submitValidLogin();
+
+    await waitFor(() => {
+      expect(toastError).toHaveBeenCalledWith(
+        "บัญชีของคุณถูกระงับการใช้งานถาวร",
+      );
+    });
+    expect(replace).not.toHaveBeenCalled();
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it("shows the suspension end date and time for a temporarily banned user", async () => {
+    signInEmail.mockRejectedValue(
+      new HttpError("Sign in failed", 403, "BANNED_USER", undefined, {
+      banExpires: "2026-11-18T00:00:00.000Z",
+    }),
+    );
+    await renderPage();
+
+    fireEvent.change(screen.getByLabelText("อีเมล"), {
+      target: { value: "student@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("รหัสผ่าน"), {
+      target: { value: "Password1" },
+    });
+    await submitValidLogin();
+
+    await waitFor(() => {
+      expect(toastError).toHaveBeenCalledWith(
+        "บัญชีของคุณถูกระงับการใช้งาน คุณจะสามารถกลับมาใช้งานได้อีกครั้งในวันที่ 18 พฤศจิกายน 2569 เวลา 07:00 น.",
+      );
+    });
+    expect(replace).not.toHaveBeenCalled();
+    expect(refresh).not.toHaveBeenCalled();
   });
 
   it("shows a network toast when sign-in fails unexpectedly", async () => {

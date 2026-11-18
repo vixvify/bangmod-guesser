@@ -38,6 +38,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   vi.restoreAllMocks();
   vi.clearAllMocks();
 });
@@ -74,6 +75,35 @@ describe("admin users", () => {
 
     expect(screen.getByRole("status").textContent).toContain(USER_MESSAGES.empty);
     expect(screen.queryByRole("table")).toBeNull();
+  });
+
+  it("shows the remaining suspension range for a saved ban with no start date", async () => {
+    vi.setSystemTime(new Date("2026-11-17T18:00:00Z"));
+    getUsers.mockResolvedValueOnce({
+      ...firstPage,
+      users: [{
+        ...mockUsers[0],
+        status: "SUSPENDED",
+        suspension: { startDate: null, endDate: "2026-11-21" },
+      }],
+    });
+    await renderUsers();
+    fireEvent.click(screen.getByRole("button", { name: "แก้ไข vixvify_v" }));
+
+    const modal = screen.getByRole("dialog", { name: "แก้ไขผู้ใช้" });
+    const range = within(modal).getByRole("combobox", { name: "ระยะเวลาการระงับ (ไม่บังคับ)" });
+    expect(range).toHaveProperty("value", "18 พฤศจิกายน 2026 - 21 พฤศจิกายน 2026");
+    expect(within(modal).getByText(/แสดงช่วงเวลาที่เหลือ/)).toBeTruthy();
+
+    fireEvent.change(within(modal).getByRole("textbox", { name: "ชื่อผู้ใช้" }), { target: { value: "New Admin" } });
+    await waitFor(() => expect(within(modal).getByRole("button", { name: "บันทึก" }).hasAttribute("disabled")).toBe(false));
+    fireEvent.click(within(modal).getByRole("button", { name: "บันทึก" }));
+    const confirmation = await screen.findByRole("dialog", { name: USER_MESSAGES.updateConfirm.title });
+    fireEvent.click(within(confirmation).getByRole("button", { name: USER_MESSAGES.updateConfirm.confirm }));
+
+    await waitFor(() => expect(patch).toHaveBeenCalledWith("/api/users/u-01", expect.objectContaining({
+      suspension: { startDate: null, endDate: "2026-11-21" },
+    })));
   });
 
   it("asks before discarding edited values from the cancel button", async () => {

@@ -1,13 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { APIError } from "better-auth/api";
 
-const { signInEmail, signUpEmail, signInSocial, signOut, updateUser, requestPasswordReset, resetPassword } = vi.hoisted(() => ({
+const {
+  signInEmail,
+  signUpEmail,
+  signInSocial,
+  signOut,
+  updateUser,
+  requestPasswordReset,
+  resetPassword,
+  findBanExpiryByEmail,
+} = vi.hoisted(() => ({
   signInEmail: vi.fn(),
   signUpEmail: vi.fn(),
   signInSocial: vi.fn(),
   signOut: vi.fn(),
   updateUser: vi.fn(),
   requestPasswordReset: vi.fn(),
-  resetPassword: vi.fn()
+  resetPassword: vi.fn(),
+  findBanExpiryByEmail: vi.fn(),
 }));
 
 vi.mock("@/features/auth/server/auth", () => ({
@@ -17,7 +28,7 @@ vi.mock("@/features/auth/server/auth", () => ({
 import { AuthAdapter } from "@/features/auth/server/auth.adapter";
 
 describe("AuthAdapter", () => {
-  const adapter = new AuthAdapter();
+  const adapter = new AuthAdapter({ findBanExpiryByEmail });
   const headers = new Headers({ origin: "http://localhost:3000", cookie: "session=old" });
 
   beforeEach(() => vi.clearAllMocks());
@@ -33,6 +44,93 @@ describe("AuthAdapter", () => {
       headers,
       returnHeaders: true,
     });
+    expect(findBanExpiryByEmail).not.toHaveBeenCalled();
+  });
+
+  it("includes the ban expiry for a temporarily suspended account", async () => {
+    const banExpires = new Date("2026-11-18T00:00:00.000Z");
+    signInEmail.mockRejectedValue(
+      APIError.from("FORBIDDEN", {
+        message: "You have been banned",
+        code: "BANNED_USER",
+      }),
+    );
+    findBanExpiryByEmail.mockResolvedValue(banExpires);
+
+    await expect(
+      adapter.signIn(headers, { email: "a@example.com", password: "Password1" }),
+    ).rejects.toMatchObject({
+      status: 403,
+      code: "BANNED_USER",
+      data: { banExpires: banExpires.toISOString() },
+    });
+
+    expect(findBanExpiryByEmail).toHaveBeenCalledWith("a@example.com");
+  });
+
+  it("returns null expiry for a permanently suspended account", async () => {
+    signInEmail.mockRejectedValue(
+      APIError.from("FORBIDDEN", {
+        message: "You have been banned",
+        code: "BANNED_USER",
+      }),
+    );
+    findBanExpiryByEmail.mockResolvedValue(null);
+
+    await expect(
+      adapter.signIn(headers, { email: "a@example.com", password: "Password1" }),
+    ).rejects.toMatchObject({
+      status: 403,
+      code: "BANNED_USER",
+      data: { banExpires: null },
+    });
+  });
+
+  it("returns null expiry when the banned user cannot be found", async () => {
+    signInEmail.mockRejectedValue(
+      APIError.from("FORBIDDEN", {
+        message: "You have been banned",
+        code: "BANNED_USER",
+      }),
+    );
+    findBanExpiryByEmail.mockResolvedValue(null);
+
+    await expect(
+      adapter.signIn(headers, { email: "a@example.com", password: "Password1" }),
+    ).rejects.toMatchObject({
+      status: 403,
+      code: "BANNED_USER",
+      data: { banExpires: null },
+    });
+  });
+
+  it("preserves the banned-user error when fetching the expiry fails", async () => {
+    signInEmail.mockRejectedValue(
+      APIError.from("FORBIDDEN", {
+        message: "You have been banned",
+        code: "BANNED_USER",
+      }),
+    );
+    findBanExpiryByEmail.mockRejectedValue(new Error("Database connection failed"));
+
+    await expect(
+      adapter.signIn(headers, { email: "a@example.com", password: "Password1" }),
+    ).rejects.toMatchObject({
+      status: 403,
+      code: "BANNED_USER",
+      data: { banExpires: null },
+    });
+  });
+
+  it("does not query the user when login fails for another reason", async () => {
+    const error = new Error("Invalid credentials");
+    signInEmail.mockRejectedValue(error);
+
+    await expect(
+      adapter.signIn(headers, { email: "a@example.com", password: "Password1" }),
+    ).rejects.toBe(error);
+
+    expect(findBanExpiryByEmail).not.toHaveBeenCalled();
   });
 
   it("registers without invoking the browser auth client", async () => {
@@ -76,14 +174,14 @@ describe("AuthAdapter", () => {
       body: { name: "New name" }, headers, returnHeaders: true,
     });
   });
-  
+
   it("requests a password reset with the email and redirect URL", async () => {
     requestPasswordReset.mockResolvedValue(undefined);
     const input = { email: "a@example.com" };
     const redirectTo = "http://localhost:3000/reset-password";
     await adapter.requestPasswordReset(headers, input, redirectTo);
     expect(requestPasswordReset).toHaveBeenCalledWith({
-      body: { email: "a@example.com", redirectTo}, headers,
+      body: { email: input.email, redirectTo }, headers,
     });
   });
 
@@ -93,7 +191,7 @@ describe("AuthAdapter", () => {
     const input = { password: "NewPassword1", confirmPassword: "NewPassword1" };
     await adapter.resetPassword(headers, token, input);
     expect(resetPassword).toHaveBeenCalledWith({
-      body: { newPassword: "NewPassword1", token }, headers,
+      body: { newPassword: input.password, token }, headers,
     });
   });
 });

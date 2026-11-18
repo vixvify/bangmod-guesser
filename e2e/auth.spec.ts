@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { AUTH_MESSAGES } from "../src/features/auth/auth.constants";
+import { emailVerificationUrl } from "./helpers/email-verification";
 
 const player = {
   name: "New Player",
@@ -31,6 +32,8 @@ test("registers in the test database, signs in, and keeps access to the protecte
   expect(signupResponse.ok()).toBe(true);
 
   await expect(page).toHaveURL(/\/login\?callbackUrl=%2Fprofile$/, { timeout: 15_000 });
+  await page.goto(await emailVerificationUrl(realPlayer.email), { waitUntil: "domcontentloaded" });
+  await expect(page.getByText(AUTH_MESSAGES.submit.emailVerificationSuccess)).toBeVisible();
   await page.goto("/login?callbackUrl=%2Fprofile", { waitUntil: "networkidle" });
   await page.getByRole("textbox", { name: "อีเมล" }).fill(realPlayer.email);
   await page.getByLabel("รหัสผ่าน", { exact: true }).fill(realPlayer.password);

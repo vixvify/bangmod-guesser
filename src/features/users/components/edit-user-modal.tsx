@@ -20,6 +20,7 @@ import {
   type UserFormInput,
 } from "@/features/users/user.schema";
 import { getProfileImageUrl } from "@/shared/lib/profile-image";
+import { formatDateOnly } from "@/shared/lib/utils";
 
 type EditUserModalProps = {
   user: UserAccount;
@@ -50,6 +51,7 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
   });
   const selectedRole = useWatch({ control, name: "role" });
   const selectedStatus = useWatch({ control, name: "status" });
+  const [today] = useState(() => formatDateOnly(new Date(), "Asia/Bangkok"));
 
   function requestClose() {
     if (isSubmitting) return;
@@ -206,20 +208,31 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
                 <Controller
                   name="suspension"
                   control={control}
-                  render={({ field }) => (
-                    <div>
-                      <DateRangePicker theme="dark"
-                        label="ระยะเวลาการระงับ (ไม่บังคับ)"
-                        defaultValue={field.value}
-                        onChange={field.onChange}
-                      />
-                      {errors.suspension && (
-                        <p role="alert" className="mt-1 text-xs text-red-600">
-                          {errors.suspension.message}
-                        </p>
-                      )}
-                    </div>
-                  )}
+                  render={({ field }) => {
+                    const { startDate, endDate } = field.value;
+                    const showsRemainingRange = !startDate && endDate !== null && endDate > today;
+
+                    return (
+                      <div>
+                        <DateRangePicker
+                          theme="dark"
+                          label="ระยะเวลาการระงับ (ไม่บังคับ)"
+                          defaultValue={showsRemainingRange ? { startDate: today, endDate } : field.value}
+                          onChange={field.onChange}
+                        />
+                        {showsRemainingRange && (
+                          <p className="mt-1 text-xs text-surface-muted">
+                            แสดงช่วงเวลาที่เหลือจากวันนี้ เพราะไม่มีข้อมูลวันเริ่มระงับ
+                          </p>
+                        )}
+                        {errors.suspension && (
+                          <p role="alert" className="mt-1 text-xs text-red-600">
+                            {errors.suspension.message}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  }}
                 />
               )}
               <div

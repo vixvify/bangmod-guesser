@@ -21,6 +21,7 @@ const form: UserFormInput = {
 const repository = {
   findMany: vi.fn(),
   findById: vi.fn(),
+  findBanExpiryByEmail: vi.fn(),
 } satisfies UserRepository;
 const admin = {
   updateName: vi.fn(),
@@ -87,7 +88,26 @@ describe("UserService", () => {
         status: "SUSPENDED",
         suspension: { startDate: null, endDate: "2026-11-19" },
       });
+      expect(admin.banUser).toHaveBeenCalledWith(expect.any(Headers), {
+        userId: record.id,
+        banReason: undefined,
+        banExpiresIn: 43200,
+      });
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
 
+  it("rounds up the suspension expiry to avoid expiring before Bangkok midnight", async () => {
+    const now = new Date("2026-11-18T05:00:00.500Z").getTime();
+    const nowSpy = vi.spyOn(Date, "now").mockReturnValue(now);
+
+    try {
+      await service.updateUser(new Headers(), record.id, {
+        ...form,
+        status: "SUSPENDED",
+        suspension: { startDate: null, endDate: "2026-11-19" },
+      });
       expect(admin.banUser).toHaveBeenCalledWith(expect.any(Headers), {
         userId: record.id,
         banReason: undefined,

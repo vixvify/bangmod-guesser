@@ -87,4 +87,25 @@ describe("httpClient", () => {
     });
     await expect(httpClient.put("/locations/1", {})).rejects.toMatchObject({ status: 429, retryAfter: 25 });
   });
+
+  it("should preserve additional data from API error responses", async () => {
+    put.mockRejectedValue({
+      message: "Request failed with status code 403",
+      response: {
+        status: 403,
+        data: {
+          error: "Sign in failed",
+          status: 403,
+          statusCode: "BANNED_USER",
+          data: { banExpires: "2026-11-18T00:00:00.000Z" },
+        },
+      },
+    });
+
+    await expect(httpClient.put("/session/login", {})).rejects.toMatchObject({
+      status: 403,
+      statusCode: "BANNED_USER",
+      data: { banExpires: "2026-11-18T00:00:00.000Z" },
+    });
+  });
 });

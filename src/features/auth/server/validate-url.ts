@@ -1,4 +1,5 @@
 import { config } from "@/shared/config/runtime";
+import { AppRoutes } from "@/shared/routes/routes";
 
 const RESET_PASSWORD_PATH = "/reset-password";
 const RESET_PASSWORD_API_PATH = "/api/auth/reset-password/";
@@ -87,6 +88,27 @@ export function validateResetUrl(value: string): URL {
     throw new Error("Untrusted password reset callback URL");
   }
 
+  return url;
+}
+
+export function getEmailVerificationUrl(value: string): URL {
+  const url = new URL(value);
+  const trustedOrigin = new URL(config.authUrl).origin;
+
+  if (
+    !isAllowedProtocol(url) ||
+    url.origin !== trustedOrigin ||
+    url.username ||
+    url.password ||
+    url.pathname !== "/api/auth/verify-email" ||
+    !url.searchParams.get("token")
+  ) {
+    throw new Error("Invalid email verification URL");
+  }
+
+  const callback = new URL(AppRoutes.login, trustedOrigin);
+  callback.searchParams.set("verification", "email");
+  url.searchParams.set("callbackURL", callback.toString());
   return url;
 }
 

@@ -6,15 +6,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
-import { AUTH_MESSAGES } from "@/features/auth/auth.constants";
+import { AUTH_MESSAGES, BANNED_USER_CODE, EMAIL_NOT_VERIFIED_CODE } from "@/features/auth/auth.constants";
+import { getSuspensionMessage } from "@/features/auth/login-suspension";
 import { LoginSchema, type LoginInput } from "@/features/auth/auth.schema";
-import httpClient from "@/shared/lib/http";
-import { getErrorMessage } from "@/shared/lib/error-message";
+import httpClient, { HttpError } from "@/shared/lib/http";
+import { getErrorMessage, getHttpErrorCode } from "@/shared/lib/error-message";
 import { getAuthRedirect } from "@/features/auth/auth-redirect";
 import { SessionRoutes } from "@/features/auth/session.routes";
 import { AppRoutes } from "@/shared/routes/routes";
@@ -23,14 +24,19 @@ type LoginPageProps = {
   searchParams: Promise<{
     callbackUrl?: string | string[];
     error?: string | string[];
+    error_description?: string | string[];
+    verification?: string | string[];
   }>;
 };
 
+const GOOGLE_LOGIN_ERROR_TOAST_ID = "google-login-error";
+
 export default function LoginPage({ searchParams }: LoginPageProps) {
-  const { callbackUrl, error } = use(searchParams);
+  const { callbackUrl, error, error_description: errorDescription, verification } = use(searchParams);
   const redirectTo = getAuthRedirect(callbackUrl);
   const router = useRouter();
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+  const displayedGoogleError = useRef<typeof error>(undefined);
   const {
     register,
     handleSubmit,
@@ -49,6 +55,15 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
       router.replace(redirectTo);
       router.refresh();
     } catch (error) {
+      const errorCode = getHttpErrorCode(error);
+      if (errorCode === BANNED_USER_CODE) {
+        toast.error(getSuspensionMessage(error instanceof HttpError ? error.data : undefined));
+        return;
+      }
+      if (errorCode === EMAIL_NOT_VERIFIED_CODE) {
+        toast.error(AUTH_MESSAGES.submit.emailNotVerified, { id: "email-verification" });
+        return;
+      }
       toast.error(getErrorMessage(error, AUTH_MESSAGES.submit.loginFailed, {
         401: AUTH_MESSAGES.submit.loginFailed,
       }));
@@ -66,10 +81,20 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
       : `${AppRoutes.login}?callbackUrl=${encodeURIComponent(redirectTo)}`;
 
   useEffect(() => {
-    if (error) {
-      toast.error(AUTH_MESSAGES.submit.googleLoginFailed);
+    if (verification === "email") {
+      const options = { id: "email-verification" };
+      if (error) toast.error(AUTH_MESSAGES.submit.emailVerificationFailed, options);
+      else toast.success(AUTH_MESSAGES.submit.emailVerificationSuccess, options);
+      return;
     }
-  }, [error]);
+    if (!error) return;
+    const message = error === BANNED_USER_CODE
+      ? getSuspensionMessage({ banExpires: errorDescription }, AUTH_MESSAGES.submit.googleLoginSuspended)
+      : AUTH_MESSAGES.submit.googleLoginFailed;
+    if (displayedGoogleError.current === message) return;
+    displayedGoogleError.current = message;
+    toast.error(message, { id: GOOGLE_LOGIN_ERROR_TOAST_ID });
+  }, [error, errorDescription, verification]);
 
   async function onGoogleSignIn() {
     setIsGoogleSubmitting(true);
@@ -83,7 +108,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
     } catch (error) {
       toast.error(getErrorMessage(error, AUTH_MESSAGES.submit.googleLoginFailed, {
         400: AUTH_MESSAGES.submit.googleLoginFailed,
-      }));
+      }), { id: GOOGLE_LOGIN_ERROR_TOAST_ID });
     } finally {
       setIsGoogleSubmitting(false);
     }

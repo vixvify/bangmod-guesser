@@ -55,4 +55,24 @@ describe("errorResponse", () => {
       statusCode: "ERROR",
     });
   });
+
+  it("should include additional data when AppError has data", async () => {
+    const error = new AppError(
+      "บัญชีของคุณถูกระงับการใช้งาน",
+      403,
+      "BANNED_USER",
+      { banExpires: "2026-11-18T00:00:00.000Z" },
+    );
+
+    const response = errorResponse(error);
+    const body = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(body).toEqual({
+      error: "บัญชีของคุณถูกระงับการใช้งาน",
+      status: 403,
+      statusCode: "BANNED_USER",
+      data: { banExpires: "2026-11-18T00:00:00.000Z" },
+    });
+  });
 });

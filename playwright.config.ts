@@ -1,5 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
-import { E2E_BASE_URL, E2E_DATABASE_URL } from "./e2e/config";
+import { E2E_AUTH_SECRET, E2E_BASE_URL, E2E_DATABASE_URL } from "./e2e/config";
 
 const baseURL = E2E_BASE_URL;
 
@@ -22,7 +22,9 @@ export default defineConfig({
       BETTER_AUTH_URL: baseURL,
       NEXT_PUBLIC_API_URL: `${baseURL}/api`,
       DATABASE_URL: E2E_DATABASE_URL,
-      BETTER_AUTH_SECRET: "e2e-only-secret-key-at-least-32-characters",
+      BETTER_AUTH_SECRET: E2E_AUTH_SECRET,
+      RESEND_API_KEY: "",
+      RESEND_FROM_EMAIL: "",
     },
   },
 });

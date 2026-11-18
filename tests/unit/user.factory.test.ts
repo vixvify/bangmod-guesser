@@ -19,11 +19,12 @@ describe("UserFactory.toAccount", () => {
     });
   });
 
-  it("formats a suspended user's expiry as the date used by the edit form", () => {
+  it("maps the actual suspension start and expiry to Bangkok calendar dates", () => {
     const result = UserFactory.toAccount({
       ...createUserModel({
         banned: true,
         banReason: "Violation",
+        banStartedAt: new Date("2099-12-29T18:00:00.000Z"),
         banExpires: new Date("2099-12-31T00:00:00.000Z"),
       }),
       _count: { games: 2 },
@@ -32,7 +33,7 @@ describe("UserFactory.toAccount", () => {
     expect(result).toMatchObject({
       status: "SUSPENDED",
       reason: "Violation",
-      suspension: { endDate: "2099-12-31" },
+      suspension: { startDate: "2099-12-30", endDate: "2099-12-31" },
     });
   });
 
@@ -51,6 +52,6 @@ describe("UserFactory.toAccount", () => {
       ...createUserModel({ banned: true, banExpires: new Date("2099-12-30T17:00:00Z") }),
       _count: { games: 0 },
     });
-    expect(result.suspension.endDate).toBe("2099-12-31");
+    expect(result.suspension).toEqual({ startDate: null, endDate: "2099-12-31" });
   });
 });

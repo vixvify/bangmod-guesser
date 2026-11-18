@@ -163,6 +163,23 @@ describe("DateRangePicker", () => {
     expect(screen.queryByText("เลือกวันเริ่มต้น")).toBeNull();
   });
 
+  it("shows a saved end date as a circle when the start date is unknown", () => {
+    render(
+      <DateRangePicker
+        label="เลือกช่วงเวลา"
+        defaultValue={{ startDate: null, endDate: "2026-09-04" }}
+      />,
+    );
+
+    const field = screen.getByRole<HTMLInputElement>("combobox", { name: "เลือกช่วงเวลา" });
+    expect(field.value).toContain("4 กันยายน");
+    fireEvent.click(field);
+    expect(screen.getByRole("status").textContent).toContain("วันสิ้นสุด4 ก.ย.");
+    const endDate = screen.getByRole("button", { name: "4 กันยายน" });
+    expect(endDate.dataset.image).toContain("radial-gradient(circle");
+    expect(endDate.dataset.image).not.toContain("linear-gradient(to ");
+  });
+
   it("marks the start, middle, and end dates in the calendar", () => {
     render(
       <DateRangePicker
