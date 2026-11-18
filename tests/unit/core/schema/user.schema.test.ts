@@ -1,11 +1,15 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-    SearchUserQuerySchema,
-    UserFormSchema,
-    UserIdSchema,
+  SearchUserQuerySchema,
+  UserFormSchema,
+  UserIdSchema,
 } from "@/features/users/user.schema";
 
 describe("UserFormSchema", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("should accept ACTIVE user", () => {
     const result = UserFormSchema.safeParse({
       name: "John Doe",
@@ -34,18 +38,64 @@ describe("UserFormSchema", () => {
     expect(result.success).toBe(true);
   });
 
-  it("should accept SUSPENDED user with end date", () => {
+  it("should accept SUSPENDED user with future end date", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-11-18T05:00:00.000Z"));
+
     const result = UserFormSchema.safeParse({
       name: "John Doe",
       role: "USER",
       status: "SUSPENDED",
       suspension: {
         startDate: null,
-        endDate: "2099-12-31",
+        endDate: "2026-11-19",
       },
       reason: "Violation",
     });
     expect(result.success).toBe(true);
+  });
+
+  it("should accept SUSPENDED user with today's end date in Bangkok timezone", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-11-18T05:00:00.000Z"));
+
+    const result = UserFormSchema.safeParse({
+      name: "John Doe",
+      role: "USER",
+      status: "SUSPENDED",
+      suspension: {
+        startDate: null,
+        endDate: "2026-11-18",
+      },
+      reason: "Violation",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("should reject SUSPENDED user with past end date in Bangkok timezone", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-11-18T05:00:00.000Z"));
+
+    const result = UserFormSchema.safeParse({
+      name: "John Doe",
+      role: "USER",
+      status: "SUSPENDED",
+      suspension: {
+        startDate: null,
+        endDate: "2026-11-17",
+      },
+      reason: "Violation",
+    });
+    expect(result.success).toBe(false);
+
+    if (!result.success) {
+      expect(result.error.issues).toContainEqual(
+        expect.objectContaining({
+          path: ["suspension", "endDate"],
+          message: "Suspension end date cannot be in the past",
+        }),
+      );
+    }
   });
 
   it("should reject INACTIVE status", () => {
@@ -59,7 +109,6 @@ describe("UserFormSchema", () => {
       },
       reason: "",
     });
-
     expect(result.success).toBe(false);
   });
 
@@ -96,7 +145,7 @@ describe("SearchUserQuerySchema", () => {
   it("should use default page and limit", () => {
     const result = SearchUserQuerySchema.parse({});
     expect(result).toEqual({ page: 1, limit: 9 });
-    });
+  });
 
   it("should parse page and limit from query string", () => {
     const result = SearchUserQuerySchema.parse({ page: "2", limit: "20" });
@@ -104,8 +153,18 @@ describe("SearchUserQuerySchema", () => {
   });
 
   it("should accept role and status filters", () => {
-    const result =SearchUserQuerySchema.parse({ page: "1", limit: "10", role: "ADMIN", status: "SUSPENDED" });
-    expect(result).toEqual({ page: 1, limit: 10, role: "ADMIN", status: "SUSPENDED" });
+    const result = SearchUserQuerySchema.parse({
+      page: "1",
+      limit: "10",
+      role: "ADMIN",
+      status: "SUSPENDED",
+    });
+    expect(result).toEqual({
+      page: 1,
+      limit: 10,
+      role: "ADMIN",
+      status: "SUSPENDED",
+    });
   });
 
   it("should reject invalid role", () => {
