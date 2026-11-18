@@ -27,7 +27,7 @@ export function GameSummary({
   summary: GameSummaryResult;
 }) {
   const router = useRouter();
-  const { loading, countingDown, error, prepare, start, activeGameId, resume, restart, closeActiveGame } = useStartGame();
+  const { loading, countingDown, prepare, start, activeGameId, resume, restart, closeActiveGame } = useStartGame();
   const totalSeconds = summary.totalTimeSeconds;
 
   return (
@@ -86,7 +86,6 @@ export function GameSummary({
               {MESSAGES.replay}
             </Button>
           </div>
-          {error && <div role="alert" className="mt-3 text-center text-surface-text"><p>{error}</p><Button onClick={() => void prepare()}>ลองอีกครั้ง</Button></div>}
         </div>
       </article>
       {loading && <GameLoadingOverlay />}

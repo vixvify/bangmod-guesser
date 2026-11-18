@@ -12,7 +12,9 @@ export interface GameHistoryItem {
 export interface ProfileResult {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
+  image?: string | null;
+  isOwner?: boolean;
   games: GameHistoryItem[];
   pagination: {
     page: number;

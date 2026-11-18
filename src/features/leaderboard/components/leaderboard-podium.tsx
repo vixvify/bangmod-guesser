@@ -1,6 +1,12 @@
+"use client";
+
+import Link from "next/link";
 import Avatar from "@mui/material/Avatar";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutlineOutlined";
 import type { LeaderboardEntry } from "@/features/leaderboard/leaderboard";
 import { getProfileImageUrl } from "@/shared/lib/profile-image";
+import { AppRoutes } from "@/shared/routes/routes";
+import { playSoundEffect } from "@/shared/lib/sound-effect";
 
 const positionClasses: Record<number, string> = {
   1: "order-1 col-span-2 sm:order-2 sm:col-span-1 sm:-translate-y-5 sm:scale-105 sm:min-h-64",
@@ -61,6 +67,16 @@ export function LeaderboardPodium({ entries }: { entries: LeaderboardEntry[] }) 
             {entry.totalScore.toLocaleString("en-US")}
           </p>
           <span className="text-xs text-surface-muted">คะแนน</span>
+          <Link
+            href={AppRoutes.userProfile(entry.userId)}
+            aria-label={`ดูโปรไฟล์ของ ${entry.name}`}
+            title={`ดูโปรไฟล์ของ ${entry.name}`}
+            onClick={() => playSoundEffect("click")}
+            style={{ position: "absolute" }}
+            className="!absolute !bottom-2.5 !right-2.5 z-10 flex size-7 items-center justify-center rounded-lg border border-surface-border/70 bg-surface-overlay/80 text-surface-muted shadow-sm transition hover:border-surface-control-border hover:bg-surface-control hover:text-surface-text hover:scale-110 focus-visible:outline-2 focus-visible:outline-primary-focus sm:!bottom-3 sm:!right-3 sm:size-8"
+          >
+            <PersonOutlineIcon sx={{ fontSize: { xs: "1rem", sm: "1.125rem" } }} />
+          </Link>
         </li>
       ))}
     </ol>

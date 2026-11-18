@@ -30,13 +30,14 @@ describe("LeaderboardPage", () => {
     });
     vi.mocked(leaderboardService.getLeaderboard).mockResolvedValue({
       entries: Array.from({ length: 10 }, (_, index) => ({
+        userId: `user_${index + 1}`,
         rank: index + 1,
         name: `Player ${index + 1}`,
         image: null,
         gamesPlayed: 10 - index,
         totalScore: 10000 - index * 100,
       })),
-      myRank: { rank: 12, name: "KMUTT Student", image: null, gamesPlayed: 3, totalScore: 2500 },
+      myRank: { userId: "user_1", rank: 12, name: "KMUTT Student", image: null, gamesPlayed: 3, totalScore: 2500 },
     });
 
     const markup = renderToStaticMarkup(await LeaderboardPage());
@@ -57,6 +58,9 @@ describe("LeaderboardPage", () => {
     expect(markup).toContain('href="/leaderboard"');
     expect(markup).toContain('aria-current="page"');
     expect(markup).toContain("bg-secondary-main text-surface-text");
+    expect(markup).toContain('href="/profile/user_4"');
+    expect(markup).toContain('aria-label="ดูโปรไฟล์ของ Player 4"');
+    expect(markup).toContain("ดูโปรไฟล์ →");
   });
 
   it("shows an empty leaderboard and no invented rank before anyone completes a game", async () => {

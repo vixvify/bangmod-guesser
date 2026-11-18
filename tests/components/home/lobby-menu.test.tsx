@@ -18,6 +18,8 @@ const { push, router, getSession } = vi.hoisted(() => {
 const post = vi.hoisted(() => vi.fn());
 const get = vi.hoisted(() => vi.fn());
 const preload = vi.hoisted(() => vi.fn());
+const toastError = vi.hoisted(() => vi.fn());
+vi.mock("sonner", () => ({ toast: { error: toastError } }));
 vi.mock("@/features/game/game-image", () => ({ preloadGameImage: preload }));
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
 vi.mock("@/features/auth/auth-client", () => ({ getSession }));
@@ -30,6 +32,7 @@ beforeEach(() => {
   post.mockReset();
   get.mockReset();
   preload.mockReset();
+  toastError.mockReset();
   getSession.mockResolvedValue({ data: { user: { id: "user-1" } } });
   post.mockResolvedValue({ data: { gameId: "game-123" } });
   get.mockResolvedValue({ data: { questionNumber: 1, imageUrl: "/question.jpg", deadlineAt: null } });
@@ -120,9 +123,24 @@ describe("LobbyMenu", () => {
     preload.mockRejectedValueOnce(new Error("image failed"));
     render(<LobbyMenu />);
     fireEvent.click(screen.getByRole("button", { name: "Play Bangmod Guesser" }));
-    fireEvent.click(await screen.findByRole("button", { name: "ลองอีกครั้ง" }));
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith("ไม่สามารถเตรียมเกมหรือโหลดรูปได้ กรุณาลองอีกครั้ง"));
+    expect(screen.queryByRole("button", { name: "ลองอีกครั้ง" })).toBeNull();
+    const play = screen.getByRole<HTMLButtonElement>("button", { name: "Play Bangmod Guesser" });
+    await waitFor(() => expect(play.disabled).toBe(false));
+    fireEvent.click(play);
     await screen.findByRole("dialog", { name: "กำลังเข้าสู่เกม" });
     expect(post.mock.calls.filter(([url]) => url === "/games")).toHaveLength(1);
+  });
+
+  it("shows the rate-limit message and allows the player to try again", async () => {
+    post.mockRejectedValueOnce(Object.assign(new Error("rate limited"), { name: "HttpError", status: 429, retryAfter: 10 }));
+    render(<LobbyMenu />);
+    const play = screen.getByRole<HTMLButtonElement>("button", { name: "Play Bangmod Guesser" });
+    fireEvent.click(play);
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith("ส่งคำขอบ่อยเกินไป กรุณารอ 10 วินาทีแล้วลองอีกครั้ง"));
+    await waitFor(() => expect(play.disabled).toBe(false));
+    fireEvent.click(play);
+    await screen.findByRole("dialog", { name: "กำลังเข้าสู่เกม" });
   });
 
   it("offers to resume an existing game without creating a new one", async () => {

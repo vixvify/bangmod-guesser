@@ -9,23 +9,40 @@ import { toast } from "sonner";
 import { EditNameModal } from "@/features/profile/components/edit-name-modal";
 import { Button } from "@/shared/components/ui/button";
 import { PROFILE_MESSAGES } from "@/features/profile/profile.constants";
-import type { User } from "@/features/users/user";
 import httpClient from "@/shared/lib/http";
 import { ProfileRoutes } from "@/features/profile/profile.routes";
 import { getProfileImageUrl } from "@/shared/lib/profile-image";
 import { playSoundEffect } from "@/shared/lib/sound-effect";
 import { AppRoutes } from "@/shared/routes/routes";
 import { getErrorMessage } from "@/shared/lib/error-message";
+import type { LeaderboardEntry } from "@/features/leaderboard/leaderboard";
 
 type ProfileCardProps = {
-  profile: User;
+  profile: {
+    name: string;
+    email?: string | null;
+    image?: string | null;
+  };
   canManageSystem?: boolean;
+  isOwner?: boolean;
+  stats?: LeaderboardEntry | null;
 };
 
-export function ProfileCard({ profile, canManageSystem = false }: ProfileCardProps) {
+export function ProfileCard({
+  profile,
+  canManageSystem = false,
+  isOwner = true,
+  stats,
+}: ProfileCardProps) {
   const router = useRouter();
+  const [prevName, setPrevName] = useState(profile.name);
   const [username, setUsername] = useState(profile.name);
   const [isEditOpen, setIsEditOpen] = useState(false);
+
+  if (profile.name !== prevName) {
+    setPrevName(profile.name);
+    setUsername(profile.name);
+  }
 
   async function handleSave(nextUsername: string): Promise<boolean> {
     try {
@@ -70,34 +87,74 @@ export function ProfileCard({ profile, canManageSystem = false }: ProfileCardPro
           <h1 className="truncate text-xl font-bold text-surface-text sm:text-2xl">
             {username}
           </h1>
-          <IconButton
-            size="small"
-            aria-label="แก้ไขชื่อผู้ใช้"
-            title="แก้ไขชื่อผู้ใช้"
-            onClick={() => {
-              playSoundEffect("click");
-              setIsEditOpen(true);
-            }}
-            sx={{ color: "var(--color-primary-light)", "&:hover": { backgroundColor: "color-mix(in srgb, var(--color-primary-main) 12%, transparent)" } }}
-          >
-            <EditOutlinedIcon fontSize="small" />
-          </IconButton>
+          {isOwner && (
+            <IconButton
+              size="small"
+              aria-label="แก้ไขชื่อผู้ใช้"
+              title="แก้ไขชื่อผู้ใช้"
+              onClick={() => {
+                playSoundEffect("click");
+                setIsEditOpen(true);
+              }}
+              sx={{
+                color: "var(--color-primary-light)",
+                "&:hover": {
+                  backgroundColor:
+                    "color-mix(in srgb, var(--color-primary-main) 12%, transparent)",
+                },
+              }}
+            >
+              <EditOutlinedIcon fontSize="small" />
+            </IconButton>
+          )}
         </div>
-        <p className="mt-1 truncate text-sm text-surface-muted sm:text-base">
-          {profile.email}
-        </p>
+        {isOwner && profile.email && (
+          <p className="mt-1 truncate text-sm text-surface-muted sm:text-base">
+            {profile.email}
+          </p>
+        )}
       </div>
-      {canManageSystem && (
-        <Button href={AppRoutes.admin} sound="click" variant="primary" size="small" className="ml-auto shrink-0">
+      <dl className="grid w-full grid-cols-3 gap-3 border-t border-surface-border pt-4 sm:w-auto sm:min-w-72 sm:border-t-0 sm:border-l sm:pl-6 sm:pt-0">
+        <div>
+          <dt className="text-xs text-surface-muted">อันดับ</dt>
+          <dd className="mt-1 font-bold text-primary-light">
+            {stats
+              ? `#${stats.rank.toLocaleString("th-TH")}`
+              : "ยังไม่มีอันดับ"}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-xs text-surface-muted">คะแนนรวม</dt>
+          <dd className="mt-1 font-bold text-surface-text">
+            {(stats?.totalScore ?? 0).toLocaleString("th-TH")}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-xs text-surface-muted">เกมที่เล่นจบ</dt>
+          <dd className="mt-1 font-bold text-surface-text">
+            {(stats?.gamesPlayed ?? 0).toLocaleString("th-TH")}
+          </dd>
+        </div>
+      </dl>
+      {isOwner && canManageSystem && (
+        <Button
+          href={AppRoutes.admin}
+          sound="click"
+          variant="primary"
+          size="small"
+          className="ml-auto shrink-0"
+        >
           จัดการระบบ
         </Button>
       )}
-      <EditNameModal
-        open={isEditOpen}
-        username={username}
-        onClose={() => setIsEditOpen(false)}
-        onSave={handleSave}
-      />
+      {isOwner && (
+        <EditNameModal
+          open={isEditOpen}
+          username={username}
+          onClose={() => setIsEditOpen(false)}
+          onSave={handleSave}
+        />
+      )}
     </section>
   );
 }
