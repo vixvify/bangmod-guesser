@@ -43,7 +43,7 @@ describe("SettingsModal", () => {
       screen
         .getByRole("slider", { name: SETTINGS_MESSAGES.sfxVolume })
         .getAttribute("aria-valuemin"),
-    ).toBe("1");
+    ).toBe("0");
     expect(
       screen
         .getByRole("slider", { name: SETTINGS_MESSAGES.musicVolume })
@@ -105,6 +105,29 @@ describe("SettingsModal", () => {
 
     expect(useSettingsStore.getState()).toMatchObject({
       systemSound: 81, musicSound: 50,
+    });
+    expect(handleClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("allows setting the volume down to 0% and saves 0% to the store", () => {
+    const handleClose = vi.fn();
+    render(<SettingsModal open={true} onClose={handleClose} />);
+
+    const sfxSlider = screen.getByRole("slider", { name: SETTINGS_MESSAGES.sfxVolume });
+    const musicSlider = screen.getByRole("slider", { name: SETTINGS_MESSAGES.musicVolume });
+
+    fireEvent.keyDown(sfxSlider, { key: "Home" });
+    fireEvent.keyDown(musicSlider, { key: "Home" });
+
+    expect(sfxSlider.getAttribute("aria-valuenow")).toBe("0");
+    expect(musicSlider.getAttribute("aria-valuenow")).toBe("0");
+    expect(screen.getAllByText("0%")).toHaveLength(2);
+
+    fireEvent.click(screen.getByRole("button", { name: SETTINGS_MESSAGES.confirm }));
+
+    expect(useSettingsStore.getState()).toMatchObject({
+      systemSound: 0,
+      musicSound: 0,
     });
     expect(handleClose).toHaveBeenCalledTimes(1);
   });

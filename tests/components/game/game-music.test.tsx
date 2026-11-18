@@ -36,6 +36,12 @@ describe("game music", () => {
     });
     expect(audio.volume).toBe(0.3);
 
+    useSettingsStore.getState().setSettings({
+      systemSound: 80,
+      musicSound: 0,
+    });
+    expect(audio.volume).toBe(0);
+
     unmount();
     expect(pause).toHaveBeenCalledOnce();
     expect(load).toHaveBeenCalledOnce();

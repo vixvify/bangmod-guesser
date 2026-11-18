@@ -67,7 +67,7 @@ function VolumeControl({ label, value, onChange }: VolumeControlProps) {
           onChange={(_, nextValue) => {
             if (typeof nextValue === "number") onChange(nextValue);
           }}
-          min={1}
+          min={0}
           max={100}
           aria-label={label}
           getAriaValueText={(currentValue) => `${currentValue}%`}
