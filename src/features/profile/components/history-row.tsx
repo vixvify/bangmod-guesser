@@ -1,10 +1,14 @@
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import type { GameHistoryItem } from "@/features/profile/profile";
-import { formatThaiDateTime } from "@/shared/lib/utils";
+import { formatThaiDateTime, getScoreTierInfo } from "@/shared/lib/utils";
 
 const numberFormatter = new Intl.NumberFormat("en-US");
 
 export function HistoryRow({ game }: { game: GameHistoryItem }) {
+  const tierInfo = getScoreTierInfo(
+    game.grade ?? (game.totalScore !== null ? game.totalScore : null),
+  );
+
   return (
     <li className="flex flex-col gap-4 rounded-2xl border border-surface-border bg-surface-overlay p-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
       <div className="min-w-0 space-y-2">
@@ -12,6 +16,14 @@ export function HistoryRow({ game }: { game: GameHistoryItem }) {
           <span className={`rounded-md px-2 py-1 text-xs font-semibold ${game.status === "COMPLETED" ? "bg-emerald-400/10 text-emerald-300" : "bg-amber-400/10 text-amber-300"}`}>
             {game.status === "COMPLETED" ? "เล่นจบแล้ว" : "ออกกลางคัน"}
           </span>
+          {tierInfo && (
+            <span
+              data-testid="rank-tier"
+              className={`rounded-md border px-2 py-1 text-xs font-bold ${tierInfo.badgeClassName}`}
+            >
+              ระดับ {tierInfo.tier}
+            </span>
+          )}
         </div>
         <p className="flex items-center gap-1.5 text-xs text-surface-muted sm:text-sm">
           <AccessTimeOutlinedIcon sx={{ fontSize: "1rem" }} aria-hidden="true" />

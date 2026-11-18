@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { calculateRoundScore, calculateTimeBonus, calculateGameSummary } from "@/shared/lib/game-scoring";
+import {
+  calculateGameSummary,
+  calculateRoundScore,
+  calculateScoreTier,
+  calculateTimeBonus,
+  getScoreTierInfo,
+  SCORE_TIERS,
+} from "@/shared/lib/game-scoring";
 
 describe("game scoring", () => {
   it.each([
@@ -53,6 +60,56 @@ describe("game scoring", () => {
   it("keeps the full earned bonus visible when only part fits below 5000", () => {
     const rounds = Array.from({ length: 5 }, () => ({ score: 980, playTimeSeconds: 0 }));
     expect(calculateGameSummary(rounds, 5000)).toEqual({ baseScore: 4900, totalTimeSeconds: 0, bonusScore: 300, totalScore: 5000 });
+  });
+
+  describe("calculateScoreTier", () => {
+    it.each([
+      [5000, "SSS"],
+      [4750, "SSS"],
+      [4749, "S"],
+      [4200, "S"],
+      [4199, "A"],
+      [3350, "A"],
+      [3349, "B"],
+      [2500, "B"],
+      [2499, "C"],
+      [1650, "C"],
+      [1649, "D"],
+      [1000, "D"],
+      [0, "D"],
+      [-10, "D"],
+    ])("classifies score %s into tier %s", (score, expectedTier) => {
+      expect(calculateScoreTier(score)).toBe(expectedTier);
+    });
+
+    it("handles non-number or NaN gracefully", () => {
+      expect(calculateScoreTier(Number.NaN)).toBe("D");
+    });
+  });
+
+  describe("getScoreTierInfo", () => {
+    it("returns null for null or undefined", () => {
+      expect(getScoreTierInfo(null)).toBeNull();
+      expect(getScoreTierInfo(undefined)).toBeNull();
+    });
+
+    it("returns TierInfo from numeric score", () => {
+      const info = getScoreTierInfo(4800);
+      expect(info?.tier).toBe("SSS");
+      expect(info?.minScore).toBe(4750);
+      expect(info?.maxScore).toBe(5000);
+    });
+
+    it("returns TierInfo from tier string", () => {
+      const info = getScoreTierInfo("A");
+      expect(info).toEqual(SCORE_TIERS.A);
+    });
+
+    it("returns D tier info for 0 score", () => {
+      const info = getScoreTierInfo(0);
+      expect(info?.tier).toBe("D");
+      expect(info?.minScore).toBe(0);
+    });
   });
 
 });
