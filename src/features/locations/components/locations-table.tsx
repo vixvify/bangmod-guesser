@@ -13,21 +13,12 @@ import TableRow from "@mui/material/TableRow";
 import Link from "next/link";
 import { LocationStatus, type Location } from "@/features/locations/location";
 import { AppRoutes } from "@/shared/routes/routes";
+import { TableBadge } from "@/shared/components/ui/table-badge";
 
 type LocationsTableProps = {
   locations: Location[];
   startIndex?: number;
   onDelete: (location: Location) => void;
-};
-
-const badgeClass =
-  "inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-semibold whitespace-nowrap";
-
-const statusClasses = {
-  [LocationStatus.ACTIVE]:
-    "border-emerald-200 bg-emerald-50 text-emerald-800",
-  [LocationStatus.INACTIVE]:
-    "border-slate-200 bg-slate-100 text-slate-700",
 };
 
 export function LocationsTable({
@@ -71,7 +62,7 @@ export function LocationsTable({
           <TableRow>
             <TableCell sx={{ width: "5rem" }}>ลำดับ</TableCell>
             <TableCell>ชื่อสถานที่</TableCell>
-            <TableCell sx={{ width: "9rem" }}>สถานะ</TableCell>
+            <TableCell align="center" sx={{ width: "9rem" }}>สถานะ</TableCell>
             <TableCell sx={{ width: "9rem" }}>จำนวนภาพ</TableCell>
             <TableCell sx={{ width: "7rem" }}>จัดการ</TableCell>
           </TableRow>
@@ -101,16 +92,12 @@ export function LocationsTable({
                 {location.name}
               </TableCell>
 
-              <TableCell>
-                <span
-                  className={`${badgeClass} ${
-                    statusClasses[location.status ?? LocationStatus.INACTIVE]
-                  }`}
-                >
-                  {location.status === LocationStatus.ACTIVE
-                    ? "เปิดใช้งาน"
-                    : "ปิดใช้งาน"}
-                </span>
+              <TableCell align="center">
+                {location.status === LocationStatus.ACTIVE ? (
+                  <TableBadge tone="positive">เปิดใช้งาน</TableBadge>
+                ) : (
+                  <TableBadge tone="negative">ปิดใช้งาน</TableBadge>
+                )}
               </TableCell>
 
               <TableCell sx={{ fontVariantNumeric: "tabular-nums" }}>

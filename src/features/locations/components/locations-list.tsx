@@ -149,21 +149,19 @@ export function LocationsList({
               size="small"
             />
           </div>
-          <label className="flex w-full flex-col gap-1 text-xs font-medium text-surface-muted sm:w-auto">
-            กรองตามสถานะ
-            <Dropdown
-              id="location-status-filter"
-              aria-label="กรองตามสถานะ"
-              value={status ?? "ALL"}
-              onChange={changeStatus}
-              options={[
-                { value: "ALL", label: "ทั้งหมด" },
-                { value: LocationStatus.ACTIVE, label: "เปิดใช้งาน" },
-                { value: LocationStatus.INACTIVE, label: "ปิดใช้งาน" },
-              ]}
-              className="min-w-36"
-            />
-          </label>
+          <Dropdown
+            theme="dark"
+            id="location-status-filter"
+            label="กรองตามสถานะ"
+            value={status ?? "ALL"}
+            onChange={changeStatus}
+            options={[
+              { value: "ALL", label: "ทั้งหมด" },
+              { value: LocationStatus.ACTIVE, label: "เปิดใช้งาน" },
+              { value: LocationStatus.INACTIVE, label: "ปิดใช้งาน" },
+            ]}
+            className="w-full sm:w-40 sm:shrink-0"
+          />
           <Button
             href={AppRoutes.adminLocationCreate}
             variant="primary"

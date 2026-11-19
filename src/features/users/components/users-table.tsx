@@ -10,7 +10,8 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-import { UserRole, type UserAccount, type UserStatus } from "@/features/users/user";
+import { UserRole, type UserAccount } from "@/features/users/user";
+import { TableBadge } from "@/shared/components/ui/table-badge";
 
 type UsersTableProps = {
   users: UserAccount[];
@@ -19,34 +20,10 @@ type UsersTableProps = {
   onDelete: (user: UserAccount) => void;
 };
 
-const statusLabels: Record<UserStatus, string> = {
-  ACTIVE: "ปกติ",
-  SUSPENDED: "ระงับถาวร",
-};
-
-const badgeClass =
-  "inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-semibold whitespace-nowrap";
-const roleClasses = {
-  [UserRole.ADMIN]: "border-primary-main/30 bg-primary-main/10 text-primary-light",
-  [UserRole.USER]: "border-surface-border bg-surface-control text-surface-muted",
-};
-const statusClasses: Record<UserStatus, string> = {
-  ACTIVE: "border-emerald-400/30 bg-emerald-400/10 text-emerald-200",
-  SUSPENDED: "border-rose-400/30 bg-rose-400/10 text-rose-200",
-};
-
 function getStatusDisplay(user: UserAccount) {
-  if (user.status === "SUSPENDED" && user.suspension.endDate) {
-    return {
-      label: "ระงับชั่วคราว",
-      className: "border-amber-400/30 bg-amber-400/10 text-amber-200",
-    };
-  }
-
-  return {
-    label: statusLabels[user.status],
-    className: statusClasses[user.status],
-  };
+  if (user.status === "ACTIVE") return { label: "ปกติ", tone: "positive" } as const;
+  if (user.suspension.endDate) return { label: "ระงับชั่วคราว", tone: "caution" } as const;
+  return { label: "ระงับถาวร", tone: "negative" } as const;
 }
 
 export function UsersTable({ users, startIndex = 0, onEdit, onDelete }: UsersTableProps) {
@@ -108,14 +85,12 @@ export function UsersTable({ users, startIndex = 0, onEdit, onDelete }: UsersTab
               </TableCell>
               <TableCell>
                 <div className="flex flex-wrap gap-2">
-                  <span className={`${badgeClass} ${roleClasses[user.role]}`}>
+                  <TableBadge tone={user.role === UserRole.ADMIN ? "accent" : "neutral"}>
                     {user.role === UserRole.ADMIN ? "ผู้ดูแล" : "ผู้เล่น"}
-                  </span>
-                  <span
-                    className={`${badgeClass} ${statusDisplay.className}`}
-                  >
+                  </TableBadge>
+                  <TableBadge tone={statusDisplay.tone}>
                     {statusDisplay.label}
-                  </span>
+                  </TableBadge>
                 </div>
               </TableCell>
               <TableCell sx={{ fontVariantNumeric: "tabular-nums" }}>

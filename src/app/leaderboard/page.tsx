@@ -7,6 +7,7 @@ import { requireAuth } from "@/features/auth/server/auth-check";
 export default async function LeaderboardPage() {
   const user = await requireAuth();
   const { entries, myRank } = await leaderboardService.getLeaderboard(user.id);
+  const leadingScore = entries[0]?.totalScore;
 
   return (
     <MainLayout
@@ -19,7 +20,7 @@ export default async function LeaderboardPage() {
         aria-labelledby="leaderboard-title"
         className="flex min-h-[calc(100svh-12rem)] flex-col rounded-3xl border border-surface-border bg-linear-to-b from-primary-main/10 via-surface-overlay to-surface-overlay p-4 shadow-2xl shadow-black/20 sm:p-6 lg:p-9"
       >
-        <header>
+        <header className="leaderboard-heading relative isolate overflow-hidden rounded-2xl border border-surface-border px-5 py-5 sm:px-7 sm:py-8">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-rank-gold">
             Leaderboard · Top 10
           </p>
@@ -46,7 +47,7 @@ export default async function LeaderboardPage() {
               <ol start={4} aria-label={`อันดับ 4 ถึง ${entries.length}`} className="mt-5 space-y-2">
                 {entries.slice(3).map((entry) => (
                   <li key={entry.rank}>
-                    <LeaderboardRow entry={entry} />
+                    <LeaderboardRow entry={entry} leadingScore={leadingScore} />
                   </li>
                 ))}
               </ol>
@@ -59,7 +60,7 @@ export default async function LeaderboardPage() {
           className="sticky bottom-4 z-20 mt-auto pt-5"
         >
           {myRank ? (
-            <LeaderboardRow entry={myRank} current />
+            <LeaderboardRow entry={myRank} current leadingScore={leadingScore} />
           ) : (
             <p className="rounded-xl border border-primary-main bg-leaderboard-self px-5 py-4 text-center text-surface-text shadow-xl shadow-black/50">
               {user.name} ยังไม่มีอันดับ เล่นเกมให้จบเพื่อเริ่มสะสมคะแนน

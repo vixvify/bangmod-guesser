@@ -2,9 +2,11 @@
 
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
 import FormControl from "@mui/material/FormControl";
+import FormLabel from "@mui/material/FormLabel";
 import MenuItem from "@mui/material/MenuItem";
 import Select, { type SelectChangeEvent } from "@mui/material/Select";
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
+import { fieldLabelSx, smallFieldHeight } from "./field-styles";
 
 export type DropdownOption<T extends string = string> = {
   value: T;
@@ -13,6 +15,7 @@ export type DropdownOption<T extends string = string> = {
 
 export type DropdownProps<T extends string = string> = {
   id?: string;
+  label?: string;
   value: T;
   options: readonly DropdownOption<T>[] | DropdownOption<T>[];
   onChange: (value: T) => void;
@@ -24,6 +27,7 @@ export type DropdownProps<T extends string = string> = {
 
 export function Dropdown<T extends string = string>({
   id,
+  label,
   value,
   options,
   onChange,
@@ -33,20 +37,29 @@ export function Dropdown<T extends string = string>({
   "aria-label": ariaLabel,
 }: DropdownProps<T>) {
   const isDark = theme === "dark";
+  const generatedId = useId();
+  const labelId = label ? `${id ?? generatedId}-label` : undefined;
   const handleChange = (event: SelectChangeEvent<string>) => {
     onChange(event.target.value as T);
   };
 
   return (
     <FormControl size="small" className={className} disabled={disabled}>
+      {label && (
+        <FormLabel id={labelId} sx={fieldLabelSx(isDark)}>
+          {label}
+        </FormLabel>
+      )}
       <Select
         id={id}
+        labelId={labelId}
         value={value}
         onChange={handleChange}
         inputProps={{ "aria-label": ariaLabel }}
         IconComponent={KeyboardArrowDownRoundedIcon}
         sx={{
-          borderRadius: "0.5rem",
+          minHeight: smallFieldHeight,
+          borderRadius: "0.75rem",
           backgroundColor: isDark ? "var(--color-surface-control)" : "#ffffff",
           color: isDark ? "var(--color-surface-text)" : "var(--color-secondary-dark)",
           fontFamily: "inherit",
@@ -63,8 +76,8 @@ export function Dropdown<T extends string = string>({
             borderWidth: "0.0625rem",
           },
           "& .MuiSelect-select": {
-            paddingTop: "0.4rem",
-            paddingBottom: "0.4rem",
+            paddingTop: "0.5rem",
+            paddingBottom: "0.5rem",
             paddingLeft: "0.875rem",
             paddingRight: "2rem",
           },

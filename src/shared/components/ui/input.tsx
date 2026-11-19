@@ -10,6 +10,7 @@ import InputAdornment from "@mui/material/InputAdornment";
 import OutlinedInput, { type OutlinedInputProps } from "@mui/material/OutlinedInput";
 import { useState } from "react";
 import type { ReactNode, Ref } from "react";
+import { fieldLabelSx, smallFieldHeight } from "./field-styles";
 
 type InputProps = Omit<
   OutlinedInputProps,
@@ -43,14 +44,7 @@ export function Input({
     <FormControl fullWidth error={Boolean(error)}>
       <FormLabel
         htmlFor={id}
-        sx={{
-          mb: "0.5rem",
-          color: isDark ? "var(--color-surface-text)" : "var(--color-form-label)",
-          fontFamily: "var(--font-prompt), sans-serif",
-          fontSize: "0.875rem",
-          fontWeight: 700,
-          "&.Mui-focused": { color: isDark ? "var(--color-primary-light)" : "var(--color-form-label)" },
-        }}
+        sx={fieldLabelSx(isDark)}
       >
         {label}
       </FormLabel>
@@ -97,7 +91,7 @@ export function Input({
           ) : null
         }
         sx={{
-          minHeight: size === "small" ? "2.5rem" : "3.25rem",
+          minHeight: size === "small" ? smallFieldHeight : "3.25rem",
           borderRadius: "0.75rem",
           backgroundColor: isDark ? "var(--color-surface-control)" : "#fff",
           color: isDark ? "var(--color-surface-text)" : "var(--color-secondary-dark)",

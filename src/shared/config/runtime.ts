@@ -38,6 +38,7 @@ const ResendEnvironmentSchema = z.object({
 });
 
 const InitialAdminEmailSchema = z.string().trim().toLowerCase().email();
+const NEON_TIMEOUT_SECONDS = 15;
 
 export type R2Config = z.infer<typeof R2EnvironmentSchema>;
 export type ResendConfig = z.infer<typeof ResendEnvironmentSchema>;
@@ -68,6 +69,24 @@ function getApiUrl() {
   }
 
   return result.data.url;
+}
+
+function getDatabaseUrl(): string | undefined {
+  const value = process.env.DATABASE_URL;
+  if (!value || !URL.canParse(value)) return value;
+
+  const url = new URL(value);
+  if (!url.hostname.endsWith(".neon.tech")) return value;
+
+  for (const parameter of ["connect_timeout", "pool_timeout"]) {
+    const configured = Number(url.searchParams.get(parameter) || NaN);
+    if (!Number.isInteger(configured) || configured < 0 ||
+      (configured > 0 && configured < NEON_TIMEOUT_SECONDS)) {
+      url.searchParams.set(parameter, String(NEON_TIMEOUT_SECONDS));
+    }
+  }
+
+  return url.toString();
 }
 
 function getAuthSecret() {
@@ -153,6 +172,10 @@ export const config = {
   },
   get apiUrl() {
     return getApiUrl();
+  },
+
+  get databaseUrl() {
+    return getDatabaseUrl();
   },
 
   get authSecret() {
