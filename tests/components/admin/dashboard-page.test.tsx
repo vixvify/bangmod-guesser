@@ -44,6 +44,12 @@ describe("admin dashboard", () => {
     expect(screen.queryByRole("dialog", { name: "รายละเอียดเกม" })).toBeNull();
   });
 
+  it("shows a tooltip when hovering over the game details icon", async () => {
+    await renderDashboard();
+    fireEvent.mouseOver(screen.getByRole("button", { name: "ดูรายละเอียดเกม game-1" }));
+    expect((await screen.findByRole("tooltip")).textContent).toBe("ดูรายละเอียดเกม");
+  });
+
   it("displays the bonus and total in separate cards", async () => {
     const [game] = dashboardSummary.games.items;
     getDashboard.mockResolvedValueOnce({

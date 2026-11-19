@@ -141,7 +141,6 @@ export function Navbar({
             aria-haspopup="dialog"
             className={styles.navButton}
             aria-label="ตั้งค่าเกม"
-            title="ตั้งค่าเกม"
           >
             <SettingsOutlinedIcon />
           </Button>
@@ -165,7 +164,6 @@ export function Navbar({
             variant="surface"
             size="icon"
             aria-label="อันดับผู้เล่น"
-            title="อันดับผู้เล่น"
           >
             <LeaderboardOutlinedIcon />
           </Button>
@@ -191,7 +189,6 @@ export function Navbar({
                 variant="surface"
                 size="icon"
                 aria-label={`โปรไฟล์ของ ${user.name}`}
-                title={`โปรไฟล์ของ ${user.name}`}
               >
                 <PersonOutlineIcon />
               </Button>

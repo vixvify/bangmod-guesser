@@ -3,6 +3,7 @@
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import Avatar from "@mui/material/Avatar";
 import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -88,24 +89,25 @@ export function ProfileCard({
             {username}
           </h1>
           {isOwner && (
-            <IconButton
-              size="small"
-              aria-label="แก้ไขชื่อผู้ใช้"
-              title="แก้ไขชื่อผู้ใช้"
-              onClick={() => {
-                playSoundEffect("click");
-                setIsEditOpen(true);
-              }}
-              sx={{
-                color: "var(--color-primary-light)",
-                "&:hover": {
-                  backgroundColor:
-                    "color-mix(in srgb, var(--color-primary-main) 12%, transparent)",
-                },
-              }}
-            >
-              <EditOutlinedIcon fontSize="small" />
-            </IconButton>
+            <Tooltip title="แก้ไขชื่อผู้ใช้">
+              <IconButton
+                size="small"
+                aria-label="แก้ไขชื่อผู้ใช้"
+                onClick={() => {
+                  playSoundEffect("click");
+                  setIsEditOpen(true);
+                }}
+                sx={{
+                  color: "var(--color-primary-light)",
+                  "&:hover": {
+                    backgroundColor:
+                      "color-mix(in srgb, var(--color-primary-main) 12%, transparent)",
+                  },
+                }}
+              >
+                <EditOutlinedIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
           )}
         </div>
         {isOwner && profile.email && (

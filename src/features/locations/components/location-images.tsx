@@ -4,6 +4,7 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import FileUploadOutlinedIcon from "@mui/icons-material/FileUploadOutlined";
 import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/shared/components/ui/button";
@@ -150,14 +151,16 @@ export function LocationImages({
           <div key={image.key} className="min-w-0">
             <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-surface-border bg-surface-control">
               <Image src={image.url} alt={`รูปสถานที่ ${index + 1}`} fill sizes="(max-width: 640px) 45vw, 14rem" className="object-cover" unoptimized />
-              <IconButton
-                aria-label={image.removeLabel}
-                onClick={image.remove}
-                size="small"
-                sx={{ position: "absolute", top: "0.375rem", right: "0.375rem", bgcolor: "var(--color-secondary-main)", color: "var(--color-surface-text)", "&:hover": { bgcolor: "var(--color-surface-control-hover)" } }}
-              >
-                <CloseRoundedIcon fontSize="small" />
-              </IconButton>
+              <Tooltip title={image.removeLabel}>
+                <IconButton
+                  aria-label={image.removeLabel}
+                  onClick={image.remove}
+                  size="small"
+                  sx={{ position: "absolute", top: "0.375rem", right: "0.375rem", bgcolor: "var(--color-secondary-main)", color: "var(--color-surface-text)", "&:hover": { bgcolor: "var(--color-surface-control-hover)" } }}
+                >
+                  <CloseRoundedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
             </div>
             <p className="mt-1 truncate text-xs text-surface-muted" title={image.label}>{image.label}</p>
           </div>

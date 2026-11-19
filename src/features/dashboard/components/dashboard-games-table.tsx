@@ -2,6 +2,7 @@
 
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -69,13 +70,15 @@ export function DashboardGamesTable({
                   {formatThaiNumericDate(game.startedAt)}
                 </TableCell>
                 <TableCell align="center">
-                  <IconButton
-                    aria-label={`ดูรายละเอียดเกม ${game.id}`}
-                    onClick={() => onView(game)}
-                    size="small"
-                  >
-                    <VisibilityOutlinedIcon fontSize="small" />
-                  </IconButton>
+                  <Tooltip title="ดูรายละเอียดเกม">
+                    <IconButton
+                      aria-label={`ดูรายละเอียดเกม ${game.id}`}
+                      onClick={() => onView(game)}
+                      size="small"
+                    >
+                      <VisibilityOutlinedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
                 </TableCell>
               </TableRow>
           ))}

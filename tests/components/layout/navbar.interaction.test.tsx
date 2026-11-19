@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { cleanup, fireEvent, render, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { UserRole } from "@/features/users/user";
 import { SETTINGS_MESSAGES } from "@/features/settings/settings.constants";
@@ -65,6 +66,17 @@ describe("Navbar logout", () => {
       }
       return Promise.resolve({ data: {} });
     });
+  });
+
+  it("shows the settings tooltip when reached by keyboard", async () => {
+    const keyboard = userEvent.setup();
+    const { getByRole, findByRole } = render(<Navbar user={user} />);
+
+    await keyboard.tab();
+    await keyboard.tab();
+
+    expect(document.activeElement).toBe(getByRole("button", { name: SETTINGS_MESSAGES.title }));
+    expect((await findByRole("tooltip")).textContent).toBe(SETTINGS_MESSAGES.title);
   });
 
   it("opens a confirmation dialog and leaves the user signed in when cancelled", async () => {
