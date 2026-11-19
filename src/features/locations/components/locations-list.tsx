@@ -144,6 +144,7 @@ export function LocationsList({
               label="ค้นหาสถานที่"
               placeholder="เช่น CB2, หอสมุด"
               value={searchInput}
+              onClear={() => setSearchInput("")}
               onChange={(event) => setSearchInput(event.target.value)}
               icon={<SearchRoundedIcon fontSize="small" />}
               size="small"

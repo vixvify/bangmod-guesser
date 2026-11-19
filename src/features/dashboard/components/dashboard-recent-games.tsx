@@ -93,6 +93,10 @@ export function DashboardRecentGames({
             placeholder="ชื่อผู้ใช้ หรือ Game ID"
             icon={<SearchRoundedIcon />}
             value={search}
+            onClear={() => {
+              setSearch("");
+              setPage(1);
+            }}
             onChange={(event) => {
               setSearch(event.target.value);
               setPage(1);

@@ -44,6 +44,8 @@
   --color-surface-control: rgb(255 255 255 / 7%);
   --color-surface-control-hover: rgb(255 255 255 / 12%);
   --color-surface-control-border: rgb(255 255 255 / 22%);
+  --color-surface-disabled: color-mix(in srgb, var(--color-secondary-main) 60%, black);
+  --color-surface-disabled-text: color-mix(in srgb, var(--color-surface-muted) 72%, var(--color-secondary-main));
   --color-surface-placeholder: rgb(255 255 255 / 55%);
   --color-surface-hover: #d1d5db;
   --font-display: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ProfileCard } from "@/features/profile/components/profile-card";
 import { UserRole, type User } from "@/features/users/user";
@@ -83,7 +83,6 @@ describe("ProfileCard", () => {
 
     const input = screen.getByRole("textbox", { name: "ชื่อผู้ใช้" });
     expect(input.closest(".MuiOutlinedInput-root")).toBeTruthy();
-    expect(input.getAttribute("maxLength")).toBe("50");
     fireEvent.change(input, { target: { value: "  Bangmod Player  " } });
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "บันทึก" }).hasAttribute("disabled")).toBe(false),
@@ -114,6 +113,11 @@ describe("ProfileCard", () => {
     expect(screen.getByRole("button", { name: "บันทึก" }).hasAttribute("disabled")).toBe(true);
     expect(screen.getByRole("textbox", { name: "ชื่อผู้ใช้" })).toBeTruthy();
     expect(updateUserMock).not.toHaveBeenCalled();
+    fireEvent.change(screen.getByRole("textbox", { name: "ชื่อผู้ใช้" }), {
+      target: { value: "a".repeat(51) },
+    });
+    expect(await screen.findByText("ชื่อผู้ใช้ต้องไม่เกิน 50 ตัวอักษร")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "บันทึก" }).hasAttribute("disabled")).toBe(true);
     fireEvent.change(screen.getByRole("textbox", { name: "ชื่อผู้ใช้" }), {
       target: { value: "New name" },
     });
@@ -195,18 +199,32 @@ describe("ProfileCard", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
   });
 
-  it("restores the previous username when editing is cancelled with Escape", async () => {
+  it.each(["Escape", "backdrop", "cancel button"])("asks before discarding an edited username via %s", async (method) => {
     render(<ProfileCard profile={profile} />);
     fireEvent.click(screen.getByRole("button", { name: "แก้ไขชื่อผู้ใช้" }));
     fireEvent.change(screen.getByRole("textbox", { name: "ชื่อผู้ใช้" }), {
       target: { value: "Unsaved" },
     });
-    fireEvent.keyDown(screen.getByRole("textbox", { name: "ชื่อผู้ใช้" }), {
-      key: "Escape",
-    });
+    function requestClose() {
+      if (method === "Escape") {
+        fireEvent.keyDown(screen.getByRole("textbox", { name: "ชื่อผู้ใช้" }), { key: "Escape" });
+      } else if (method === "backdrop") {
+        fireEvent.click(document.querySelector(".MuiBackdrop-root")!);
+      } else {
+        fireEvent.click(screen.getByRole("button", { name: "ยกเลิก" }));
+      }
+    }
 
+    requestClose();
+    const confirmation = screen.getByRole("dialog", { name: "ยกเลิกการแก้ไข?" });
+    fireEvent.click(within(confirmation).getByRole("button", { name: "กลับไปแก้ไข" }));
+    expect(screen.getByRole("textbox", { name: "ชื่อผู้ใช้" })).toHaveProperty("value", "Unsaved");
+
+    requestClose();
+    fireEvent.click(screen.getByRole("button", { name: "ออกโดยไม่บันทึก" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     expect(screen.getByRole("heading", { name: "Username" })).toBeTruthy();
+    expect(updateUserMock).not.toHaveBeenCalled();
   });
 
   it("shows a labeled edit form and discards changes when cancelled", async () => {
@@ -218,6 +236,7 @@ describe("ProfileCard", () => {
       target: { value: "Unsaved" },
     });
     fireEvent.click(screen.getByRole("button", { name: "ยกเลิก" }));
+    fireEvent.click(screen.getByRole("button", { name: "ออกโดยไม่บันทึก" }));
 
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     expect(screen.getByRole("heading", { name: "Username" })).toBeTruthy();

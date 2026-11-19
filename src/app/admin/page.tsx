@@ -40,8 +40,9 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       </header>
       <div className="mb-5 flex justify-start sm:justify-end">
         <DashboardFilters
-          key={`${dashboard.period.startDate}:${dashboard.period.endDate}`}
+          key={`${query.startDate ?? ""}:${query.endDate ?? ""}`}
           period={dashboard.period}
+          hasDateFilter={Boolean(query.startDate && query.endDate)}
         />
       </div>
       <DashboardStats summary={dashboard} />

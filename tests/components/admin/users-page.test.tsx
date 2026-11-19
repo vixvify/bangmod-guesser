@@ -91,6 +91,7 @@ describe("admin users", () => {
     fireEvent.click(screen.getByRole("button", { name: "แก้ไข vixvify_v" }));
 
     const modal = screen.getByRole("dialog", { name: "แก้ไขผู้ใช้" });
+    expect(within(modal).getByRole("textbox", { name: "อีเมล" })).toHaveProperty("disabled", true);
     const range = within(modal).getByRole("combobox", { name: "ระยะเวลาการระงับ (ไม่บังคับ)" });
     expect(range).toHaveProperty("value", "18 พฤศจิกายน 2026 - 21 พฤศจิกายน 2026");
     expect(within(modal).getByText(/แสดงช่วงเวลาที่เหลือ/)).toBeTruthy();

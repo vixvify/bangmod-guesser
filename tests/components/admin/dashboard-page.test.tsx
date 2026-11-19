@@ -78,6 +78,12 @@ describe("admin dashboard", () => {
     expect(getDashboard).not.toHaveBeenCalled();
   });
 
+  it("clears the selected date range by returning to the default dashboard", async () => {
+    await renderDashboard({ startDate: "2026-10-01", endDate: "2026-10-30" });
+    fireEvent.click(screen.getByRole("button", { name: "ล้างตัวกรอง" }));
+    expect(push).toHaveBeenCalledWith(AppRoutes.admin);
+  });
+
   it("searches recent games through the dashboard API without reloading the page", async () => {
     await renderDashboard();
     fireEvent.change(screen.getByRole("textbox", { name: "ค้นหาเกมหรือผู้เล่น" }), { target: { value: "Player" } });
@@ -86,6 +92,14 @@ describe("admin dashboard", () => {
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     ));
     expect(push).not.toHaveBeenCalled();
+    const search = screen.getByRole("textbox", { name: "ค้นหาเกมหรือผู้เล่น" });
+    fireEvent.click(screen.getByRole("button", { name: "ล้างการค้นหา" }));
+    expect(search).toHaveProperty("value", "");
+    expect(document.activeElement).toBe(search);
+    await waitFor(() => expect(getGames).toHaveBeenLastCalledWith(
+      "/api/dashboard/games?startDate=2026-10-01&endDate=2026-10-30&page=1&pageSize=5",
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    ));
   });
 
   it("shows an empty state when there are no recent games", async () => {

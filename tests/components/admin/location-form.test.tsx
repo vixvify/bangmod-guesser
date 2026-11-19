@@ -66,6 +66,28 @@ afterEach(() => {
 });
 
 describe("location editor", () => {
+  it("highlights the drop area and opens a newly dropped image at full size", async () => {
+    render(<LocationForm onSave={vi.fn()} />);
+    const dropZone = screen.getByText("ลากรูปมาวางที่นี่ หรือเลือกไฟล์").closest("[class*='border-dashed']")!;
+    const dataTransfer = { types: ["Files"], files: [new File(["image"], "campus.jpg", { type: "image/jpeg" })] };
+    fireEvent.dragEnter(dropZone, { dataTransfer });
+    expect(dropZone.classList.contains("border-primary-main")).toBe(true);
+    fireEvent.drop(dropZone, { dataTransfer });
+    expect(dropZone.classList.contains("border-primary-main")).toBe(false);
+
+    fireEvent.click(screen.getByRole("button", { name: "ดูรูปเต็มจอ: campus.jpg" }));
+    const preview = screen.getByRole("dialog", { name: "รูปภาพสถานที่" });
+    expect(within(preview).getByRole("img", { name: "campus.jpg" }).className).toContain("object-contain");
+    fireEvent.click(within(preview).getByRole("button", { name: "ปิดรูปเต็มจอ" }));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "รูปภาพสถานที่" })).toBeNull());
+  });
+
+  it("opens an existing location image at full size while editing", () => {
+    render(<LocationForm location={mockLocations[0]} onSave={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "ดูรูปเต็มจอ: รูปที่ 1" }));
+    const preview = screen.getByRole("dialog", { name: "รูปภาพสถานที่" });
+    expect(within(preview).getByRole("img", { name: "รูปที่ 1" })).toBeTruthy();
+  });
   it.each(["create", "update"])("shows progress in the confirmation while %s is pending", async (mode) => {
     let finish!: () => void;
     const onSave = vi.fn(() => new Promise<void>((resolve) => { finish = resolve; }));

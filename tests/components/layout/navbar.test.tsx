@@ -71,7 +71,7 @@ describe("Navbar", () => {
     expect(markup).not.toContain('aria-current="page"');
   });
 
-  it("shows the brand, settings, leaderboard, and login actions for guests", () => {
+  it("shows the brand, settings, home, leaderboard, and login actions for guests", () => {
     const markup = renderToStaticMarkup(<Navbar user={null} />);
 
     expect(markup).toContain("Bangmod Guesser");
@@ -85,13 +85,13 @@ describe("Navbar", () => {
     expect(markup).toContain("ตั้งค่าเกม");
     expect(markup).toContain('href="/leaderboard"');
     expect(markup).toContain('href="/login"');
-    expect(markup.match(/<(?:button|a)[^>]*class="[^"]*navButton[^"]*"[^>]*>/g)).toHaveLength(2);
+    expect(markup.match(/<(?:button|a)[^>]*class="[^"]*navButton[^"]*"[^>]*>/g)).toHaveLength(3);
     expect(markup).toContain("เข้าสู่ระบบ");
     expect(markup).not.toContain("ออกจากระบบ");
     expect(markup).not.toContain('href="/profile"');
   });
 
-  it("shows settings, leaderboard, profile, and logout actions for authenticated users", () => {
+  it("shows settings, home, leaderboard, profile, and logout actions for authenticated users", () => {
     const markup = renderToStaticMarkup(
       <Navbar
         user={{
@@ -104,7 +104,7 @@ describe("Navbar", () => {
     );
 
     expect(markup).toContain('href="/profile"');
-    expect(markup.match(/<(?:button|a)[^>]*class="[^"]*navButton[^"]*"[^>]*>/g)).toHaveLength(3);
+    expect(markup.match(/<(?:button|a)[^>]*class="[^"]*navButton[^"]*"[^>]*>/g)).toHaveLength(4);
     expect(markup).toContain("โปรไฟล์ของ KMUTT Student");
     expect(markup).toContain('href="/leaderboard"');
     expect(markup).toContain("ออกจากระบบ");
