@@ -77,14 +77,14 @@ export function ProfileHistory({ initialProfile, initialQuery, userId }: Profile
       aria-busy={loading}
       className="player-page-panel mt-5 rounded-3xl border border-surface-border bg-surface-overlay p-4 sm:p-6"
     >
-      <div className="flex flex-col gap-5 rounded-2xl border border-surface-border bg-surface-overlay p-5 sm:flex-row sm:items-start sm:justify-between sm:p-6">
+      <div className="flex flex-col gap-5 rounded-2xl border border-surface-border bg-surface-overlay p-5 sm:p-6 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h2 id="game-history-title" className="text-xl font-bold text-surface-text">
             ประวัติการเล่นเกม
           </h2>
           <p className="text-sm text-primary-light">Game History</p>
         </div>
-        <div className="flex flex-col gap-2 sm:items-end">
+        <div className="flex flex-wrap items-end gap-3 lg:justify-end">
           <DateRangePicker
             key={pickerKey}
             label="เลือกช่วงเวลา"
