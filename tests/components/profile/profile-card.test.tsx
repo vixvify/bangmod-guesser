@@ -60,7 +60,7 @@ describe("ProfileCard", () => {
   it("shows the user's initial when no image is available", () => {
     const { container } = render(<ProfileCard profile={profile} />);
 
-    expect(container.querySelector("section")?.className).toContain("bg-surface-overlay");
+    expect(container.querySelector("section")?.className).toContain("bg-secondary-main/40");
     expect(container.querySelector(".MuiAvatar-root")?.textContent).toBe("U");
     expect(container.querySelector(".MuiAvatar-root img")).toBeNull();
   });

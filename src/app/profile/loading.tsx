@@ -14,7 +14,7 @@ export default function ProfileLoading() {
         <span className="sr-only">กำลังโหลดโปรไฟล์</span>
         <div
           aria-hidden="true"
-          className="player-page-panel flex items-center gap-5 rounded-3xl border border-surface-border bg-surface-overlay p-8"
+          className="player-page-panel flex items-center gap-5 rounded-3xl border border-surface-border bg-secondary-main/40 p-8"
         >
           <Skeleton className="size-20 shrink-0 rounded-full" />
           <div className="flex-1 space-y-3">
