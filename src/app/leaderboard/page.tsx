@@ -14,11 +14,11 @@ export default async function LeaderboardPage() {
       user={user}
       variant="contained"
       brandColor="var(--color-surface-text)"
-      className="relative min-h-svh bg-secondary-main text-surface-text"
+      className="player-page-background relative min-h-svh bg-secondary-main text-surface-text"
     >
       <section
         aria-labelledby="leaderboard-title"
-        className="flex min-h-[calc(100svh-12rem)] flex-col rounded-3xl border border-surface-border bg-linear-to-b from-primary-main/10 via-surface-overlay to-surface-overlay p-4 shadow-2xl shadow-black/20 sm:p-6 lg:p-9"
+        className="player-page-panel flex min-h-[calc(100svh-12rem)] flex-col rounded-3xl border border-surface-border bg-surface-overlay p-4 sm:p-6 lg:p-9"
       >
         <header className="leaderboard-heading relative isolate overflow-hidden rounded-2xl border border-surface-border px-5 py-5 sm:px-7 sm:py-8">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-rank-gold">

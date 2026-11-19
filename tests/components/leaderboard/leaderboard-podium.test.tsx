@@ -12,6 +12,7 @@ describe("LeaderboardPodium", () => {
     expect(markup).toMatch(/data-leaderboard-rank="1"[^>]*class="[^"]*border-rank-gold/);
     expect(markup).toMatch(/data-leaderboard-rank="2"[^>]*class="[^"]*border-rank-silver/);
     expect(markup).toMatch(/data-leaderboard-rank="3"[^>]*class="[^"]*border-rank-bronze/);
+    expect(markup.match(/class="leaderboard-podium-card /g)).toHaveLength(3);
     expect(markup).toContain("bg-rank-gold-card");
     expect(markup).toContain("bg-rank-silver-card");
     expect(markup).toContain("bg-rank-bronze-card");

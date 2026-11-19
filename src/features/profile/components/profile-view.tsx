@@ -29,7 +29,7 @@ export function ProfileView({
       user={viewer}
       variant="contained"
       brandColor="var(--color-surface-text)"
-      className="relative min-h-svh bg-secondary-main text-surface-text"
+      className="player-page-background relative min-h-svh bg-secondary-main text-surface-text"
     >
       <ProfileCard
         profile={

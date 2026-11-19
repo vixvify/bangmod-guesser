@@ -60,6 +60,7 @@ describe("ProfilePage", () => {
     expect(markup).not.toContain("persisted-game");
     expect(markup).not.toContain("#GAME-0001");
     expect(markup).toContain("bg-secondary-main text-surface-text");
+    expect(markup).toContain("player-page-background");
     expect(markup).not.toContain("data-game-backdrop");
     expect(markup).toContain('data-layout-content="contained"');
     expect(markup).toContain("border-surface-border bg-surface-overlay");

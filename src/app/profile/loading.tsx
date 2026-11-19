@@ -14,7 +14,7 @@ export default function ProfileLoading() {
         <span className="sr-only">กำลังโหลดโปรไฟล์</span>
         <div
           aria-hidden="true"
-          className="flex items-center gap-5 rounded-3xl border border-surface-border bg-surface-overlay p-8"
+          className="player-page-panel flex items-center gap-5 rounded-3xl border border-surface-border bg-surface-overlay p-8"
         >
           <Skeleton className="size-20 shrink-0 rounded-full" />
           <div className="flex-1 space-y-3">
@@ -22,7 +22,7 @@ export default function ProfileLoading() {
             <Skeleton className="h-4 w-56 max-w-full" />
           </div>
         </div>
-        <div className="mt-5 rounded-3xl border border-surface-border bg-surface-overlay p-5">
+        <div className="player-page-panel mt-5 rounded-3xl border border-surface-border bg-surface-overlay p-5">
           <Skeleton className="h-7 w-48" />
           <HistorySkeleton />
         </div>

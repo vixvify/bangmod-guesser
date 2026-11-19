@@ -75,7 +75,7 @@ export function ProfileHistory({ initialProfile, initialQuery, userId }: Profile
     <section
       aria-labelledby="game-history-title"
       aria-busy={loading}
-      className="mt-5 rounded-3xl border border-surface-border bg-surface-overlay p-4 shadow-2xl shadow-black/20 sm:p-6"
+      className="player-page-panel mt-5 rounded-3xl border border-surface-border bg-surface-overlay p-4 sm:p-6"
     >
       <div className="flex flex-col gap-5 rounded-2xl border border-surface-border bg-surface-overlay p-5 sm:flex-row sm:items-start sm:justify-between sm:p-6">
         <div>
