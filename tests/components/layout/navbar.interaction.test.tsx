@@ -68,15 +68,22 @@ describe("Navbar logout", () => {
     });
   });
 
-  it("shows the settings tooltip when reached by keyboard", async () => {
+  it("focuses Home before Settings and shows the settings tooltip", async () => {
     const keyboard = userEvent.setup();
     const { getByRole, findByRole } = render(<Navbar user={user} />);
 
     await keyboard.tab();
     await keyboard.tab();
+    expect(document.activeElement).toBe(getByRole("link", { name: "หน้าหลัก" }));
 
+    await keyboard.tab();
     expect(document.activeElement).toBe(getByRole("button", { name: SETTINGS_MESSAGES.title }));
     expect((await findByRole("tooltip")).textContent).toBe(SETTINGS_MESSAGES.title);
+  });
+
+  it("links the home icon to the homepage", () => {
+    const { getByRole } = render(<Navbar user={user} />);
+    expect(getByRole("link", { name: "หน้าหลัก" }).getAttribute("href")).toBe("/");
   });
 
   it("opens a confirmation dialog and leaves the user signed in when cancelled", async () => {

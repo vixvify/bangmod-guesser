@@ -143,11 +143,13 @@ describe("admin location navigation", () => {
     await renderLocations({ search: "missing" });
 
     expect(screen.getByRole("status").textContent).toContain("ไม่พบสถานที่");
-    expect(screen.getByRole("button", { name: "ล้างการค้นหา" })).toBeTruthy();
+    expect(within(screen.getByRole("status")).getByRole("button", { name: "ล้างการค้นหา" })).toBeTruthy();
     expect(screen.queryByRole("table")).toBeNull();
 
     vi.useFakeTimers();
-    fireEvent.click(screen.getByRole("button", { name: "ล้างการค้นหา" }));
+    const search = screen.getByRole("textbox", { name: "ค้นหาสถานที่" });
+    fireEvent.click(within(search.closest(".MuiOutlinedInput-root")!).getByRole("button", { name: "ล้างการค้นหา" }));
+    expect(search).toHaveProperty("value", "");
     await act(async () => { vi.advanceTimersByTime(200); });
     expect(list).toHaveBeenCalledWith("/api/locations");
     expect(push).not.toHaveBeenCalled();

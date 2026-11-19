@@ -141,14 +141,12 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
                     setValueAs: (value: string) => value.trim(),
                   })}
                   error={errors.name?.message}
-                  inputProps={{ maxLength: 50 }}
                 />
                 <Input theme="dark"
                   id="managed-email"
                   label="อีเมล"
                   value={user.email}
                   disabled
-                  readOnly
                   size="small"
                 />
               </div>

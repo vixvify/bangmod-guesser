@@ -6,6 +6,7 @@ import { useState, type MouseEvent } from "react";
 import { ContentContainer } from "@/shared/components/layout/content-container";
 import { useNavigationGuard } from "@/shared/hooks/use-navigation-guard";
 import LeaderboardOutlinedIcon from "@mui/icons-material/LeaderboardOutlined";
+import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import LoginOutlinedIcon from "@mui/icons-material/LoginOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutlineOutlined";
@@ -132,6 +133,22 @@ export function Navbar({
           aria-label="เมนูหลัก"
           className="flex shrink-0 items-center gap-1 sm:gap-2"
         >
+          <Button
+            sound={soundEnabled ? "click" : undefined}
+            href={AppRoutes.home}
+            className={styles.navButton}
+            onClick={(event: MouseEvent<HTMLAnchorElement>) => {
+              if (navigationGuard?.request(() => router.push(AppRoutes.home))) {
+                event.preventDefault();
+              }
+            }}
+            variant="surface"
+            size="icon"
+            aria-label="หน้าหลัก"
+          >
+            <HomeOutlinedIcon />
+          </Button>
+
           <Button
             sound={soundEnabled ? "click" : undefined}
             variant="surface"

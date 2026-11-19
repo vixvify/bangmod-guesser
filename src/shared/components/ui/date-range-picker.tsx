@@ -240,6 +240,12 @@ export function DateRangePicker({
                     backgroundImage: endpointBackground,
                     color: isEndpoint || isBetween ? "var(--color-secondary-dark)" : isDark ? "var(--color-surface-text)" : undefined,
                     borderRadius: radius,
+                    ...(isDark && {
+                      "&.MuiPickerDay-today": {
+                        outlineColor: isEndpoint || isBetween ? "var(--color-secondary-dark)" : "var(--color-primary-light)",
+                        ...(!isEndpoint && !isBetween && { color: "var(--color-primary-light)" }),
+                      },
+                    }),
                     "&.MuiPickerDay-selected": {
                       backgroundColor: isEndpoint ? "transparent" : undefined,
                     },
