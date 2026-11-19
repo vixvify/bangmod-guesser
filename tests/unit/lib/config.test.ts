@@ -3,6 +3,31 @@ import { config } from "@/shared/config/runtime";
 
 afterEach(() => vi.unstubAllEnvs());
 
+describe("database connection configuration", () => {
+  it("allows at least 15 seconds for a Neon connection and pool acquisition", () => {
+    vi.stubEnv("DATABASE_URL", "postgresql://user:pass@ep-test-pooler.us-east-2.aws.neon.tech/app?sslmode=require&connect_timeout=5");
+
+    const { searchParams } = new URL(config.databaseUrl!);
+    expect(searchParams.get("connect_timeout")).toBe("15");
+    expect(searchParams.get("pool_timeout")).toBe("15");
+    expect(searchParams.get("sslmode")).toBe("require");
+  });
+
+  it("honors longer or explicitly unlimited Neon timeouts", () => {
+    const url = "postgresql://user:pass@ep-test.us-east-2.aws.neon.tech/app?connect_timeout=30&pool_timeout=0";
+    vi.stubEnv("DATABASE_URL", url);
+
+    expect(config.databaseUrl).toBe(url);
+  });
+
+  it("leaves local databases on their existing settings", () => {
+    const url = "postgresql://user:pass@localhost:5432/app?connect_timeout=5";
+    vi.stubEnv("DATABASE_URL", url);
+
+    expect(config.databaseUrl).toBe(url);
+  });
+});
+
 describe("rate limit configuration", () => {
   it("rejects incomplete credentials and insecure Redis URLs", () => {
     vi.stubEnv("UPSTASH_REDIS_REST_URL", "http://redis.example.com");

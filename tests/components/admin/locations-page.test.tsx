@@ -97,8 +97,13 @@ describe("admin location navigation", () => {
 
     const table = screen.getByRole("table", { name: "รายชื่อสถานที่" });
 
-    expect(within(table).getByText("เปิดใช้งาน")).toBeTruthy();
-    expect(within(table).getByText("ปิดใช้งาน")).toBeTruthy();
+    const enabled = within(table).getByText("เปิดใช้งาน");
+    const disabled = within(table).getByText("ปิดใช้งาน");
+    expect(within(table).getByRole("columnheader", { name: "สถานะ" }).classList.contains("MuiTableCell-alignCenter")).toBe(true);
+    expect(enabled.closest("td")?.classList.contains("MuiTableCell-alignCenter")).toBe(true);
+    expect(disabled.closest("td")?.classList.contains("MuiTableCell-alignCenter")).toBe(true);
+    expect(enabled.classList.contains("text-emerald-200")).toBe(true);
+    expect(disabled.classList.contains("text-rose-200")).toBe(true);
   });
 
   it("shows a reusable empty state instead of an empty table and pagination", async () => {
@@ -195,9 +200,9 @@ describe("admin location navigation", () => {
       status: LocationStatus.ACTIVE,
     });
 
-    fireEvent.mouseDown(
-      screen.getByRole("combobox", { name: "กรองตามสถานะ" }),
-    );
+    const filter = screen.getByRole("combobox", { name: "กรองตามสถานะ" });
+    expect(getComputedStyle(filter.parentElement!).backgroundColor).not.toBe("rgb(255, 255, 255)");
+    fireEvent.mouseDown(filter);
 
     fireEvent.click(
       await screen.findByRole("option", { name: "ปิดใช้งาน" }),

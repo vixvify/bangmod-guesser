@@ -233,24 +233,22 @@ export function LocationForm(props: LocationFormProps) {
               <p className="text-xs text-surface-muted">
                 ระบุพิกัดของสถานที่ในรูปแบบเลขทศนิยม
               </p>
-              <label className="flex flex-col gap-1 text-xs font-medium text-surface-muted">
-                สถานะสถานที่
-                <Dropdown<LocationStatus>
-                  value={status ?? LocationStatus.ACTIVE}
-                  options={[
-                    { value: LocationStatus.ACTIVE, label: "เปิดใช้งาน" },
-                    { value: LocationStatus.INACTIVE, label: "ปิดใช้งาน" },
-                  ]}
-                  onChange={(value) =>
-                    setValue("status", value, {
-                      shouldDirty: true,
-                      shouldValidate: true,
-                    })
-                  }
-                  aria-label="สถานะสถานที่"
-                  className="w-full"
-                 />
-              </label>
+              <Dropdown<LocationStatus>
+                label="สถานะสถานที่"
+                theme="dark"
+                value={status ?? LocationStatus.ACTIVE}
+                options={[
+                  { value: LocationStatus.ACTIVE, label: "เปิดใช้งาน" },
+                  { value: LocationStatus.INACTIVE, label: "ปิดใช้งาน" },
+                ]}
+                onChange={(value) =>
+                  setValue("status", value, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
+                className="w-full"
+              />
             </div>
           </section>
           <LocationImages

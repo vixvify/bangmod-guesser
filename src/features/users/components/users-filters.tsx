@@ -16,34 +16,30 @@ type UsersFiltersProps = {
 export function UsersFilters({ role, status, onRoleChange, onStatusChange }: UsersFiltersProps) {
   return (
     <div className="flex w-full flex-wrap justify-end gap-3 sm:w-auto">
-      <label className="flex flex-col gap-1 text-xs font-medium text-surface-muted">
-        กรองตามบทบาท
-        <Dropdown<RoleFilter> theme="dark"
-          value={role}
-          options={[
-            { value: "ALL", label: "ทั้งหมด" },
-            { value: UserRole.USER, label: "ผู้เล่น" },
-            { value: UserRole.ADMIN, label: "ผู้ดูแล" },
-          ]}
-          onChange={onRoleChange}
-          aria-label="กรองตามบทบาท"
-          className="min-w-36"
-        />
-      </label>
-      <label className="flex flex-col gap-1 text-xs font-medium text-surface-muted">
-        กรองตามสถานะ
-        <Dropdown<StatusFilter> theme="dark"
-          value={status}
-          options={[
-            { value: "ALL", label: "ทั้งหมด" },
-            { value: "ACTIVE", label: "ปกติ" },
-            { value: "SUSPENDED", label: "ระงับการใช้งาน" },
-          ]}
-          onChange={onStatusChange}
-          aria-label="กรองตามสถานะ"
-          className="min-w-36"
-        />
-      </label>
+      <Dropdown<RoleFilter>
+        label="กรองตามบทบาท"
+        theme="dark"
+        value={role}
+        options={[
+          { value: "ALL", label: "ทั้งหมด" },
+          { value: UserRole.USER, label: "ผู้เล่น" },
+          { value: UserRole.ADMIN, label: "ผู้ดูแล" },
+        ]}
+        onChange={onRoleChange}
+        className="w-full sm:w-40 sm:shrink-0"
+      />
+      <Dropdown<StatusFilter>
+        label="กรองตามสถานะ"
+        theme="dark"
+        value={status}
+        options={[
+          { value: "ALL", label: "ทั้งหมด" },
+          { value: "ACTIVE", label: "ปกติ" },
+          { value: "SUSPENDED", label: "ระงับการใช้งาน" },
+        ]}
+        onChange={onStatusChange}
+        className="w-full sm:w-40 sm:shrink-0"
+      />
     </div>
   );
 }

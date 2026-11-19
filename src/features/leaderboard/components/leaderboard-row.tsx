@@ -8,9 +8,15 @@ import { AppRoutes } from "@/shared/routes/routes";
 type LeaderboardRowProps = {
   entry: LeaderboardEntry;
   current?: boolean;
+  leadingScore?: number;
 };
 
-export function LeaderboardRow({ entry, current = false }: LeaderboardRowProps) {
+export function LeaderboardRow({ entry, current = false, leadingScore = 0 }: LeaderboardRowProps) {
+  const pointsBehind = leadingScore - entry.totalScore;
+  const scorePercent = leadingScore > 0
+    ? Math.max(0, Math.min(100, entry.totalScore / leadingScore * 100))
+    : 0;
+
   return (
     <div
       data-leaderboard-rank={current ? undefined : entry.rank}
@@ -18,7 +24,7 @@ export function LeaderboardRow({ entry, current = false }: LeaderboardRowProps) 
       className={`grid grid-cols-[2rem_2.5rem_minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-l-4 px-3 py-3 sm:grid-cols-[2.5rem_2.75rem_minmax(0,1fr)_auto_auto] sm:gap-4 sm:px-5 ${
         current
           ? "border-primary-main bg-leaderboard-self shadow-xl shadow-black/50"
-          : "border-surface-border border-l-primary-main/40 bg-surface-control"
+          : "border-surface-border border-l-primary-main/40 bg-surface-control transition-colors hover:bg-surface-control-hover focus-within:bg-surface-control-hover"
       }`}
     >
       <span className={`flex size-8 items-center justify-center rounded-lg text-sm font-bold tabular-nums ${current ? "bg-primary-main text-secondary-main" : "bg-primary-main/15 text-primary-light"}`}>
@@ -42,11 +48,26 @@ export function LeaderboardRow({ entry, current = false }: LeaderboardRowProps) 
       <div className="min-w-0">
         {current ? <p className="truncate font-semibold text-surface-text">{entry.name} <span className="text-primary-light">(คุณ)</span></p> : <Link href={AppRoutes.userProfile(entry.userId)} className="block truncate font-semibold text-surface-text hover:text-primary-light" aria-label={`ดูโปรไฟล์ของ ${entry.name}`}>{entry.name}</Link>}
         <p className="text-xs text-surface-muted">เล่นแล้ว {entry.gamesPlayed} เกม</p>
+        {current && pointsBehind > 0 && (
+          <p className="mt-0.5 text-xs text-primary-light">
+            ตามอันดับ 1 อีก {pointsBehind.toLocaleString("en-US")} คะแนน
+          </p>
+        )}
       </div>
-      <p className="text-right font-bold tabular-nums text-primary-light sm:text-lg">
-        {entry.totalScore.toLocaleString("en-US")}
-        <span className="block text-xs font-normal text-surface-muted sm:inline sm:pl-1">คะแนน</span>
-      </p>
+      <div>
+        <p className="text-right font-bold tabular-nums text-primary-light sm:text-lg">
+          {entry.totalScore.toLocaleString("en-US")}
+          <span className="block text-xs font-normal text-surface-muted sm:inline sm:pl-1">คะแนน</span>
+        </p>
+        {leadingScore > 0 && (
+          <div aria-hidden="true" className="ml-auto mt-1.5 h-1 w-full max-w-24 overflow-hidden rounded-full bg-surface-control">
+            <div
+              className="h-full rounded-full bg-linear-to-r from-primary-main to-rank-gold"
+              style={{ width: `${scorePercent}%` }}
+            />
+          </div>
+        )}
+      </div>
       {!current && (
         <Button
           href={AppRoutes.userProfile(entry.userId)}

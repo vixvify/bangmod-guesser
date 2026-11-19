@@ -1,6 +1,8 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
+import { afterAll, describe, expect, it, vi } from "vitest";
 import { UserRole } from "@/features/users/user";
+
+vi.hoisted(() => vi.stubEnv("NEXT_PUBLIC_API_URL", "http://localhost:3000/api"));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
@@ -19,6 +21,8 @@ vi.mock("@/container", () => ({
 import LeaderboardPage from "@/app/leaderboard/page";
 import { leaderboardService } from "@/container";
 import { requireAuth } from "@/features/auth/server/auth-check";
+
+afterAll(() => vi.unstubAllEnvs());
 
 describe("LeaderboardPage", () => {
   it("shows ten persisted ranks and the signed-in player's actual rank at the bottom", async () => {
@@ -50,6 +54,8 @@ describe("LeaderboardPage", () => {
     expect(markup).toContain("10,000");
     expect(markup).toContain("KMUTT Student");
     expect(markup).toContain("2,500");
+    expect(markup).toContain("ตามอันดับ 1 อีก 7,500 คะแนน");
+    expect(markup).toContain('style="width:25%"');
     expect(markup).toContain('data-leaderboard-current="true"');
     expect(markup).toContain("sticky bottom-4");
     expect(markup).toContain("border-l-primary-main/40");
@@ -73,5 +79,6 @@ describe("LeaderboardPage", () => {
     expect(markup).toContain("New Player ยังไม่มีอันดับ");
     expect(markup).not.toContain('data-leaderboard-rank="1"');
     expect(markup).not.toContain('data-leaderboard-current="true"');
+    expect(markup).not.toContain("ตามอันดับ 1");
   });
 });
