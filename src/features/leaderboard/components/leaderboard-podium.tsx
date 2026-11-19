@@ -16,24 +16,21 @@ const positionClasses: Record<number, string> = {
   3: "order-3",
 };
 
-const rankStyles: Record<number, { card: string; badge: string; score: string; color: string }> = {
+const rankStyles: Record<number, { card: string; badge: string; score: string }> = {
   1: {
-    card: "border-rank-gold bg-rank-gold-card shadow-rank-gold/30",
+    card: "border-rank-gold bg-rank-gold-card shadow-rank-gold/30 [--podium-accent:var(--color-rank-gold)]",
     badge: "border-rank-gold bg-rank-gold text-secondary-main",
     score: "text-rank-gold",
-    color: "var(--color-rank-gold)",
   },
   2: {
-    card: "border-rank-silver bg-rank-silver-card shadow-rank-silver/20",
+    card: "border-rank-silver bg-rank-silver-card shadow-rank-silver/20 [--podium-accent:var(--color-rank-silver)]",
     badge: "border-rank-silver bg-rank-silver text-secondary-main",
     score: "text-rank-silver",
-    color: "var(--color-rank-silver)",
   },
   3: {
-    card: "border-rank-bronze bg-rank-bronze-card shadow-rank-bronze/20",
+    card: "border-rank-bronze bg-rank-bronze-card shadow-rank-bronze/20 [--podium-accent:var(--color-rank-bronze)]",
     badge: "border-rank-bronze bg-rank-bronze text-secondary-main",
     score: "text-rank-bronze",
-    color: "var(--color-rank-bronze)",
   },
 };
 
@@ -44,7 +41,7 @@ export function LeaderboardPodium({ entries }: { entries: LeaderboardEntry[] }) 
         <li
           key={entry.rank}
           data-leaderboard-rank={entry.rank}
-          className={`relative flex min-w-0 flex-col items-center justify-center rounded-2xl border-2 border-t-[6px] px-3 py-5 text-center shadow-2xl sm:min-h-56 sm:px-5 sm:pb-6 sm:pt-8 ${rankStyles[entry.rank]?.card ?? "border-surface-border bg-surface-overlay"} ${positionClasses[entry.rank] ?? ""}`}
+          className={`leaderboard-podium-card relative flex min-w-0 flex-col items-center justify-center rounded-2xl border-2 border-t-[6px] px-3 py-5 text-center shadow-2xl sm:min-h-56 sm:px-5 sm:pb-6 sm:pt-8 ${rankStyles[entry.rank]?.card ?? "border-surface-border bg-surface-overlay"} ${positionClasses[entry.rank] ?? ""}`}
         >
           <span className={`absolute -top-4 z-10 inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-sm font-extrabold shadow-lg ${rankStyles[entry.rank]?.badge ?? "border-surface-border bg-secondary-main text-surface-text"}`}>
             {entry.rank === 1 ? (
@@ -62,7 +59,7 @@ export function LeaderboardPodium({ entries }: { entries: LeaderboardEntry[] }) 
               sx={{
                 width: entry.rank === 1 ? { xs: 64, sm: 80 } : { xs: 52, sm: 64 },
                 height: entry.rank === 1 ? { xs: 64, sm: 80 } : { xs: 52, sm: 64 },
-                border: `3px solid ${rankStyles[entry.rank]?.color ?? "var(--color-surface-control-border)"}`,
+                border: "3px solid var(--podium-accent, var(--color-surface-control-border))",
                 backgroundColor: "var(--color-secondary-main)",
                 color: "var(--color-surface-text)",
                 fontWeight: 700,

@@ -61,7 +61,7 @@ export function ProfileCard({
   return (
     <section
       aria-label="ข้อมูลโปรไฟล์"
-      className="flex flex-wrap items-center gap-5 rounded-3xl border border-surface-border bg-surface-overlay p-5 shadow-2xl shadow-black/20 sm:gap-6 sm:p-8"
+      className="player-page-panel flex flex-wrap items-center gap-5 rounded-3xl border border-surface-border bg-surface-overlay p-5 sm:gap-6 sm:p-8"
     >
       <Avatar
         src={getProfileImageUrl(profile.image)}

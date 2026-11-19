@@ -8,7 +8,7 @@ export default function LeaderboardLoading() {
         role="status"
         aria-label="กำลังโหลดอันดับผู้เล่น"
         aria-busy="true"
-        className="min-h-[calc(100svh-12rem)] rounded-3xl border border-surface-border bg-surface-overlay p-4 text-surface-text sm:p-9"
+        className="player-page-panel min-h-[calc(100svh-12rem)] rounded-3xl border border-surface-border bg-surface-overlay p-4 text-surface-text sm:p-9"
       >
         <span className="sr-only">กำลังโหลดอันดับผู้เล่น</span>
         <Skeleton className="h-8 w-48" />
