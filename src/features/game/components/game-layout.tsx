@@ -33,7 +33,6 @@ export function GameLayout({ children, headerCenter, onExit, scrollable = false 
             size="icon"
             onClick={() => setIsSettingsOpen(true)}
             aria-label="ตั้งค่าเกม"
-            title="ตั้งค่าเกม"
           >
             <SettingsOutlinedIcon />
           </Button>

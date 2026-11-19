@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import ButtonBase from "@mui/material/ButtonBase";
+import Tooltip from "@mui/material/Tooltip";
 import type { Theme } from "@mui/material/styles";
 import type { SystemStyleObject } from "@mui/system";
 import type { ButtonHTMLAttributes, ComponentProps, ReactNode } from "react";
@@ -16,6 +17,7 @@ type ButtonSharedProps = {
   size?: ButtonSize;
   variant?: ButtonVariant;
   sound?: SoundEffect;
+  tooltip?: boolean;
 };
 
 type NativeButtonProps = ButtonSharedProps &
@@ -130,15 +132,17 @@ export function Button(props: ButtonProps) {
     size = "default",
     variant = "primary",
     sound,
+    tooltip = size === "icon",
     ...buttonOrLinkProps
   } = props;
   const classes = `group inline-flex items-center justify-center overflow-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-focus ${sizeClasses[size]} ${className}`;
   const sx = [buttonStyles, variantStyles[variant], sizeStyles[size]];
+  const tooltipLabel = tooltip ? buttonOrLinkProps["aria-label"] : undefined;
 
   if ("href" in buttonOrLinkProps) {
     const { href, onClick, ...linkProps } = buttonOrLinkProps;
 
-    return (
+    const link = (
       <ButtonBase
         component={Link}
         href={href}
@@ -153,11 +157,13 @@ export function Button(props: ButtonProps) {
         {children}
       </ButtonBase>
     );
+
+    return tooltipLabel ? <Tooltip title={tooltipLabel}>{link}</Tooltip> : link;
   }
 
   const { type = "button", onClick, ...buttonProps } = buttonOrLinkProps;
 
-  return (
+  const button = (
     <ButtonBase
       type={type}
       className={classes}
@@ -171,4 +177,6 @@ export function Button(props: ButtonProps) {
       {children}
     </ButtonBase>
   );
+
+  return tooltipLabel ? <Tooltip title={tooltipLabel}>{button}</Tooltip> : button;
 }

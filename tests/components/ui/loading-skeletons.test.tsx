@@ -8,6 +8,8 @@ import ProfileLoading from "@/app/profile/loading";
 import LeaderboardLoading from "@/app/leaderboard/loading";
 import UsersLoading from "@/app/admin/users/loading";
 import LocationsLoading from "@/app/admin/locations/loading";
+import CreateLocationLoading from "@/app/admin/locations/create/loading";
+import EditLocationLoading from "@/app/admin/locations/[id]/edit/loading";
 
 afterEach(cleanup);
 
@@ -18,6 +20,8 @@ it.each([
   ["ภาพรวม", DashboardSkeleton, "กำลังโหลดภาพรวมระบบ"],
   ["ผู้ใช้", UsersLoading, "กำลังโหลดผู้ใช้"],
   ["สถานที่", LocationsLoading, "กำลังโหลดสถานที่"],
+  ["ฟอร์มสร้างสถานที่", CreateLocationLoading, "กำลังโหลดฟอร์มสถานที่"],
+  ["ฟอร์มแก้ไขสถานที่", EditLocationLoading, "กำลังโหลดฟอร์มสถานที่"],
 ])("announces loading for %s", (_name, Component, label) => {
   render(<Component />);
   expect(screen.getByRole("status", { name: label }).getAttribute("aria-busy")).toBe("true");

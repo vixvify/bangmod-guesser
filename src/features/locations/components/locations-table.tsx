@@ -3,6 +3,7 @@
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -106,34 +107,38 @@ export function LocationsTable({
 
               <TableCell>
                 <div className="flex items-center gap-1">
-                  <IconButton
-                    component={Link}
-                    href={AppRoutes.adminLocationEdit(location.id)}
-                    aria-label={`แก้ไข ${location.name}`}
-                    size="small"
-                    sx={{
-                      color: "var(--color-surface-text)",
-                      "&:hover": {
-                        color: "var(--color-primary-main)",
-                      },
-                    }}
-                  >
-                    <EditOutlinedIcon fontSize="small" />
-                  </IconButton>
+                  <Tooltip title="แก้ไขสถานที่">
+                    <IconButton
+                      component={Link}
+                      href={AppRoutes.adminLocationEdit(location.id)}
+                      aria-label={`แก้ไข ${location.name}`}
+                      size="small"
+                      sx={{
+                        color: "var(--color-surface-text)",
+                        "&:hover": {
+                          color: "var(--color-primary-main)",
+                        },
+                      }}
+                    >
+                      <EditOutlinedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
 
-                  <IconButton
-                    aria-label={`ลบ ${location.name}`}
-                    onClick={() => onDelete(location)}
-                    size="small"
-                    sx={{
-                      color: "var(--color-surface-text)",
-                      "&:hover": {
-                        color: "#b91c1c",
-                      },
-                    }}
-                  >
-                    <DeleteOutlineRoundedIcon fontSize="small" />
-                  </IconButton>
+                  <Tooltip title="ลบสถานที่">
+                    <IconButton
+                      aria-label={`ลบ ${location.name}`}
+                      onClick={() => onDelete(location)}
+                      size="small"
+                      sx={{
+                        color: "var(--color-surface-text)",
+                        "&:hover": {
+                          color: "#b91c1c",
+                        },
+                      }}
+                    >
+                      <DeleteOutlineRoundedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
                 </div>
               </TableCell>
             </TableRow>

@@ -5,7 +5,8 @@ import { UserRole } from "@/features/users/user";
 import { requireAuth } from "@/features/auth/server/auth-check";
 
 vi.mock("@/features/auth/server/auth-check", () => ({ requireAuth: vi.fn() }));
-vi.mock("next/navigation", () => ({
+vi.mock("next/navigation", async (importOriginal) => ({
+  ...await importOriginal<typeof import("next/navigation")>(),
   useRouter: () => ({ refresh: vi.fn() }),
   usePathname: () => "/admin",
 }));
@@ -19,8 +20,8 @@ describe("AdminLayout", () => {
     expect(markup).toContain('data-layout-content="contained"');
   });
 
-  it("rejects a regular user", async () => {
+  it("shows not-found to a regular user", async () => {
     vi.mocked(requireAuth).mockResolvedValue({ id: "user-1", name: "User", email: "user@kmutt.ac.th", role: UserRole.USER });
-    await expect(AdminLayout({ children: <p>Management content</p> })).rejects.toMatchObject({ status: 403 });
+    await expect(AdminLayout({ children: <p>Management content</p> })).rejects.toMatchObject({ digest: "NEXT_HTTP_ERROR_FALLBACK;404" });
   });
 });

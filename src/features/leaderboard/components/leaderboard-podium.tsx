@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Avatar from "@mui/material/Avatar";
+import Tooltip from "@mui/material/Tooltip";
 import EmojiEventsRoundedIcon from "@mui/icons-material/EmojiEventsRounded";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutlineOutlined";
 import WorkspacePremiumRoundedIcon from "@mui/icons-material/WorkspacePremiumRounded";
@@ -80,15 +81,15 @@ export function LeaderboardPodium({ entries }: { entries: LeaderboardEntry[] }) 
             {entry.totalScore.toLocaleString("en-US")}
           </p>
           <span className="text-xs text-surface-muted">คะแนน</span>
-          <Link
-            href={AppRoutes.userProfile(entry.userId)}
-            aria-label={`ดูโปรไฟล์ของ ${entry.name}`}
-            title={`ดูโปรไฟล์ของ ${entry.name}`}
-            onClick={() => playSoundEffect("click")}
-            className="absolute bottom-2.5 right-2.5 z-10 flex size-8 items-center justify-center rounded-lg border border-surface-border/70 bg-surface-overlay/80 text-surface-muted shadow-sm transition hover:border-surface-control-border hover:bg-surface-control hover:text-surface-text focus-visible:outline-2 focus-visible:outline-primary-focus motion-safe:hover:scale-110 sm:bottom-3 sm:right-3"
-          >
-            <PersonOutlineIcon sx={{ fontSize: { xs: "1rem", sm: "1.125rem" } }} />
-          </Link>
+          <Tooltip title={`ดูโปรไฟล์ของ ${entry.name}`}>
+            <Link
+              href={AppRoutes.userProfile(entry.userId)}
+              onClick={() => playSoundEffect("click")}
+              className="absolute bottom-2.5 right-2.5 z-10 flex size-8 items-center justify-center rounded-lg border border-surface-border/70 bg-surface-overlay/80 text-surface-muted shadow-sm transition hover:border-surface-control-border hover:bg-surface-control hover:text-surface-text focus-visible:outline-2 focus-visible:outline-primary-focus motion-safe:hover:scale-110 sm:bottom-3 sm:right-3"
+            >
+              <PersonOutlineIcon sx={{ fontSize: { xs: "1rem", sm: "1.125rem" } }} />
+            </Link>
+          </Tooltip>
         </li>
       ))}
     </ol>

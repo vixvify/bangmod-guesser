@@ -3,6 +3,7 @@
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -98,28 +99,32 @@ export function UsersTable({ users, startIndex = 0, onEdit, onDelete }: UsersTab
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
-                  <IconButton
-                    aria-label={`แก้ไข ${user.name}`}
-                    onClick={() => onEdit(user)}
-                    size="small"
-                    sx={{
-                      color: "var(--color-surface-text)",
-                      "&:hover": { color: "var(--color-primary-main)" },
-                    }}
-                  >
-                    <EditOutlinedIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton
-                    aria-label={`ลบ ${user.name}`}
-                    onClick={() => onDelete(user)}
-                    size="small"
-                    sx={{
-                      color: "var(--color-surface-text)",
-                      "&:hover": { color: "#b91c1c" },
-                    }}
-                  >
-                    <DeleteOutlineRoundedIcon fontSize="small" />
-                  </IconButton>
+                  <Tooltip title="แก้ไขผู้ใช้">
+                    <IconButton
+                      aria-label={`แก้ไข ${user.name}`}
+                      onClick={() => onEdit(user)}
+                      size="small"
+                      sx={{
+                        color: "var(--color-surface-text)",
+                        "&:hover": { color: "var(--color-primary-main)" },
+                      }}
+                    >
+                      <EditOutlinedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="ลบผู้ใช้">
+                    <IconButton
+                      aria-label={`ลบ ${user.name}`}
+                      onClick={() => onDelete(user)}
+                      size="small"
+                      sx={{
+                        color: "var(--color-surface-text)",
+                        "&:hover": { color: "#b91c1c" },
+                      }}
+                    >
+                      <DeleteOutlineRoundedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
                 </div>
               </TableCell>
               </TableRow>
