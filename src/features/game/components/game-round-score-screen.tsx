@@ -8,7 +8,7 @@ import { GameEndedModal } from "./game-ended-modal";
 import { GameRoutes } from "@/features/game/game.routes";
 import { GAME_RESULT_MESSAGES } from "@/features/game/game-result.constants";
 import type { CurrentGameRound, GameGuessResult } from "@/features/game/game";
-import { preloadGameImage } from "@/features/game/game-image";
+import { preloadEncryptedRoundImage, preloadGameImage } from "@/features/game/game-image";
 import { httpClient } from "@/shared/lib/http";
 import { AppRoutes } from "@/shared/routes/routes";
 import { useRouter } from "next/navigation";
@@ -59,7 +59,8 @@ export function GameRoundScoreScreen({
         );
         if (data.questionNumber !== questionNumber + 1)
           throw new Error("Unexpected round");
-        await preloadGameImage(data.imageUrl);
+        if (data.imageUrl) await preloadGameImage(data.imageUrl);
+        else await preloadEncryptedRoundImage(gameId, data.questionNumber);
         if (!cancelled) setNextReady(true);
       } catch (error) {
         if (!cancelled && getHttpErrorCode(error) === GAME_ERROR_CODES.ended) {

@@ -26,6 +26,9 @@ test("plays five rounds through the UI and displays the saved summary", async ({
     for (let round = 1; round <= 5; round++) {
       await expect(page.getByRole("timer")).toBeVisible();
       await expect(page.getByText("ข้อที่")).toBeVisible();
+      if (round > 1) {
+        await expect(page.getByRole("img", { name: "สถานที่ในมหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี" })).toHaveAttribute("src", /^blob:/);
+      }
       await page.getByRole("button", { name: "ปักหมุดกลางแผนที่" }).first().click();
       await page.getByRole("button", { name: "ส่งคำตอบ" }).click();
       await expect(page).toHaveURL(new RegExp(`/round-score\\?round=${round}$`));

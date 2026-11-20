@@ -26,7 +26,7 @@ import {
   getHttpErrorStatus,
   getHttpErrorCode,
 } from "@/shared/lib/error-message";
-import { preloadGameImage } from "@/features/game/game-image";
+import { decryptPreloadedRoundImage, preloadEncryptedRoundImage, preloadGameImage } from "@/features/game/game-image";
 
 export function GameSession({ gameId }: { gameId: string }) {
   useGameMusic();
@@ -153,22 +153,34 @@ export function GameSession({ gameId }: { gameId: string }) {
 
   useEffect(() => {
     let cancelled = false;
+    let objectUrl: string | null = null;
     async function loadRound() {
       try {
         const { data } = await httpClient.get<CurrentGameRound>(
           GameRoutes.currentRound(gameId),
         );
         const receivedAt = performance.now();
-        await preloadGameImage(data.imageUrl);
+        if (!data.deadlineAt) {
+          if (data.imageUrl) await preloadGameImage(data.imageUrl);
+          else await preloadEncryptedRoundImage(gameId, data.questionNumber);
+        }
         if (cancelled) return;
         const started = data.deadlineAt ? data : (await httpClient.post<CurrentGameRound>(
           GameRoutes.currentRound(gameId),
           { questionNumber: data.questionNumber },
         )).data;
         const startedReceivedAt = data.deadlineAt ? receivedAt : performance.now();
-        if (!cancelled && started.deadlineAt) {
+        if (!cancelled && started.deadlineAt && started.imageUrl) {
+          const imageUrl = started.imageKey
+            ? await decryptPreloadedRoundImage(gameId, started.questionNumber, started.imageKey, started.imageUrl).catch(() => null)
+            : null;
+          if (cancelled) {
+            if (imageUrl) URL.revokeObjectURL(imageUrl);
+            return;
+          }
+          objectUrl = imageUrl;
           setDeadline(startedReceivedAt + Date.parse(started.deadlineAt) - Date.parse(started.serverTime));
-          setRound(started);
+          setRound({ ...started, imageUrl: imageUrl ?? started.imageUrl });
         }
       } catch (error) {
         if (!cancelled && getHttpErrorStatus(error) === 401) {
@@ -187,6 +199,7 @@ export function GameSession({ gameId }: { gameId: string }) {
     void loadRound();
     return () => {
       cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
   }, [gameId, handleSessionExpired, loadAttempt]);
 

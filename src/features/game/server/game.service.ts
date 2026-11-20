@@ -14,6 +14,7 @@ import {
   calculateGameSummary,
 } from "@/shared/lib/game-scoring";
 import { GameFactory } from "./game.factory";
+import { encryptRoundImage, roundImageKey } from "./round-image";
 import { AppError } from "@/shared/errors/app.error";
 import { haversineDistanceMeters } from "@/shared/lib/calculate-distance";
 
@@ -197,7 +198,24 @@ export class GameService {
     userId: string,
   ): Promise<CurrentGameRound> {
     const round = this.pendingRound(await this.ownedGame(id, userId));
-    return GameFactory.toCurrentRound(round);
+    return this.describeRound(id, round);
+  }
+
+  private describeRound(id: string, round: GamePlayRecord["rounds"][number]): CurrentGameRound {
+    const current = GameFactory.toCurrentRound(round);
+    if (round.questionNumber === 1) return current;
+    if (!current.deadlineAt) {
+      return { questionNumber: current.questionNumber, serverTime: current.serverTime, imageUrl: null, deadlineAt: null };
+    }
+    return { ...current, imageKey: roundImageKey(id, round.questionNumber).toString("base64") };
+  }
+
+  async encryptedRoundImage(id: string, userId: string, questionNumber: number): Promise<Uint8Array<ArrayBuffer>> {
+    const round = this.pendingRound(await this.ownedGame(id, userId));
+    if (questionNumber < 2 || round.questionNumber !== questionNumber || !round.locationImage) {
+      throw new AppError("Round image unavailable", 409);
+    }
+    return encryptRoundImage(round.locationImage.imageUrl, id, questionNumber);
   }
 
   async startRound(id: string, userId: string, questionNumber: number, now = new Date()): Promise<CurrentGameRound> {
@@ -209,7 +227,7 @@ export class GameService {
       round.questionNumber,
       now,
     );
-    return GameFactory.toCurrentRound(this.pendingRound(opened));
+    return this.describeRound(id, this.pendingRound(opened));
   }
 
   async createGame(userId: string, input: CreateGameInput = {}): Promise<{ gameId: string; existing: boolean }> {

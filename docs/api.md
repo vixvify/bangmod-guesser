@@ -330,13 +330,13 @@ If no active game exists, `activeGameId` is `null`.
 
 ### GET `/api/games/{id}/current-round`
 
-Get the image URL and metadata for the current pending round.
+Read the current pending round without starting its timer.
 
 **Auth:** Authenticated | **Rate limit:** `read`
 
 **Path params:** `id` — game ID
 
-The first call for a round records `startedAt` and starts the 40-second timer. Subsequent calls for the same unanswered round return the same deadline; calling after a round is answered returns the next round.
+Only POST opens a round and starts the 40-second timer. GET returns the same deadline for an already-opened round; after an answer is saved, GET returns the next pending round.
 
 The response does **not** include the actual location, coordinates, or answer.
 
@@ -345,17 +345,24 @@ The response does **not** include the actual location, coordinates, or answer.
 {
   "data": {
     "questionNumber": 2,
-    "imageUrl": "https://cdn.example.com/images/abc.webp",
-    "deadlineAt": "2026-11-10T01:00:40.000Z"
-  }
+    "imageUrl": null,
+    "deadlineAt": null,
+    "serverTime": "2026-11-10T01:00:00.000Z"
+  },
+  "status": 200,
+  "statusCode": "SUCCESS"
 }
 ```
 
 | Field | Description |
 |---|---|
 | `questionNumber` | Current round number (1–5), determined by the server |
-| `imageUrl` | Image to display for this round |
+| `imageUrl` | Original image URL for round 1 or an opened round; `null` for unopened rounds 2–5 |
 | `deadlineAt` | `startedAt + 40 s` in ISO 8601 UTC; `null` if the round hasn't been opened yet |
+| `serverTime` | Current server time in ISO 8601 UTC, for calculating the remaining time |
+| `imageKey` | Base64 AES-GCM key for an opened round 2–5; omitted before the round starts and for round 1 |
+
+**Cache:** `Cache-Control: private, no-store`.
 
 **Errors:**
 
@@ -381,7 +388,9 @@ Explicitly open a round by number, starting its timer. Used to avoid race condit
 { "questionNumber": 2 }
 ```
 
-**Response:** `200 OK` — same shape as GET `/api/games/{id}/current-round`
+**Response:** `200 OK` — same shape as GET `/api/games/{id}/current-round`, with the deadline and original image URL. For rounds 2–5 it also includes `imageKey` to decrypt the preloaded image. Reopening the same round does not reset its deadline.
+
+**Cache:** `Cache-Control: private, no-store`.
 
 **Errors:**
 
@@ -391,6 +400,28 @@ Explicitly open a round by number, starting its timer. Used to avoid race condit
 | `403` | Not the game owner |
 | `404` | Game not found |
 | `409` | Requested `questionNumber` does not match the current pending round |
+
+---
+
+### GET `/api/games/{id}/rounds/{questionNumber}/encrypted-image`
+
+Preload the image for the current pending round (2–5). This endpoint does not open the round or disclose the original image URL or decryption key.
+
+**Auth:** Authenticated (game owner) | **Rate limit:** `read`
+
+**Path params:** `id` — game ID; `questionNumber` — current pending round number.
+
+**Response:** `200 OK` with `Content-Type: application/octet-stream` and `Cache-Control: private, no-store`. Unlike the JSON endpoints, the body is raw binary: a 12-byte IV, AES-GCM ciphertext, then a 16-byte authentication tag.
+
+| Status | Reason |
+|---|---|
+| `400` | Invalid path parameters |
+| `401` | Not authenticated |
+| `403` | Not the game owner |
+| `404` | Game not found |
+| `409` | Game is not PLAYING, round is not the pending round, round is 1, or the image is unavailable |
+
+**Client sequence:** Round 1 preloads the original image before the countdown as before. On a score screen, read the next round with GET current-round, then download its encrypted image into tab memory. When the player selects Next Round, POST current-round starts the timer and returns the key. Decrypt locally and display the bytes as a `blob:` URL. If no preloaded copy is available, use the original URL returned after the round is open. See [Game API flow](game-api.md#02-ขอรูปของคำถาม).
 
 ---
 
@@ -1145,6 +1176,7 @@ Get paginated game logs only. Accepts the same query params as `/api/dashboard`.
 | `GET` | `/api/games/active` | Authenticated | `read` |
 | `GET` | `/api/games/{id}/current-round` | Authenticated | `read` |
 | `POST` | `/api/games/{id}/current-round` | Authenticated | `mutation` |
+| `GET` | `/api/games/{id}/rounds/{n}/encrypted-image` | Authenticated | `read` |
 | `POST` | `/api/games/{id}/rounds/{n}/guess` | Authenticated | `mutation` |
 | `GET` | `/api/games/{id}/rounds/{n}/result` | Authenticated | `read` |
 | `GET` | `/api/games/{id}/summary` | Authenticated | `read` |

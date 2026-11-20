@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { webcrypto } from "node:crypto";
+import { readFile } from "node:fs/promises";
 import { AppError } from "@/shared/errors/app.error";
 import { createGameRecord, gameNow } from "../../fixtures/game";
 const { requireAuth, repository } = await vi.hoisted(async () => {
@@ -11,6 +13,7 @@ vi.mock("@/container", async () => {
   return { gameService: new GameService(repository) };
 });
 import { GET, POST } from "@/app/api/games/[id]/current-round/route";
+import { GET as getEncryptedImage } from "@/app/api/games/[id]/rounds/[questionNumber]/encrypted-image/route";
 const request = (id = "game-1") => GET(new Request("http://localhost/api/games/game-1/current-round"), {params: Promise.resolve({id})});
 beforeEach(() => {
   vi.resetAllMocks();
@@ -64,5 +67,44 @@ describe("POST current-round", () => {
   it("rejects an outdated round", async () => {
     expect((await start(2)).status).toBe(409);
     expect(repository.openRound).not.toHaveBeenCalled();
+  });
+
+  it("preloads an encrypted second image and releases its key only after opening the round", async () => {
+    const game = createGameRecord();
+    game.rounds[0].status = "COMPLETED";
+    game.rounds[0].startedAt = gameNow;
+    game.rounds[0].playTimeSeconds = 20;
+    const source = "/images/kmutt-bangmod-1.jpg";
+    game.rounds[1].locationImage!.imageUrl = source;
+    repository.findGame.mockResolvedValue(game);
+
+    const encrypted = (questionNumber: string) => getEncryptedImage(
+      new Request(`http://localhost/api/games/game-1/rounds/${questionNumber}/encrypted-image`),
+      { params: Promise.resolve({ id: game.id, questionNumber }) },
+    );
+    const before = await (await request()).json();
+    expect(before.data).toEqual({ questionNumber: 2, imageUrl: null, deadlineAt: null, serverTime: expect.any(String) });
+    expect((await encrypted("3")).status).toBe(409);
+
+    requireAuth.mockResolvedValueOnce({ id: "other" });
+    expect((await encrypted("2")).status).toBe(403);
+
+    const response = await encrypted("2");
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    const payload = await response.arrayBuffer();
+    const original = await readFile(`public${source}`);
+    expect(payload.byteLength).toBe(original.length + 28);
+    expect(Buffer.from(payload.slice(12, -16)).equals(original)).toBe(false);
+    expect(repository.openRound).not.toHaveBeenCalled();
+
+    const opened = structuredClone(game);
+    opened.rounds[1].startedAt = gameNow;
+    repository.openRound.mockResolvedValue(opened);
+    const started = (await (await start(2)).json()).data;
+    expect(started.deadlineAt).toBe(new Date(gameNow.getTime() + 40_000).toISOString());
+    const key = await webcrypto.subtle.importKey("raw", Buffer.from(started.imageKey, "base64"), "AES-GCM", false, ["decrypt"]);
+    const decrypted = await webcrypto.subtle.decrypt({ name: "AES-GCM", iv: payload.slice(0, 12) }, key, payload.slice(12));
+    expect(Buffer.from(decrypted).equals(original)).toBe(true);
   });
 });
