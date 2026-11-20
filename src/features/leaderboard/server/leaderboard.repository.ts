@@ -21,6 +21,7 @@ export class LeaderboardRepositoryImpl implements LeaderboardRepository {
         WHERE
           g.status = 'COMPLETED'
           AND g."totalScore" IS NOT NULL
+          AND (u.banned = false OR u."banExpires" IS NOT NULL)
         GROUP BY u.id, u.name, u.image
       ),
       ranked_leaderboard AS (
