@@ -8,7 +8,7 @@ import { getErrorMessage } from "@/shared/lib/error-message";
 import { AppRoutes } from "@/shared/routes/routes";
 import { GameRoutes } from "@/features/game/game.routes";
 import type { CurrentGameRound } from "@/features/game/game";
-import { preloadGameImage } from "@/features/game/game-image";
+import { preloadEncryptedRoundImage, preloadGameImage } from "@/features/game/game-image";
 
 export function useStartGame() {
   const router = useRouter();
@@ -34,7 +34,8 @@ export function useStartGame() {
         gameId.current = data.gameId;
       }
       const { data } = await httpClient.get<CurrentGameRound>(GameRoutes.currentRound(gameId.current));
-      await preloadGameImage(data.imageUrl);
+      if (data.imageUrl) await preloadGameImage(data.imageUrl);
+      else await preloadEncryptedRoundImage(gameId.current, data.questionNumber);
       if (data.deadlineAt) {
         router.push(AppRoutes.game(gameId.current));
         return;

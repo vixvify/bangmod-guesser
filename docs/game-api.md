@@ -11,7 +11,9 @@
 | API | Method | Endpoint |
 | --- | --- | --- |
 | 01 เริ่มเกม | POST | `/api/games` |
-| 02 ขอรูปของรอบปัจจุบัน | GET | `/api/games/{gameId}/current-round` |
+| 02 อ่านสถานะรอบปัจจุบัน | GET | `/api/games/{gameId}/current-round` |
+| 02 เปิดรอบและเริ่มจับเวลา | POST | `/api/games/{gameId}/current-round` |
+| 02 โหลดรูปเข้ารหัสล่วงหน้า | GET | `/api/games/{gameId}/rounds/{questionNumber}/encrypted-image` |
 | 03 ส่งคำตอบและเฉลย | POST | `/api/games/{gameId}/rounds/{questionNumber}/guess` |
 | 04 สรุปคะแนน | GET | `/api/games/{gameId}/summary` |
 | 05 อ่านผลรอบที่บันทึกแล้ว | GET | `/api/games/{gameId}/rounds/{questionNumber}/result` |
@@ -46,27 +48,34 @@ Frontend เรียกเมื่อกดเริ่มเกม Backend �
 | --- | --- | --- |
 | gameId | string | รหัสเกม |
 
-Backend ตรวจเจ้าของเกมและสถานะ PLAYING แล้วกำหนดรอบปัจจุบันจากรอบแรกที่ยังไม่บันทึกผล อ่านรูปผ่าน locationId + imageNumber ที่บันทึกตั้งแต่เริ่มเกม โดยไม่สุ่มใหม่ ส่งกลับเลขรอบและ URL ของรูปที่สุ่มได้ การเรียกซ้ำขณะยังไม่ส่งคำตอบคงรอบและรูปเดิม เมื่อรับคำตอบรอบนั้นสำเร็จจึงเปลี่ยนเป็นรอบถัดไป เกมที่จบแล้วให้ตอบข้อผิดพลาดแทนการเปิดคำถามใหม่
+Backend ตรวจเจ้าของเกมและสถานะ PLAYING แล้วกำหนดรอบปัจจุบันจากรอบแรกที่ยังไม่บันทึกผล อ่านรูปผ่าน locationId + imageNumber ที่บันทึกตั้งแต่เริ่มเกม โดยไม่สุ่มใหม่ GET อ่านสถานะเท่านั้น ไม่เริ่มจับเวลา เกมที่จบแล้วตอบข้อผิดพลาดแทนการเปิดคำถามใหม่
 
 ตอบกลับ HTTP 200 โดยข้อมูลภายใน `data` มีดังนี้
 
 ```json
 {
   "questionNumber": 2,
-  "imageUrl": "https://images.example.invalid/question-image.webp",
-  "deadlineAt": "2026-11-10T01:00:40.000Z"
+  "imageUrl": null,
+  "deadlineAt": null,
+  "serverTime": "2026-11-10T01:00:00.000Z"
 }
 ```
 
 | ฟิลด์ | ชนิด | การใช้งาน |
 | --- | --- | --- |
-| imageUrl | string | แสดงรูปของคำถาม และเก็บไว้ใช้กับปุ่ม ⓘ หลังเฉลย |
-| deadlineAt | string (ISO 8601 UTC) | startedAt ที่ server บันทึก + 40 วินาที ใช้อ้างอิงเวลาหมดรอบ |
+| imageUrl | string หรือ null | รอบ 2–5 ก่อนเริ่มจะเป็น null; รอบแรกยังโหลดรูปโดยตรงแบบเดิม |
+| deadlineAt | string (ISO 8601 UTC) หรือ null | startedAt ที่ server บันทึก + 40 วินาที; เป็น null ก่อนเริ่มรอบ |
+| serverTime | string (ISO 8601 UTC) | เวลาปัจจุบันของ server สำหรับคำนวณเวลาที่เหลือ |
+| imageKey | string (Base64), optional | ส่งเฉพาะรอบ 2–5 ที่เปิดแล้ว |
 | questionNumber | integer | รอบปัจจุบันที่ Backend กำหนด Frontend ใช้แสดงเลขรอบและส่งกลับใน path ของ API 03 |
 
 บันทึก startedAt ครั้งแรกของแต่ละรอบเท่านั้น การรีเฟรชไม่เริ่มเวลาใหม่และไม่รวมเวลาพักหน้าเฉลย
 
-Response เส้นนี้มีเลขรอบ URL รูป และ deadline โดยคัดกรองพิกัดจริง ชื่อสถานที่ และข้อมูลเฉลยออกก่อนส่ง
+1. **รอบแรก:** โหลดรูปโดยตรงก่อน countdown เหมือนเดิม
+2. **ระหว่างดูคะแนน:** หน้าคะแนนอ่านเลขรอบถัดไปจาก GET current-round แล้วเรียก `GET /api/games/{gameId}/rounds/{questionNumber}/encrypted-image` เซิร์ฟเวอร์ตรวจเจ้าของเกมและเลขรอบปัจจุบัน จากนั้นอ่านรูปและเข้ารหัสแบบ AES-GCM เบราว์เซอร์เก็บไฟล์เข้ารหัสไว้ในแท็บโดยยังไม่ได้กุญแจและยังไม่เริ่มเวลา
+3. **เมื่อกด «รอบถัดไป»:** `POST /api/games/{gameId}/current-round` พร้อม `{ "questionNumber": 2 }` เริ่มจับเวลา 40 วินาทีและส่ง `deadlineAt` กับ `imageKey` กลับมา เบราว์เซอร์ถอดรหัสไฟล์ที่โหลดไว้และแสดงผ่าน `blob:` ถ้าไม่มีไฟล์ล่วงหน้า จะใช้ URL ต้นฉบับที่ได้รับหลังเปิดรอบแล้วแทน
+
+รายละเอียด response, headers และ error codes อยู่ใน [API reference](api.md)
 
 ## 03 ส่งคำตอบและเฉลย
 
@@ -311,6 +320,7 @@ src/
 │       ├── exit/route.ts
 │       ├── terminate/route.ts
 │       ├── rounds/[questionNumber]/
+│       │   ├── encrypted-image/route.ts
 │       │   ├── guess/route.ts
 │       │   └── result/route.ts
 │       └── summary/route.ts
@@ -336,7 +346,7 @@ prisma/
 | ส่วน | การทำงาน |
 | --- | --- |
 | API 01 `POST /api/games` | `route.ts` ตรวจ session → `GameService.createGame` สุ่ม 5 สถานที่พร้อมรูป → `GameRepositoryImpl.createGame` ตรวจข้อมูลและสร้าง Game + 5 GameRound ใน transaction → คืน gameId |
-| API 02 `GET /api/games/{gameId}/current-round` | `current-round/route.ts` ตรวจ input/session → `GameService.currentRound` ตรวจเจ้าของและ PLAYING → repository ล็อกเกมและตั้ง startedAt หากยังว่าง → factory คืน questionNumber + imageUrl เดิม + deadlineAt |
+| API 02 `GET /api/games/{gameId}/current-round` | ตรวจเจ้าของและ PLAYING แล้วอ่านเลขรอบและ deadline โดยไม่เริ่มเวลา; POST เปิดรอบและคืนกุญแจสำหรับรอบ 2–5 |
 | API 03 `POST /api/games/{gameId}/rounds/{questionNumber}/guess` | `guess/route.ts` ใช้ schema ตรวจพิกัด/เลขรอบ → `GameService.submitGuess` ตรวจเจ้าของและรอบ → shared Haversine คิดระยะ → lib คิดคะแนน → repository บันทึกแบบ conditional ภายใน transaction → factory คืนเฉลยพร้อมรูป; รอบ 5 เรียก lib รวมคะแนน/เวลา/โบนัสและปิดเกม |
 | API 04 `GET /api/games/{gameId}/summary` | `summary/route.ts` ตรวจ session/input → `GameService.summary` ตรวจเจ้าของ/COMPLETED/ผลครบ 5 รอบ → lib รวม baseScore และเวลา โดยใช้ totalScore ที่บันทึกแล้ว → คืน baseScore, totalTimeSeconds, bonusScore, totalScore |
 | API 05 `GET /api/games/{gameId}/rounds/{questionNumber}/result` | `result/route.ts` ตรวจ session/input → `GameService.roundResult` ตรวจเจ้าของ/ผลรอบสมบูรณ์ → factory คืนผลจากข้อมูลที่บันทึกโดยไม่เขียนซ้ำ |

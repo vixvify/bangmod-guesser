@@ -125,7 +125,7 @@ describe("LobbyMenu", () => {
     fireEvent.click(screen.getByRole("button", { name: "Play Bangmod Guesser" }));
     await waitFor(() => expect(toastError).toHaveBeenCalledWith("ไม่สามารถเตรียมเกมหรือโหลดรูปได้ กรุณาลองอีกครั้ง"));
     expect(screen.queryByRole("button", { name: "ลองอีกครั้ง" })).toBeNull();
-    const play = screen.getByRole<HTMLButtonElement>("button", { name: "Play Bangmod Guesser" });
+    const play = await screen.findByRole<HTMLButtonElement>("button", { name: "Play Bangmod Guesser" });
     await waitFor(() => expect(play.disabled).toBe(false));
     fireEvent.click(play);
     await screen.findByRole("dialog", { name: "กำลังเข้าสู่เกม" });

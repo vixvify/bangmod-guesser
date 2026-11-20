@@ -17,7 +17,7 @@ export const GameFactory = {
       },
     };
   },
-  toCurrentRound(round: GamePlayRecord["rounds"][number]): CurrentGameRound {
+  toCurrentRound(round: GamePlayRecord["rounds"][number]): Extract<CurrentGameRound, { imageUrl: string }> {
     if (!round.locationImage) throw new AppError("Round image unavailable", 409);
     const deadlineAt = round.startedAt ? new Date(round.startedAt.getTime() + GAME_DEFAULTS.roundDurationSeconds * 1000).toISOString() : null;
     return { questionNumber: round.questionNumber, imageUrl: round.locationImage.imageUrl, deadlineAt, serverTime: new Date().toISOString() };

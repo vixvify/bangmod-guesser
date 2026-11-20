@@ -39,7 +39,8 @@ test("two sessions share one game, submit one answer per round, and read the sum
       const currentResponse = await page.request.get(`${url}/current-round`);
       const current = await currentResponse.json();
       expect(currentResponse.status()).toBe(200);
-      const expectedRound = { questionNumber: question, imageUrl: selected.rounds[question - 1].locationImage?.imageUrl, deadlineAt: null, serverTime: expect.any(String) };
+      const imageUrl = selected.rounds[question - 1].locationImage?.imageUrl;
+      const expectedRound = { questionNumber: question, imageUrl: question === 1 ? imageUrl : null, deadlineAt: null, serverTime: expect.any(String) };
       expect(current.data).toEqual(expectedRound);
       expect(Number.isFinite(Date.parse(current.data.serverTime))).toBe(true);
       const repeated = await (await page.request.get(`${url}/current-round`)).json();
@@ -50,7 +51,7 @@ test("two sessions share one game, submit one answer per round, and read the sum
       const startedResponse = await page.request.post(`${url}/current-round`, { data: { questionNumber: question } });
       expect(startedResponse.status()).toBe(200);
       const started = await startedResponse.json();
-      const expectedStarted = { ...expectedRound, deadlineAt: expect.any(String) };
+      const expectedStarted = { ...expectedRound, imageUrl, deadlineAt: expect.any(String), ...(question > 1 && { imageKey: expect.any(String) }) };
       expect(started.data).toEqual(expectedStarted);
       expect(Number.isFinite(Date.parse(started.data.serverTime))).toBe(true);
       const reread = await (await page.request.get(`${url}/current-round`)).json();
@@ -63,7 +64,7 @@ test("two sessions share one game, submit one answer per round, and read the sum
       expect(guesses.map((r) => r.status()).sort()).toEqual([200, 409]);
       const result = await guesses.find((r) => r.status() === 200)!.json();
       expect(await (await page.request.get(`${url}/rounds/${question}/result`)).json()).toEqual(result);
-      expect(result.data).toMatchObject({ score: 1000, accumulatedScore: question * 1000, imageUrl: current.data.imageUrl, location: { name: location.name } });
+      expect(result.data).toMatchObject({ score: 1000, accumulatedScore: question * 1000, imageUrl, location: { name: location.name } });
     }
     const summary = await (await page.request.get(`/api/games/${gameId}/summary`)).json();
     const stored = await prisma.game.findUniqueOrThrow({ where: { id: gameId } });

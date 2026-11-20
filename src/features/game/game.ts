@@ -15,7 +15,13 @@ export type SaveGameGuess = {
   totalScore?: number;
 };
 
-export type CurrentGameRound = { questionNumber: number; imageUrl: string; deadlineAt: string | null; serverTime: string };
+export type CurrentGameRound = {
+  questionNumber: number;
+  serverTime: string;
+} & (
+  | { imageUrl: null; deadlineAt: null; imageKey?: never }
+  | { imageUrl: string; deadlineAt: string | null; imageKey?: string }
+);
 
 export type GameSummaryResult = { baseScore: number; totalTimeSeconds: number; bonusScore: number; totalScore: number };
 
