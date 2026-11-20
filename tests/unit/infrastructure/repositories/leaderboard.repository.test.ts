@@ -83,6 +83,7 @@ describe("LeaderboardRepositoryImpl", () => {
     expect(query.join("")).toContain("COUNT(g.id)");
     expect(query.join("")).toContain("u.image");
     expect(query.join("")).toContain('SUM(g."totalScore")');
+    expect(query.join("")).toContain('AND (u.banned = false OR u."banExpires" IS NOT NULL)');
     expect(query.join("")).toContain("rank <= 10");
     expect(userId).toBe("user-12");
   });
