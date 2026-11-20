@@ -22,6 +22,7 @@ type DateRange = {
 type DateRangePickerProps = {
   label: string;
   defaultValue?: DateRange;
+  value?: DateRange;
   onChange?: (value: DateRange) => void;
   theme?: "light" | "dark";
   minDate?: string;
@@ -30,14 +31,16 @@ type DateRangePickerProps = {
 export function DateRangePicker({
   label,
   defaultValue,
+  value,
   onChange,
   theme = "light",
   minDate,
 }: DateRangePickerProps) {
   const isDark = theme === "dark";
-  const [range, setRange] = useState<DateRange>(
+  const [internalRange, setInternalRange] = useState<DateRange>(
     defaultValue ?? { startDate: null, endDate: null },
   );
+  const range = value ?? internalRange;
   const inputId = useId();
   const dialogId = useId();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
@@ -61,7 +64,7 @@ export function DateRangePicker({
         ? { startDate: selectedDate, endDate: null }
         : { startDate: range.startDate, endDate: selectedDate };
 
-    setRange(nextRange);
+    if (value === undefined) setInternalRange(nextRange);
     onChange?.(nextRange);
     if (nextRange.endDate) setAnchor(null);
   }

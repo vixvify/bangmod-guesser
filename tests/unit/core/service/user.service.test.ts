@@ -174,6 +174,18 @@ describe("UserService", () => {
     }
   });
 
+  it("removes the expiry when a temporary suspension becomes permanent", async () => {
+    repository.findById.mockResolvedValue({ ...record, banned: true, banExpires: new Date("2099-12-31T17:00:00Z") });
+    await service.updateUser(new Headers(), record.id, {
+      ...form, status: "SUSPENDED",
+      suspension: { startDate: null, endDate: null },
+    });
+    expect(admin.banUser).toHaveBeenCalledWith(expect.any(Headers), {
+      userId: record.id, banReason: undefined, banExpiresIn: undefined,
+    });
+    expect(admin.unbanUser).not.toHaveBeenCalled();
+  });
+
   it("rejects an expired suspension before changing the account", async () => {
     await expect(service.updateUser(new Headers(), record.id, {
       ...form,

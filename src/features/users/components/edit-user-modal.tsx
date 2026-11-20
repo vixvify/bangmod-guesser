@@ -45,7 +45,9 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
       name: user.name,
       role: user.role,
       status: user.status,
-      suspension: user.suspension,
+      suspension: user.suspension.endDate
+        ? user.suspension
+        : { startDate: null, endDate: null },
       reason: user.reason,
     },
   });
@@ -213,20 +215,25 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
 
                     return (
                       <div>
-                        <DateRangePicker
-                          theme="dark"
-                          label="ระยะเวลาการระงับ (ไม่บังคับ)"
-                          defaultValue={
-                            showsRemainingRange
-                              ? { startDate: today, endDate }
-                              : field.value
-                          }
-                          onChange={field.onChange}
-                          minDate={formatDateOnly(
-                            new Date(),
-                            "Asia/Bangkok",
+                        <div className="flex flex-wrap items-end gap-2">
+                          <DateRangePicker
+                            theme="dark"
+                            label="ระยะเวลาการระงับ (ไม่บังคับ)"
+                            value={showsRemainingRange ? { startDate: today, endDate } : field.value}
+                            onChange={field.onChange}
+                            minDate={today}
+                          />
+                          {(startDate || endDate) && (
+                            <Button
+                              variant="outline"
+                              size="small"
+                              disabled={isSubmitting}
+                              onClick={() => field.onChange({ startDate: null, endDate: null })}
+                            >
+                              ล้างช่วงวันที่
+                            </Button>
                           )}
-                        />
+                        </div>
                         {showsRemainingRange && (
                           <p className="mt-1 text-xs text-surface-muted">
                             แสดงช่วงเวลาที่เหลือจากวันนี้ เพราะไม่มีข้อมูลวันเริ่มระงับ
