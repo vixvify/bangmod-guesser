@@ -21,21 +21,21 @@ export function LeaderboardRow({ entry, current = false, leadingScore = 0 }: Lea
     <div
       data-leaderboard-rank={current ? undefined : entry.rank}
       data-leaderboard-current={current ? true : undefined}
-      className={`grid grid-cols-[2rem_2.5rem_minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-l-4 px-3 py-3 sm:grid-cols-[2.5rem_2.75rem_minmax(0,1fr)_auto_auto] sm:gap-4 sm:px-5 ${
+      className={`grid min-w-0 grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-x-2 gap-y-1 rounded-xl border border-l-4 px-2.5 py-2.5 sm:grid-cols-[2.5rem_2.75rem_minmax(0,1fr)_auto_auto] sm:gap-4 sm:px-5 sm:py-3 ${
         current
           ? "border-primary-main bg-leaderboard-self shadow-xl shadow-black/50"
           : "border-surface-border border-l-primary-main/40 bg-surface-control transition-colors hover:bg-surface-control-hover focus-within:bg-surface-control-hover"
       }`}
     >
-      <span className={`flex size-8 items-center justify-center rounded-lg text-sm font-bold tabular-nums ${current ? "bg-primary-main text-secondary-main" : "bg-primary-main/15 text-primary-light"}`}>
+      <span className={`flex h-8 min-w-8 items-center justify-center rounded-lg px-1 text-xs font-bold tabular-nums sm:text-sm ${current ? "bg-primary-main text-secondary-main" : "bg-primary-main/15 text-primary-light"}`}>
         {entry.rank}
       </span>
       <Avatar
         src={getProfileImageUrl(entry.image)}
         alt={entry.name}
         sx={{
-          width: 40,
-          height: 40,
+          width: { xs: 32, sm: 40 },
+          height: { xs: 32, sm: 40 },
           border: "1px solid color-mix(in srgb, var(--color-primary-main) 40%, transparent)",
           backgroundColor: "color-mix(in srgb, var(--color-primary-main) 15%, var(--color-secondary-main))",
           color: "var(--color-primary-light)",
@@ -54,10 +54,10 @@ export function LeaderboardRow({ entry, current = false, leadingScore = 0 }: Lea
           </p>
         )}
       </div>
-      <div>
+      <div className="col-start-3 min-w-0 sm:col-start-auto">
         <p className="text-right font-bold tabular-nums text-primary-light sm:text-lg">
           {entry.totalScore.toLocaleString("en-US")}
-          <span className="block text-xs font-normal text-surface-muted sm:inline sm:pl-1">คะแนน</span>
+          <span className="pl-1 text-xs font-normal text-surface-muted">คะแนน</span>
         </p>
         {leadingScore > 0 && (
           <div aria-hidden="true" className="ml-auto mt-1.5 h-1 w-full max-w-24 overflow-hidden rounded-full bg-surface-control">

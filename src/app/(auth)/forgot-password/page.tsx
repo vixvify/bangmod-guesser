@@ -24,7 +24,7 @@ export default function ForgotPasswordPage() {
     formState: { errors, isValid, isSubmitting },
   } = useForm<RequestPasswordResetInput>({
     resolver: zodResolver(RequestPasswordResetSchema),
-    mode: "onChange",
+    mode: "onTouched",
     defaultValues: { email: "" },
   });
 

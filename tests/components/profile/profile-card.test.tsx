@@ -109,6 +109,8 @@ describe("ProfileCard", () => {
     fireEvent.change(screen.getByRole("textbox", { name: "ชื่อผู้ใช้" }), {
       target: { value: "   " },
     });
+    expect(screen.queryByText("กรุณากรอกชื่อผู้ใช้")).toBeNull();
+    fireEvent.blur(screen.getByRole("textbox", { name: "ชื่อผู้ใช้" }));
     await waitFor(() => expect(screen.getByText("กรุณากรอกชื่อผู้ใช้")).toBeTruthy());
     expect(screen.getByRole("button", { name: "บันทึก" }).hasAttribute("disabled")).toBe(true);
     expect(screen.getByRole("textbox", { name: "ชื่อผู้ใช้" })).toBeTruthy();

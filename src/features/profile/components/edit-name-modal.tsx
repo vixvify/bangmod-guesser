@@ -36,7 +36,7 @@ export function EditNameModal({
     formState: { errors, isDirty, isValid, isSubmitting },
   } = useForm<UpdateUsernameFormInput>({
     resolver: zodResolver(UpdateUsernameFormSchema),
-    mode: "onChange",
+    mode: "onTouched",
     defaultValues: { username },
   });
   const canSave = isDirty && isValid && !isSubmitting;

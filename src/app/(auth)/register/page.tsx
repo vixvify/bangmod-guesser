@@ -34,7 +34,7 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
     formState: { errors, isSubmitting, isValid },
   } = useForm<RegisterInput>({
     resolver: zodResolver(RegisterSchema),
-    mode: "onChange",
+    mode: "onTouched",
     defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
   });
 
