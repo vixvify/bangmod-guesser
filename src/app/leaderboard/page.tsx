@@ -18,7 +18,7 @@ export default async function LeaderboardPage() {
     >
       <section
         aria-labelledby="leaderboard-title"
-        className="player-page-panel flex min-h-[calc(100svh-12rem)] flex-col rounded-3xl border border-surface-border bg-surface-overlay p-4 sm:p-6 lg:p-9"
+        className="player-page-panel flex min-h-[calc(100svh-12rem)] min-w-0 flex-col rounded-3xl border border-surface-border bg-surface-overlay p-3 sm:p-6 lg:p-9"
       >
         <header className="leaderboard-heading relative isolate overflow-hidden rounded-2xl border border-surface-border px-5 py-5 sm:px-7 sm:py-8">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-rank-gold">

@@ -117,7 +117,9 @@ test("does not submit registration when passwords differ", async ({ page }) => {
   await page.goto("/register", { waitUntil: "networkidle" });
   await fillRegistration(page);
   await page.getByLabel("ยืนยันรหัสผ่าน").fill("Different1");
+  await expect(page.getByLabel("ยืนยันรหัสผ่าน")).toHaveAttribute("aria-invalid", "false");
   await page.getByLabel("ยืนยันรหัสผ่าน").blur();
+  await expect(page.getByLabel("ยืนยันรหัสผ่าน")).toHaveAttribute("aria-invalid", "true");
 
   await expect(page.getByRole("button", { name: "สมัครสมาชิก" })).toBeDisabled();
   await expect(page).toHaveURL(/\/register$/);

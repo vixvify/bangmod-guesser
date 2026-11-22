@@ -63,13 +63,12 @@ export function LocationForm(props: LocationFormProps) {
   const {
     register,
     handleSubmit,
-    trigger,
     control,
     setValue,
     formState: { errors, isDirty, isValid, isSubmitting },
   } = useForm({
     resolver: zodResolver(LocationFormSchema),
-    mode: "onChange",
+    mode: "onTouched",
     defaultValues: {
       name: location?.name ?? "",
       description: location?.description ?? "",
@@ -83,10 +82,6 @@ export function LocationForm(props: LocationFormProps) {
     control,
     name: "status",
   });
-
-  useEffect(() => {
-    if (isEdit) void trigger();
-  }, [isEdit, trigger]);
 
   const hasImages = existingImages.length + newImages.length > 0;
   const imagesDirty =

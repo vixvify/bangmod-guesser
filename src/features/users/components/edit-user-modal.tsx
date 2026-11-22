@@ -40,7 +40,7 @@ export function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
     formState: { errors, isDirty, isValid, isSubmitting },
   } = useForm<UserFormInput>({
     resolver: zodResolver(UserFormSchema),
-    mode: "onChange",
+    mode: "onTouched",
     defaultValues: {
       name: user.name,
       role: user.role,

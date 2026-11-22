@@ -43,7 +43,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
     formState: { errors, isSubmitting, isValid },
   } = useForm<LoginInput>({
     resolver: zodResolver(LoginSchema),
-    mode: "onChange",
+    mode: "onTouched",
     defaultValues: { email: "", password: "" },
   });
 

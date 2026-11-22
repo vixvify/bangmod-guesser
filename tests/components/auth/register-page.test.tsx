@@ -106,6 +106,7 @@ describe("RegisterPage", () => {
     await renderPage();
     await fillForm("Different1");
     const confirmation = screen.getByLabelText("ยืนยันรหัสผ่าน");
+    expect(confirmation.getAttribute("aria-invalid")).toBe("false");
     fireEvent.blur(confirmation);
 
     await waitFor(() => {

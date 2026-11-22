@@ -53,7 +53,7 @@ export function LeaderboardPodium({ entries }: { entries: LeaderboardEntry[] }) 
             <span className="sr-only">อันดับ </span>
             #{entry.rank}
           </span>
-          <div className={`leaderboard-podium-avatar relative px-6 py-1 sm:py-2 ${rankStyles[entry.rank]?.score ?? "text-surface-text"}`}>
+          <div className={`leaderboard-podium-avatar relative px-4 py-1 sm:px-6 sm:py-2 ${rankStyles[entry.rank]?.score ?? "text-surface-text"}`}>
             <Avatar
               src={getProfileImageUrl(entry.image)}
               alt={entry.name}
@@ -77,7 +77,7 @@ export function LeaderboardPodium({ entries }: { entries: LeaderboardEntry[] }) 
           </div>
           <h2 className="mt-2 max-w-full truncate text-base font-bold sm:mt-3 sm:text-lg">{entry.name}</h2>
           <p className="text-xs text-surface-muted">เล่นแล้ว {entry.gamesPlayed} เกม</p>
-          <p className={`mt-2 font-bold tabular-nums sm:mt-3 ${entry.rank === 1 ? "text-2xl sm:text-3xl" : "text-xl sm:text-2xl"} ${rankStyles[entry.rank]?.score ?? "text-surface-text"}`}>
+          <p className={`mt-2 max-w-full break-all font-bold tabular-nums sm:mt-3 ${entry.rank === 1 ? "text-2xl sm:text-3xl" : "text-lg sm:text-2xl"} ${rankStyles[entry.rank]?.score ?? "text-surface-text"}`}>
             {entry.totalScore.toLocaleString("en-US")}
           </p>
           <span className="text-xs text-surface-muted">คะแนน</span>
@@ -85,7 +85,7 @@ export function LeaderboardPodium({ entries }: { entries: LeaderboardEntry[] }) 
             <Link
               href={AppRoutes.userProfile(entry.userId)}
               onClick={() => playSoundEffect("click")}
-              className="absolute bottom-2.5 right-2.5 z-10 flex size-8 items-center justify-center rounded-lg border border-surface-border/70 bg-surface-overlay/80 text-surface-muted shadow-sm transition hover:border-surface-control-border hover:bg-surface-control hover:text-surface-text focus-visible:outline-2 focus-visible:outline-primary-focus motion-safe:hover:scale-110 sm:bottom-3 sm:right-3"
+              className="z-10 mt-2 flex size-8 items-center justify-center rounded-lg border border-surface-border/70 bg-surface-overlay/80 text-surface-muted shadow-sm transition hover:border-surface-control-border hover:bg-surface-control hover:text-surface-text focus-visible:outline-2 focus-visible:outline-primary-focus motion-safe:hover:scale-110 lg:absolute lg:bottom-3 lg:right-3 lg:mt-0"
             >
               <PersonOutlineIcon sx={{ fontSize: { xs: "1rem", sm: "1.125rem" } }} />
             </Link>

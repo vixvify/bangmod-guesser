@@ -225,10 +225,11 @@ describe("LoginPage", () => {
     expect(toastError).not.toHaveBeenCalled();
   });
 
-  it("explains invalid email before the disabled submit button", async () => {
+  it("shows an email error after blur and clears it as the user corrects it", async () => {
     await renderPage();
     const email = screen.getByRole("textbox", { name: "อีเมล" });
     fireEvent.change(email, { target: { value: "invalid-email" } });
+    expect(email.getAttribute("aria-invalid")).toBe("false");
     fireEvent.blur(email);
 
     await waitFor(() => {
@@ -237,6 +238,8 @@ describe("LoginPage", () => {
       expect(document.getElementById("login-email-error")?.textContent).toBeTruthy();
     });
     expect((screen.getByRole("button", { name: "เข้าสู่ระบบ" }) as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.change(email, { target: { value: "student@example.com" } });
+    await waitFor(() => expect(email.getAttribute("aria-invalid")).toBe("false"));
   });
 
   it("submits normalized credentials and returns to the requested local page", async () => {
