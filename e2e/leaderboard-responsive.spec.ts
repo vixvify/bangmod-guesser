@@ -28,6 +28,17 @@ test("keeps leaderboard cards inside the viewport at mobile, tablet, and desktop
     for (const width of [320, 375, 768, 1440]) {
       await page.setViewportSize({ width, height: 720 });
       await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+      const podium = page.getByRole("list", { name: "สามอันดับแรก" });
+      const first = await podium.getByRole("listitem").nth(0).boundingBox();
+      const second = await podium.getByRole("listitem").nth(1).boundingBox();
+      expect(first).not.toBeNull();
+      expect(second).not.toBeNull();
+      if (width < 640) {
+        expect(first!.x).toBeCloseTo(second!.x);
+        expect(second!.y).toBeGreaterThanOrEqual(first!.y + first!.height);
+      } else {
+        expect(second!.x).toBeLessThan(first!.x);
+      }
       for (const card of await cards.all()) {
         const bounds = await card.boundingBox();
         expect(bounds).not.toBeNull();

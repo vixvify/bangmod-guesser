@@ -65,4 +65,14 @@ describe("game results", () => {
     expect(await screen.findByRole("dialog", { name: "กำลังเข้าสู่เกม" })).toBeTruthy();
     expect(await screen.findByText(/คะแนนจากการทาย 4,021 คะแนน โบนัส 300 คะแนน รวม 4,321/)).toBeTruthy();
   });
+
+  it("reveals the grade from the final score including bonus after skipping the animation", async () => {
+    vi.stubGlobal("matchMedia", () => ({ matches: false }));
+    render(<GameSummary gameId="game-123" summary={{ baseScore: 4500, bonusScore: 250, totalScore: 4750, totalTimeSeconds: 42 }} />);
+
+    expect(screen.queryByText("ระดับ SSS", { exact: true })).toBeNull();
+    await userEvent.setup().click(screen.getByRole("button", { name: "แสดงคะแนนทั้งหมด" }));
+    expect(screen.getByText("ระดับ SSS", { exact: true })).toBeTruthy();
+    expect(screen.getByText(/รวม 4,750.*ระดับ SSS/)).toBeTruthy();
+  });
 });

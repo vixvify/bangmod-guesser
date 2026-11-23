@@ -21,7 +21,7 @@ export function LeaderboardRow({ entry, current = false, leadingScore = 0 }: Lea
     <div
       data-leaderboard-rank={current ? undefined : entry.rank}
       data-leaderboard-current={current ? true : undefined}
-      className={`grid min-w-0 grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-x-2 gap-y-1 rounded-xl border border-l-4 px-2.5 py-2.5 sm:grid-cols-[2.5rem_2.75rem_minmax(0,1fr)_auto_auto] sm:gap-4 sm:px-5 sm:py-3 ${
+      className={`grid min-w-0 grid-cols-[auto_auto_minmax(0,1fr)_minmax(0,28%)] items-center gap-2 rounded-xl border border-l-4 px-2.5 py-2.5 sm:grid-cols-[2.5rem_2.75rem_minmax(0,1fr)_auto_auto] sm:gap-4 sm:px-5 sm:py-3 ${
         current
           ? "border-primary-main bg-leaderboard-self shadow-xl shadow-black/50"
           : "border-surface-border border-l-primary-main/40 bg-surface-control transition-colors hover:bg-surface-control-hover focus-within:bg-surface-control-hover"
@@ -54,10 +54,10 @@ export function LeaderboardRow({ entry, current = false, leadingScore = 0 }: Lea
           </p>
         )}
       </div>
-      <div className="col-start-3 min-w-0 sm:col-start-auto">
-        <p className="text-right font-bold tabular-nums text-primary-light sm:text-lg">
+      <div className="min-w-0">
+        <p className="wrap-anywhere text-right text-sm font-bold tabular-nums text-primary-light sm:text-lg">
           {entry.totalScore.toLocaleString("en-US")}
-          <span className="pl-1 text-xs font-normal text-surface-muted">คะแนน</span>
+          <span className="block text-xs font-normal text-surface-muted sm:inline sm:pl-1">คะแนน</span>
         </p>
         {leadingScore > 0 && (
           <div aria-hidden="true" className="ml-auto mt-1.5 h-1 w-full max-w-24 overflow-hidden rounded-full bg-surface-control">

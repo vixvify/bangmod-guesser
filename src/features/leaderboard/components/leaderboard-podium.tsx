@@ -12,9 +12,9 @@ import { AppRoutes } from "@/shared/routes/routes";
 import { playSoundEffect } from "@/shared/lib/sound-effect";
 
 const positionClasses: Record<number, string> = {
-  1: "order-1 col-span-2 sm:order-2 sm:col-span-1 sm:-translate-y-5 sm:scale-105 sm:min-h-64",
-  2: "order-2 sm:order-1",
-  3: "order-3",
+  1: "sm:order-2 sm:-translate-y-5 sm:scale-105 sm:min-h-64",
+  2: "sm:order-1",
+  3: "sm:order-3",
 };
 
 const rankStyles: Record<number, { card: string; badge: string; score: string }> = {
@@ -37,55 +37,61 @@ const rankStyles: Record<number, { card: string; badge: string; score: string }>
 
 export function LeaderboardPodium({ entries }: { entries: LeaderboardEntry[] }) {
   return (
-    <ol aria-label="สามอันดับแรก" className="mt-8 grid grid-cols-2 items-end gap-x-3 gap-y-7 sm:mt-14 sm:grid-cols-3 sm:gap-5">
+    <ol aria-label="สามอันดับแรก" className="mt-5 grid grid-cols-1 gap-2 sm:mt-14 sm:grid-cols-3 sm:items-end sm:gap-5">
       {entries.map((entry) => (
         <li
           key={entry.rank}
           data-leaderboard-rank={entry.rank}
-          className={`leaderboard-podium-card relative flex min-w-0 flex-col items-center justify-center rounded-2xl border-2 border-t-[6px] px-3 py-5 text-center shadow-2xl sm:min-h-56 sm:px-5 sm:pb-6 sm:pt-8 ${rankStyles[entry.rank]?.card ?? "border-surface-border bg-surface-overlay"} ${positionClasses[entry.rank] ?? ""}`}
+          className={`leaderboard-podium-card relative grid min-w-0 grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1 rounded-2xl border-2 border-l-4 px-2.5 py-3 shadow-2xl sm:flex sm:min-h-56 sm:flex-col sm:justify-center sm:gap-0 sm:border-l-2 sm:border-t-[6px] sm:px-5 sm:pb-6 sm:pt-8 sm:text-center ${rankStyles[entry.rank]?.card ?? "border-surface-border bg-surface-overlay"} ${positionClasses[entry.rank] ?? ""}`}
         >
-          <span className={`absolute -top-4 z-10 inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-sm font-extrabold shadow-lg ${rankStyles[entry.rank]?.badge ?? "border-surface-border bg-secondary-main text-surface-text"}`}>
-            {entry.rank === 1 ? (
-              <EmojiEventsRoundedIcon aria-hidden="true" fontSize="inherit" />
-            ) : (
-              <WorkspacePremiumRoundedIcon aria-hidden="true" fontSize="inherit" />
-            )}
+          <span className={`row-span-2 inline-flex size-8 items-center justify-center rounded-full border-2 text-xs font-extrabold shadow-lg sm:absolute sm:-top-4 sm:z-10 sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-1 sm:text-sm ${rankStyles[entry.rank]?.badge ?? "border-surface-border bg-secondary-main text-surface-text"}`}>
+            <span className="hidden sm:inline-flex">
+              {entry.rank === 1 ? (
+                <EmojiEventsRoundedIcon aria-hidden="true" fontSize="inherit" />
+              ) : (
+                <WorkspacePremiumRoundedIcon aria-hidden="true" fontSize="inherit" />
+              )}
+            </span>
             <span className="sr-only">อันดับ </span>
             #{entry.rank}
           </span>
-          <div className={`leaderboard-podium-avatar relative px-4 py-1 sm:px-6 sm:py-2 ${rankStyles[entry.rank]?.score ?? "text-surface-text"}`}>
-            <Avatar
-              src={getProfileImageUrl(entry.image)}
-              alt={entry.name}
-              sx={{
-                width: entry.rank === 1 ? { xs: 64, sm: 80 } : { xs: 52, sm: 64 },
-                height: entry.rank === 1 ? { xs: 64, sm: 80 } : { xs: 52, sm: 64 },
-                border: "3px solid var(--podium-accent, var(--color-surface-control-border))",
-                backgroundColor: "var(--color-secondary-main)",
-                color: "var(--color-surface-text)",
-                fontWeight: 700,
-              }}
-            >
-              {entry.name.charAt(0).toUpperCase()}
-            </Avatar>
-            {entry.rank === 1 && (
-              <>
-                <span aria-hidden className="absolute left-1 top-1/3 text-xl motion-safe:animate-home-enter">✦</span>
-                <span aria-hidden className="absolute right-1 top-1/2 text-sm motion-safe:animate-home-enter motion-safe:[animation-delay:120ms]">✦</span>
-              </>
-            )}
+          <div className="col-start-2 row-start-1 flex min-w-0 max-w-full items-center gap-2 sm:flex-col sm:gap-0">
+            <div className={`leaderboard-podium-avatar relative shrink-0 sm:px-6 sm:py-2 ${rankStyles[entry.rank]?.score ?? "text-surface-text"}`}>
+              <Avatar
+                src={getProfileImageUrl(entry.image)}
+                alt={entry.name}
+                sx={{
+                  width: { xs: 32, sm: entry.rank === 1 ? 80 : 64 },
+                  height: { xs: 32, sm: entry.rank === 1 ? 80 : 64 },
+                  border: "3px solid var(--podium-accent, var(--color-surface-control-border))",
+                  backgroundColor: "var(--color-secondary-main)",
+                  color: "var(--color-surface-text)",
+                  fontWeight: 700,
+                }}
+              >
+                {entry.name.charAt(0).toUpperCase()}
+              </Avatar>
+              {entry.rank === 1 && (
+                <>
+                  <span aria-hidden className="absolute left-1 top-1/3 hidden text-xl motion-safe:animate-home-enter sm:inline">✦</span>
+                  <span aria-hidden className="absolute right-1 top-1/2 hidden text-sm motion-safe:animate-home-enter motion-safe:[animation-delay:120ms] sm:inline">✦</span>
+                </>
+              )}
+            </div>
+            <div className="min-w-0 max-w-full">
+              <h2 className="truncate text-sm font-bold sm:mt-3 sm:text-lg">{entry.name}</h2>
+              <p className="text-xs text-surface-muted">เล่นแล้ว {entry.gamesPlayed} เกม</p>
+            </div>
           </div>
-          <h2 className="mt-2 max-w-full truncate text-base font-bold sm:mt-3 sm:text-lg">{entry.name}</h2>
-          <p className="text-xs text-surface-muted">เล่นแล้ว {entry.gamesPlayed} เกม</p>
-          <p className={`mt-2 max-w-full break-all font-bold tabular-nums sm:mt-3 ${entry.rank === 1 ? "text-2xl sm:text-3xl" : "text-lg sm:text-2xl"} ${rankStyles[entry.rank]?.score ?? "text-surface-text"}`}>
+          <p className={`col-start-2 row-start-2 min-w-0 max-w-full wrap-anywhere pl-10 text-sm font-bold tabular-nums sm:mt-3 sm:pl-0 ${entry.rank === 1 ? "sm:text-3xl" : "sm:text-2xl"} ${rankStyles[entry.rank]?.score ?? "text-surface-text"}`}>
             {entry.totalScore.toLocaleString("en-US")}
+            <span className="ml-1 text-xs font-normal text-surface-muted sm:ml-0 sm:block">คะแนน</span>
           </p>
-          <span className="text-xs text-surface-muted">คะแนน</span>
           <Tooltip title={`ดูโปรไฟล์ของ ${entry.name}`}>
             <Link
               href={AppRoutes.userProfile(entry.userId)}
               onClick={() => playSoundEffect("click")}
-              className="z-10 mt-2 flex size-8 items-center justify-center rounded-lg border border-surface-border/70 bg-surface-overlay/80 text-surface-muted shadow-sm transition hover:border-surface-control-border hover:bg-surface-control hover:text-surface-text focus-visible:outline-2 focus-visible:outline-primary-focus motion-safe:hover:scale-110 lg:absolute lg:bottom-3 lg:right-3 lg:mt-0"
+              className="col-start-3 row-span-2 row-start-1 z-10 flex size-9 items-center justify-center rounded-lg border border-surface-border/70 bg-surface-overlay/80 text-surface-muted shadow-sm transition hover:border-surface-control-border hover:bg-surface-control hover:text-surface-text focus-visible:outline-2 focus-visible:outline-primary-focus motion-safe:hover:scale-110 sm:mt-2 lg:absolute lg:bottom-3 lg:right-3 lg:mt-0"
             >
               <PersonOutlineIcon sx={{ fontSize: { xs: "1rem", sm: "1.125rem" } }} />
             </Link>
