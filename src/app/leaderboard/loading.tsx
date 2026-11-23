@@ -14,16 +14,19 @@ export default function LeaderboardLoading() {
         <Skeleton className="h-8 w-48" />
         <div
           aria-hidden="true"
-          className="mt-8 grid grid-cols-2 items-end gap-3 sm:mt-14 sm:grid-cols-3 sm:gap-5"
+          className="mt-5 grid grid-cols-1 gap-2 sm:mt-14 sm:grid-cols-3 sm:items-end sm:gap-5"
         >
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className={`space-y-4 rounded-2xl border border-surface-border p-3 sm:p-5 ${i === 1 ? "col-span-2 sm:order-2 sm:col-span-1" : i === 2 ? "sm:order-1" : "sm:order-3"}`}
+              className={`grid grid-cols-[2rem_minmax(0,1fr)_2.25rem] items-center gap-2 rounded-2xl border border-surface-border p-3 sm:flex sm:flex-col sm:gap-4 sm:p-5 ${i === 1 ? "sm:order-2" : i === 2 ? "sm:order-1" : "sm:order-3"}`}
             >
-              <Skeleton className="mx-auto size-12 max-w-full rounded-full sm:size-16" />
-              <Skeleton className="mx-auto h-5 w-3/4" />
-              <Skeleton className="mx-auto h-8 w-full" />
+              <Skeleton className="size-8 rounded-full sm:size-16" />
+              <div className="w-full space-y-2">
+                <Skeleton className="h-4 w-3/4 sm:mx-auto" />
+                <Skeleton className="h-3 w-1/2 sm:mx-auto" />
+              </div>
+              <Skeleton className="size-9 sm:h-7 sm:w-1/2" />
             </div>
           ))}
         </div>
