@@ -243,6 +243,9 @@ export function DateRangePicker({
                     backgroundImage: endpointBackground,
                     color: isEndpoint || isBetween ? "var(--color-secondary-dark)" : isDark ? "var(--color-surface-text)" : undefined,
                     borderRadius: radius,
+                    ...(minDate && {
+                      "&:disabled": { opacity: 0.45 },
+                    }),
                     ...(isDark && {
                       "&.MuiPickerDay-today": {
                         outlineColor: isEndpoint || isBetween ? "var(--color-secondary-dark)" : "var(--color-primary-light)",
